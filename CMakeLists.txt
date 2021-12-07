@@ -1,6 +1,5 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.15)
 project(hybrid_astar)
-
 
 ## C++11
 include(CheckCXXCompilerFlag)
@@ -14,12 +13,25 @@ else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
+set(CMAKE_BUILD_TYPE "Debug")
+
 find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
     tf
+    steering_functions
     )
+find_package(PythonLibs REQUIRED)
+FIND_PACKAGE(Glog REQUIRED)
+FIND_PACKAGE(Gflags)
+find_package(Python COMPONENTS Interpreter Development NumPy)
+if (${Python_FOUND})
+  include_directories(${Python_INCLUDE_DIRS})
+  include_directories(${Python_NumPy_INCLUDE_DIRS})
+else()
+  message(FATAL_ERROR "Python3 not found, please install it.")
+endif()
 
 set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/algorithm.cpp
@@ -33,6 +45,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dubins.cpp #Andrew Walker
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dynamicvoronoi.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bucketedqueue.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/path_evaluator.cpp
     )
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/algorithm.h
@@ -52,10 +65,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/dynamicvoronoi.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/include/bucketedqueue.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/include/point.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
-
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/path_evaluator.h
     )
-add_library(HYAS ${SOURCES} ${HEADERS})
-
+add_library(HYAS ${SOURCES} ${HEADERS} )
 ## Declare a catkin package
 catkin_package()
 
@@ -66,16 +78,43 @@ if(NOT OMPL_FOUND)
     message(AUTHOR_WARNING,"Open Motion Planning Library not found")
 endif(NOT OMPL_FOUND)
 
-include_directories(include ${catkin_INCLUDE_DIRS})
-include_directories(include ${OMPL_INCLUDE_DIRS})
-include_directories(include include)
+
+include_directories(
+    include 
+    ${catkin_INCLUDE_DIRS} 
+    ${OMPL_INCLUDE_DIRS}
+    ${GLOG_INCLUDE_DIRS}
+    ${GFLAGS_INCLUDE_DIRS}
+    ) 
+
 
 add_executable(tf_broadcaster src/tf_broadcaster.cpp)
 target_link_libraries(tf_broadcaster ${catkin_LIBRARIES})
+# guard against in-source builds
+if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
+    message(FATAL_ERROR "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there. You may need to remove CMakeCache.txt. ")
+endif()
 
 add_executable(hybrid_astar src/main.cpp ${HEADERS} ${SOURCES})
-target_link_libraries(hybrid_astar ${catkin_LIBRARIES})
-target_link_libraries(hybrid_astar ${OMPL_LIBRARIES})
+target_link_libraries(hybrid_astar
+${PYTHON_LIBRARIES}                    
+${catkin_LIBRARIES} 
+                    ${OMPL_LIBRARIES} 
+                    glog::glog 
+                        ${GFLAGS_LIBRARY} 
+                    ) 
+add_executable(node_path_evaluator 
+            src/node_path_evaluator.cpp 
+            ${SOURCES}
+            ${HEADERS}
+            )
+target_link_libraries(node_path_evaluator 
+                        ${PYTHON_LIBRARIES}
+                        ${catkin_LIBRARIES} 
+                        ${OMPL_LIBRARIES}
+                        glog::glog 
+                        ${GFLAGS_LIBRARY} 
+)
 
 install(TARGETS ${PROJECT_NAME} tf_broadcaster
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

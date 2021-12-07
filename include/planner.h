@@ -20,7 +20,7 @@
 #include "smoother.h"
 #include "visualize.h"
 #include "lookup.h"
-
+#include "path_evaluator.h"
 namespace HybridAStar {
 /*!
    \brief A class that creates the interface for the hybrid A* algorithm.
@@ -103,6 +103,7 @@ class Planner {
   Constants::config collisionLookup[Constants::headings * Constants::positions];
   /// A lookup of analytical solutions (Dubin's paths)
   float* dubinsLookup = new float [Constants::headings * Constants::headings * Constants::dubinsWidth * Constants::dubinsWidth];
+  PathEvaluator::PathEvaluator path_evaluator_;
 };
 }
 #endif // PLANNER_H
