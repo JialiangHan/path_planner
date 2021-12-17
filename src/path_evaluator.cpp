@@ -11,7 +11,8 @@
 #include "path_evaluator.h"
 #include <cmath>
 #include "matplotlibcpp.h"
-
+#include "utility.h"
+#include <algorithm>
 namespace PathEvaluator
 {
     int PathEvaluator::CalculateCurvature(const std::vector<HybridAStar::Node3D> &path, const std::string &topic_name)
@@ -24,7 +25,7 @@ namespace PathEvaluator
 
         std::vector<float> curvature_vec;
         float curvature;
-        DLOG(INFO) << "In CalculateCurvature: " << topic_name << " path size is :" << path.size();
+        // DLOG(INFO) << "In CalculateCurvature: " << topic_name << " path size is :" << path.size();
 
         // use three points to calculate curvature;
         for (uint i = 0; i < path.size() - 2; ++i)
@@ -62,7 +63,7 @@ namespace PathEvaluator
             //curvature = abs(delta_angle)/abs(delta_distance)
             curvature = delta_angle/delta_distance;
             curvature_vec.emplace_back(curvature);
-            DLOG(INFO) << "In CalculateCurvature:" << i << "th curvature is:" << curvature;
+            // DLOG(INFO) << "In CalculateCurvature:" << i << "th curvature is:" << curvature;
             // if (std::isnan(curvature))
             // {
             //     if (std::isnan(delta_distance) || delta_distance == 0)
@@ -138,27 +139,71 @@ namespace PathEvaluator
         }
         return 1;
     }
-
-    void PathEvaluator::CallbackPath(const nav_msgs::PathConstPtr path, const std::string &topic_name)
+    int PathEvaluator::CalculateClearance(const std::vector<HybridAStar::Node3D> &path, const std::string &topic_name)
     {
-        std::vector<HybridAStar::Node3D> node_3d_vec;
-        ConvertRosPathToVectorNode3D(path, node_3d_vec);
-        CalculateCurvature(node_3d_vec, topic_name);
-        CalculateSmoothness(node_3d_vec, topic_name);
+        if (path.size() < 1)
+        {
+            DLOG(INFO) << "In CalculateClearance: path does not have enough points!!!";
+            return 0;
+        }
+        // for clearance, node2d is enough, here clearance is the distance for current point to nearest obstacle.
+        // todo: maybe in future, we can change that to distance from vehicle to nearest obstacle.
+        std::vector<float> clearance_vec;
+        float clearance = INFINITY;
+        int map_width = map_->info.width;
+        int map_height = map_->info.height;
+        for (const auto &node_3d : path)
+        {
+            //naive algorithm, time complexity is n^2.
+            for (int index = 0; index < map_height * map_width; ++index)
+            {
+                if (map_->data[index])
+                {
+                    HybridAStar::Node2D obstacle_2d = HybridAStar::Utility::ConvertIndexToNode2D(index, map_width);
+                    float distance = HybridAStar::Utility::GetDistanceFromNode2DToNode3D(obstacle_2d, node_3d);
+                    if (distance < clearance)
+                    {
+                        clearance = distance;
+                    }
+                    DLOG(INFO) << "In CalculateClearance: current index: " << index << " converted x: " << obstacle_2d.getX() << " converted y: " << obstacle_2d.getY() << " current path location x is: " << node_3d.getX() << " y:" << node_3d.getY() << " distance is: " << distance << " clearance is: " << clearance;
+                }
+            }
+            // //find its nearest obstacle
+            // HybridAStar::Node2D node_2d = HybridAStar::Helper::ConvertNode3DToNode2D(node_3d);
+            // node_2d.setIdx(map_width);
+            // //find its neighbor in a defined range;
+
+            clearance_vec.emplace_back(clearance);
+            clearance = INFINITY;
+        }
+
+        if (clearance_map_.count(topic_name) > 0)
+        {
+            clearance_map_.at(topic_name).clear();
+            clearance_map_.at(topic_name) = clearance_vec;
+            DLOG(INFO) << "In CalculateClearance:" << topic_name << " is already in clearance map, clear vector and put new curvature into vector.";
+        }
+        else
+        {
+            clearance_map_.insert({topic_name, clearance_vec});
+            DLOG(INFO) << "In CalculateClearance:" << topic_name << " is not in the clearance map, insert into the map.";
+        }
+        return 1;
+    }
+    void PathEvaluator::CallbackSetMap(const nav_msgs::OccupancyGrid::ConstPtr &map)
+    {
+        map_ = map;
     }
 
-    void PathEvaluator::ConvertRosPathToVectorNode3D(const nav_msgs::PathConstPtr path, std::vector<HybridAStar::Node3D> &node_3d_vec)
+    void PathEvaluator::CallbackPath(const nav_msgs::Path::ConstPtr &path, const std::string &topic_name)
     {
-        node_3d_vec.clear();
-        for (uint i = 0; i < path->poses.size(); ++i)
-        {
-            HybridAStar::Node3D point;
-            point.setX(path->poses[i].pose.position.x);
-            point.setY(path->poses[i].pose.position.y);
-            //not sure this is correct;
-            point.setT(path->poses[i].pose.position.z);
-            node_3d_vec.emplace_back(point);
-        }
+        std::vector<HybridAStar::Node3D> node_3d_vec;
+        HybridAStar::Utility::ConvertRosPathToVectorNode3D(path, node_3d_vec);
+        //reverse path since path is from goal to start.
+        std::reverse(node_3d_vec.begin(), node_3d_vec.end());
+        CalculateCurvature(node_3d_vec, topic_name);
+        CalculateSmoothness(node_3d_vec, topic_name);
+        CalculateClearance(node_3d_vec, topic_name);
     }
 
     void PathEvaluator::Plot()
@@ -205,7 +250,14 @@ namespace PathEvaluator
         matplotlibcpp::subplot(2, 2, 3);
         for (const auto &clearance_vec : clearance_map_)
         {
-            matplotlibcpp::plot(clearance_vec.second, {{"label", clearance_vec.first}});
+            if (clearance_vec.first == "/path")
+            {
+                matplotlibcpp::plot(clearance_vec.second, {{"label", "raw path"}});
+            }
+            else
+            {
+                matplotlibcpp::plot(clearance_vec.second, {{"label", "smoothed path"}});
+            }
             matplotlibcpp::legend();
             // DLOG(INFO) << "Plot clearance for topic: " << clearance_vec.first;
         }

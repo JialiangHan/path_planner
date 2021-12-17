@@ -1,20 +1,23 @@
 /*!
    \file
    \brief This is a collection of helper functions that are used throughout the project.
-
+    include some type conversion function
 */
 #ifndef HELPER
 #define HELPER
 
 #include <cmath>
 #include <algorithm>
-
+#include <nav_msgs/Path.h>
 #include "constants.h"
+
 namespace HybridAStar {
 /*!
     \brief The namespace that wraps helper.h
     \namespace Helper
 */
+class Node2D;
+class Node3D;
 namespace Helper {
 
 /*!
@@ -75,8 +78,7 @@ static inline float toRad(float t) {
 */
 static inline float clamp(float n, float lower, float upper) {
   return std::max(lower, std::min(n, upper));
-}
-
+};
 }
 }
 

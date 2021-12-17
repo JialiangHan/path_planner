@@ -31,7 +31,7 @@ class Smoother {
   void smoothPath(DynamicVoronoi& voronoi);
 
   /*!
-     \brief Given a node pointer the path to the root node will be traced recursively
+     \brief Given a node pointer the path to the root node will be traced recursively, output path is from goal to start.
      \param node a 3D node, usually the goal node
      \param i a parameter for counting the number of nodes
   */
