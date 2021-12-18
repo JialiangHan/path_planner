@@ -158,10 +158,10 @@ void Node3D::updateG() {
 ////      // goal
 ////      double q1[] = { goal.x, goal.y, goal.t};
 ////      DubinsPath dubinsPath;
-////      dubins_init(q0, q1, Constants::r, &dubinsPath);
+////      dubins_init(q0, q1, Constants::min_turning_radius, &dubinsPath);
 ////      dubinsCost = dubins_path_length(&dubinsPath);
 
-//      ompl::base::DubinsStateSpace dubinsPath(Constants::r);
+//      ompl::base::DubinsStateSpace dubinsPath(Constants::min_turning_radius);
 //      State* dbStart = (State*)dubinsPath.allocState();
 //      State* dbEnd = (State*)dubinsPath.allocState();
 //      dbStart->setXY(x, y);
@@ -173,7 +173,7 @@ void Node3D::updateG() {
 
 //  // if reversing is active use a
 //  if (Constants::reverse && !Constants::dubins) {
-//    ompl::base::ReedsSheppStateSpace reedsSheppPath(Constants::r);
+//    ompl::base::ReedsSheppStateSpace reedsSheppPath(Constants::min_turning_radius);
 //    State* rsStart = (State*)reedsSheppPath.allocState();
 //    State* rsEnd = (State*)reedsSheppPath.allocState();
 //    rsStart->setXY(x, y);
@@ -236,7 +236,6 @@ void Node3D::updateG() {
 //  return true;
 //}
 
-
 ////###################################################
 ////                                        DUBINS SHOT
 ////###################################################
@@ -248,7 +247,7 @@ void Node3D::updateG() {
 //  // initialize the path
 //  DubinsPath path;
 //  // calculate the path
-//  dubins_init(q0, q1, Constants::r, &path);
+//  dubins_init(q0, q1, Constants::min_turning_radius, &path);
 
 //  int i = 0;
 //  float x = 0.f;

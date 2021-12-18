@@ -46,7 +46,7 @@ inline void dubinsLookup(float* lookup) {
           goal[2] = Constants::deltaHeadingRad * h1;
 
           // calculate the actual cost
-          dubins_init(start, goal, Constants::r, &path);
+          dubins_init(start, goal, Constants::min_turning_radius, &path);
           lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] = dubins_path_length(&path);
 
           if (DEBUG && lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] < sqrt(X * X + Y * Y) * 1.000001) {

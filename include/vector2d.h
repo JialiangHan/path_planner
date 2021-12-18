@@ -44,8 +44,8 @@ class Vector2D {
     c = a - b * a.dot(b) / b.sqlength();
     return c;
   }
-  inline float getX() { return x; }
-  inline float getY() { return y; }
+  inline float getX() const { return x; }
+  inline float getY() const { return y; }
   //  void setT(float t) { this->t = t; }
   //  float getT() { return t; }
  private:

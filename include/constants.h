@@ -64,7 +64,7 @@ static const double width = 1.75 + 2 * bloating;
 /// [m] --- The length of the vehicle
 static const double length = 2.65 + 2 * bloating;
 /// [m] --- The minimum turning radius of the vehicle
-static const float r = 6;
+static const float min_turning_radius = 6;
 /// [m] --- The number of discretizations in heading
 static const int headings = 72;
 /// [°] --- The discretization value of the heading (goal condition)
@@ -143,7 +143,7 @@ struct config {
 // SMOOTHER SPECIFIC
 /// [m] --- The minimum width of a safe road for the vehicle at hand
 static const float minRoadWidth = 2;
-
+static const float MaxDistanceVoronoi = 1.5;
 // ____________________________________________
 // COLOR DEFINITIONS FOR VISUALIZATION PURPOSES
 /// A structure to express colors in RGB values

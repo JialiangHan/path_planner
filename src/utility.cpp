@@ -42,5 +42,13 @@ namespace HybridAStar
             distance = sqrt(delta_x * delta_x + delta_y * delta_y);
             return distance;
         }
+
+        INTPOINT ConvertVector2DToIntPoint(const Vector2D &xi)
+        {
+            INTPOINT out;
+            out.x = (int)xi.getX();
+            out.y = (int)xi.getY();
+            return out;
+        }
     }
 }

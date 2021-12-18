@@ -10,6 +10,8 @@
 #include <nav_msgs/Path.h>
 #include "node2d.h"
 #include "node3d.h"
+#include "point.h"
+#include "vector2d.h"
 namespace HybridAStar
 {
     /*!
@@ -31,6 +33,8 @@ namespace HybridAStar
         Node2D ConvertIndexToNode2D(const int &index, const int &map_width);
 
         float GetDistanceFromNode2DToNode3D(const Node2D &obstacle_2d, const Node3D &node_3d);
+
+        INTPOINT ConvertVector2DToIntPoint(const Vector2D &xi);
     }
 }
 

@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <limits.h>
 #include <queue>
-
+#include <unordered_map>
 #include "bucketedqueue.h"
-
+#include "vector2d.h"
 namespace HybridAStar {
 //! A DynamicVoronoi object computes and updates a distance map and Voronoi diagram.
 class DynamicVoronoi {
@@ -28,7 +28,7 @@ class DynamicVoronoi {
   //! remove an obstacle at the specified cell coordinate
   void clearCell(int x, int y);
   //! remove old dynamic obstacles and add the new ones
-  void exchangeObstacles(const std::vector<IntPoint> &newObstacles);
+  void exchangeObstacles(const std::vector<INTPOINT> &newObstacles);
 
   //! update distance map and Voronoi diagram to reflect the changes
   void update(bool updateRealDist = true);
@@ -39,16 +39,22 @@ class DynamicVoronoi {
   float getDistance(int x, int y) const;
   //! returns whether the specified cell is part of the (pruned) Voronoi graph
   bool isVoronoi(int x, int y) const;
-  //! checks whether the specficied location is occupied
+  //! checks whether the specified location is occupied
   bool isOccupied(int x, int y) const;
   //! write the current distance map and voronoi diagram as ppm file
   void visualize(const char* filename = "result.ppm");
 
   //! returns the horizontal size of the workspace/map
-  unsigned int getSizeX() const {return sizeX;}
+  unsigned int getSizeX() const { return sizeX; };
   //! returns the vertical size of the workspace/map
-  unsigned int getSizeY() const {return sizeY;}
+  unsigned int getSizeY() const { return sizeY; };
 
+  INTPOINT GetClosestVoronoiEdgePoint(Vector2D point, double &closest_dis);
+
+  void CollectVoronoiEdgePoints();
+
+  std::string ComputeIndex(const INTPOINT &pi);
+  std::string ComputeIndex(const Vector2D &pd);
   // was private, changed to public for obstX, obstY
  public:
   struct dataCell {
@@ -99,6 +105,9 @@ class DynamicVoronoi {
   double doubleThreshold;
 
   double sqrt2;
+
+  std::vector<INTPOINT> edge_points_;
+  std::unordered_map<std::string, std::pair<INTPOINT, float>> closest_edge_points_;
 
   //  dataCell** getData(){ return data; }
 };

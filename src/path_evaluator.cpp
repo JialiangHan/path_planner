@@ -2,8 +2,8 @@
  * @file path_evaluator.cpp
  * @author Jialiang Han
  * @brief this file is to evaluate path from planner, using metrics: curvature, smoothness,....maybe more.
- * @version 0.1
- * @date 2021-12-07
+ * @version 0.2
+ * @date 2021-12-17
  * 
  * @copyright Copyright (c) 2021
  * 
@@ -87,12 +87,12 @@ namespace PathEvaluator
         {
             curvature_map_.at(topic_name).clear();
             curvature_map_.at(topic_name) = curvature_vec;
-            DLOG(INFO) << "In CalculateCurvature: " << topic_name << " is already in curvature map, clear vector and put new curvature into vector.";
+            // DLOG(INFO) << "In CalculateCurvature: " << topic_name << " is already in curvature map, clear vector and put new curvature into vector.";
         }
         else
         {
             curvature_map_.insert({topic_name, curvature_vec});
-            DLOG(INFO) << "In CalculateCurvature: " << topic_name << " is not in the curvature map, insert into the map.";
+            // DLOG(INFO) << "In CalculateCurvature: " << topic_name << " is not in the curvature map, insert into the map.";
         }
         return 1;
     }
@@ -130,12 +130,12 @@ namespace PathEvaluator
         {
             smoothness_map_.at(topic_name).clear();
             smoothness_map_.at(topic_name) = smoothness_vec;
-            DLOG(INFO) << "In CalculateSmoothness:" << topic_name << " is already in smoothness map, clear vector and put new curvature into vector.";
+            // DLOG(INFO) << "In CalculateSmoothness:" << topic_name << " is already in smoothness map, clear vector and put new curvature into vector.";
         }
         else
         {
             smoothness_map_.insert({topic_name, smoothness_vec});
-            DLOG(INFO) << "In CalculateSmoothness:" << topic_name << " is not in the smoothness map, insert into the map.";
+            // DLOG(INFO) << "In CalculateSmoothness:" << topic_name << " is not in the smoothness map, insert into the map.";
         }
         return 1;
     }
@@ -165,7 +165,7 @@ namespace PathEvaluator
                     {
                         clearance = distance;
                     }
-                    DLOG(INFO) << "In CalculateClearance: current index: " << index << " converted x: " << obstacle_2d.getX() << " converted y: " << obstacle_2d.getY() << " current path location x is: " << node_3d.getX() << " y:" << node_3d.getY() << " distance is: " << distance << " clearance is: " << clearance;
+                    // DLOG(INFO) << "In CalculateClearance: current index: " << index << " converted x: " << obstacle_2d.getX() << " converted y: " << obstacle_2d.getY() << " current path location x is: " << node_3d.getX() << " y:" << node_3d.getY() << " distance is: " << distance << " clearance is: " << clearance;
                 }
             }
             // //find its nearest obstacle
@@ -181,12 +181,12 @@ namespace PathEvaluator
         {
             clearance_map_.at(topic_name).clear();
             clearance_map_.at(topic_name) = clearance_vec;
-            DLOG(INFO) << "In CalculateClearance:" << topic_name << " is already in clearance map, clear vector and put new curvature into vector.";
+            // DLOG(INFO) << "In CalculateClearance:" << topic_name << " is already in clearance map, clear vector and put new curvature into vector.";
         }
         else
         {
             clearance_map_.insert({topic_name, clearance_vec});
-            DLOG(INFO) << "In CalculateClearance:" << topic_name << " is not in the clearance map, insert into the map.";
+            // DLOG(INFO) << "In CalculateClearance:" << topic_name << " is not in the clearance map, insert into the map.";
         }
         return 1;
     }
@@ -222,11 +222,12 @@ namespace PathEvaluator
                 matplotlibcpp::plot(curvature_vec.second, {{"label", "smoothed path"}});
             }
 
-            matplotlibcpp::legend();
+            matplotlibcpp::legend({{"loc", "upper right"}});
             // DLOG(INFO) << "Plot curvature for topic: " << curvature_vec.first;
         }
         matplotlibcpp::title("curvature");
         matplotlibcpp::ylabel("curvature");
+        matplotlibcpp::ylim(0, 1);
         matplotlibcpp::grid(true);
 
         matplotlibcpp::subplot(2, 2, 2);
@@ -240,11 +241,12 @@ namespace PathEvaluator
             {
                 matplotlibcpp::plot(smoothness_vec.second, {{"label", "smoothed path"}});
             }
-            matplotlibcpp::legend();
             // DLOG(INFO) << "Plot smoothness for topic: " << smoothness_vec.first;
+            matplotlibcpp::legend({{"loc", "upper right"}});
         }
         matplotlibcpp::title("smoothness");
         matplotlibcpp::ylabel("smoothness");
+        matplotlibcpp::ylim(0, 1);
         matplotlibcpp::grid(true);
 
         matplotlibcpp::subplot(2, 2, 3);
@@ -258,11 +260,12 @@ namespace PathEvaluator
             {
                 matplotlibcpp::plot(clearance_vec.second, {{"label", "smoothed path"}});
             }
-            matplotlibcpp::legend();
+            matplotlibcpp::legend({{"loc", "upper right"}});
             // DLOG(INFO) << "Plot clearance for topic: " << clearance_vec.first;
         }
         matplotlibcpp::title("clearance");
         matplotlibcpp::ylabel("clearance");
+        matplotlibcpp::ylim(0, 10);
         matplotlibcpp::grid(true);
 
         matplotlibcpp::pause(0.1);

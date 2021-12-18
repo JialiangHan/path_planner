@@ -401,10 +401,10 @@ void updateH(Node3D& start, const Node3D& goal, Node2D* nodes2D, float* dubinsLo
     //      // goal
     //      double q1[] = { goal.getX(), goal.getY(), goal.getT()};
     //      DubinsPath dubinsPath;
-    //      dubins_init(q0, q1, Constants::r, &dubinsPath);
+    //      dubins_init(q0, q1, Constants::min_turning_radius, &dubinsPath);
     //      dubinsCost = dubins_path_length(&dubinsPath);
 
-    ompl::base::DubinsStateSpace dubinsPath(Constants::r);
+    ompl::base::DubinsStateSpace dubinsPath(Constants::min_turning_radius);
     State* dbStart = (State*)dubinsPath.allocState();
     State* dbEnd = (State*)dubinsPath.allocState();
     dbStart->setXY(start.getX(), start.getY());
@@ -415,9 +415,10 @@ void updateH(Node3D& start, const Node3D& goal, Node2D* nodes2D, float* dubinsLo
   }
 
   // if reversing is active use a
-  if (Constants::reverse && !Constants::dubins) {
+  if (Constants::reverse && !Constants::dubins)
+  {
     //    ros::Time t0 = ros::Time::now();
-    ompl::base::ReedsSheppStateSpace reedsSheppPath(Constants::r);
+    ompl::base::ReedsSheppStateSpace reedsSheppPath(Constants::min_turning_radius);
     State* rsStart = (State*)reedsSheppPath.allocState();
     State* rsEnd = (State*)reedsSheppPath.allocState();
     rsStart->setXY(start.getX(), start.getY());
@@ -468,7 +469,7 @@ Node3D* dubinsShot(Node3D& start, const Node3D& goal, CollisionDetection& config
   // initialize the path
   DubinsPath path;
   // calculate the path
-  dubins_init(q0, q1, Constants::r, &path);
+  dubins_init(q0, q1, Constants::min_turning_radius, &path);
 
   int i = 0;
   float x = 0.f;

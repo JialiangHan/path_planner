@@ -9,6 +9,8 @@ DynamicVoronoi::DynamicVoronoi() {
   sqrt2 = sqrt(2.0);
   data = NULL;
   gridMap = NULL;
+  edge_points_.clear();
+  closest_edge_points_.clear();
 }
 
 DynamicVoronoi::~DynamicVoronoi() {
@@ -542,4 +544,60 @@ DynamicVoronoi::markerMatchResult DynamicVoronoi::markerMatch(int x, int y) {
   }
 
   return pruned;
+}
+
+void DynamicVoronoi::CollectVoronoiEdgePoints()
+{
+  if (!edge_points_.empty())
+  {
+    edge_points_.clear();
+    closest_edge_points_.clear();
+  }
+  for (int y = sizeY - 1; y >= 0; y--)
+  {
+    for (int x = 0; x < sizeX; x++)
+    {
+      if (isVoronoi(x, y))
+      { //on the edge of Voronoi diagram
+        edge_points_.emplace_back(x, y);
+        closest_edge_points_.emplace(ComputeIndex(INTPOINT(x, y)), std::make_pair(INTPOINT(x, y), 0));
+      }
+    }
+  }
+}
+
+INTPOINT DynamicVoronoi::GetClosestVoronoiEdgePoint(Vector2D xi, double &closest_dis)
+{
+  INTPOINT closest_pt;
+  auto iter = closest_edge_points_.find(ComputeIndex(xi));
+  if (closest_edge_points_.find(ComputeIndex(xi)) != closest_edge_points_.end())
+  {
+    closest_pt = (*iter).second.first;
+    closest_dis = (*iter).second.second;
+    return closest_pt;
+  }
+
+  int closest_dis_sq = INT_MAX;
+  for (const auto &pt : edge_points_)
+  {
+    int tmp_sq = pow((int)(xi.getX() - pt.x), 2) + pow((int)(xi.getY() - pt.y), 2);
+    if (tmp_sq < closest_dis_sq)
+    {
+      closest_dis_sq = tmp_sq;
+      closest_pt = pt;
+    }
+  }
+  closest_dis = sqrt(static_cast<double>(closest_dis_sq));
+  closest_edge_points_.emplace(ComputeIndex(xi), std::make_pair(closest_pt, closest_dis));
+  return closest_pt;
+}
+
+std::string DynamicVoronoi::ComputeIndex(const INTPOINT &pi)
+{
+  return std::to_string(pi.x) + "_" + std::to_string(pi.y);
+}
+
+std::string DynamicVoronoi::ComputeIndex(const Vector2D &pd)
+{
+  return std::to_string((int)pd.getX()) + "_" + std::to_string((int)pd.getY());
 }
