@@ -91,7 +91,7 @@ class Node3D {
   bool isOnGrid(const int width, const int height) const;
 
   // SUCCESSOR CREATION
-  /// Creates a successor in the continous space.
+  /// Creates a successor in the continuous space.
   Node3D* createSuccessor(const int i);
 
   // CONSTANT VALUES

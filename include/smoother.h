@@ -10,7 +10,8 @@
 #include "helper.h"
 #include "constants.h"
 #include "utility.h"
-namespace HybridAStar {
+namespace HybridAStar
+{
    /*!
    \brief This class takes a path object and smooths the nodes of the path.
 
@@ -40,56 +41,69 @@ namespace HybridAStar {
       void tracePath(const Node3D *node, int i = 0, std::vector<Node3D> path = std::vector<Node3D>());
 
       /// returns the path of the smoother object
-      const std::vector<Node3D> &getPath() { return path; }
+      const std::vector<Node3D> &getPath() { return path_; }
 
       /// obstacleCost - pushes the path away from obstacles
       Vector2D obstacleTerm(Vector2D xi);
 
       /// curvatureCost - forces a maximum curvature of 1/R along the path ensuring drivability
-      Vector2D curvatureTerm(Vector2D xi0, Vector2D xi1, Vector2D xi2);
+      Vector2D curvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2);
 
       /// smoothnessCost - attempts to spread nodes equidistantly and with the same orientation
       Vector2D smoothnessTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2);
 
-      /// voronoiCost - trade off between path length and closeness to obstaclesg
+      /// voronoiCost - trade off between path length and closeness to obstacles
       Vector2D voronoiTerm(Vector2D xi);
+
+      // cost for path length, in order to minimize path length
+      Vector2D PathLengthTerm(Vector2D xim1, Vector2D xi, Vector2D xip1);
 
       /// a boolean test, whether vector is on the grid or not
       bool isOnGrid(Vector2D vec)
       {
-         if (vec.getX() >= 0 && vec.getX() < width &&
-             vec.getY() >= 0 && vec.getY() < height)
+         if (vec.getX() >= 0 && vec.getX() < map_width_ &&
+             vec.getY() >= 0 && vec.getY() < map_height_)
          {
             return true;
          }
          return false;
-      }
+      };
+      /**
+       * @brief main purpose is to remove some duplicates
+       * 
+       * @return int 
+       */
+      int PreprocessPath();
 
    private:
       /// maximum possible curvature of the non-holonomic vehicle
-      float kappaMax = 1.f / (Constants::min_turning_radius * 1.1);
+      float kappa_max_ = 1.f / (Constants::min_turning_radius * 1.1);
       /// maximum distance to obstacles that is penalized
-      float obsDMax = Constants::minRoadWidth;
+      float obsd_max_ = Constants::minRoadWidth;
       /// maximum distance for obstacles to influence the voronoi field
-      float vorObsDMax = Constants::MaxDistanceVoronoi;
+      float vor_obs_dmax_ = Constants::MaxDistanceVoronoi;
       /// falloff rate for the voronoi field
       float alpha_ = 0.1;
       /// weight for the obstacle term
-      float wObstacle = 0.0;
+      float weight_obstacle_ = 2.0;
       /// weight for the voronoi term
-      float wVoronoi = 0.0;
+      float weight_voronoi_ = 1.0;
       /// weight for the curvature term
-      float wCurvature = 1;
+      float weight_curvature_ = 0.0;
       /// weight for the smoothness term
-      float wSmoothness = 0;
+      float weight_smoothness_ = 1.0;
+      //weight for path length
+      float weight_length_ = 1.0;
       /// voronoi diagram describing the topology of the map
       DynamicVoronoi voronoi_;
       /// width of the map
-      int width;
-      /// height of the map
-      int height;
+      int map_width_;
+      /// map_height_ of the map
+      int map_height_;
       /// path to be smoothed
-      std::vector<Node3D> path;
+      std::vector<Node3D> path_;
+      ///path after preprocessed.
+      std::vector<Node3D> preprocessed_path_;
    };
 }
 #endif // SMOOTHER_H

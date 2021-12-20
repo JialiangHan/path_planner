@@ -19,7 +19,7 @@ namespace PathEvaluator
     {
         if (path.size() < 3)
         {
-            DLOG(INFO) << "In CalculateCurvature: path does not have enough points!!!";
+            DLOG(WARNING) << "In CalculateCurvature: path does not have enough points!!!";
             return 0;
         }
 
@@ -38,7 +38,7 @@ namespace PathEvaluator
             HybridAStar::Vector2D xs(path[i + 2].getX(), path[i + 2].getY());
             if (xp == xi || xi == xs)
             {
-                DLOG(INFO) << "In CalculateCurvature: some points are equal, skip these points for curvature calculation!!";
+                DLOG(WARNING) << "In CalculateCurvature: some points are equal, skip these points for curvature calculation!!";
                 continue;
             }
             // DLOG(INFO) << "xs x is :" << xs.getX() << "y is: " << xs.getY();
@@ -64,23 +64,24 @@ namespace PathEvaluator
             curvature = delta_angle/delta_distance;
             curvature_vec.emplace_back(curvature);
             // DLOG(INFO) << "In CalculateCurvature:" << i << "th curvature is:" << curvature;
-            // if (std::isnan(curvature))
-            // {
-            //     if (std::isnan(delta_distance) || delta_distance == 0)
-            //     {
-            //         DLOG(INFO) << "delta_distance is:" << delta_distance;
-            //         DLOG(INFO) << "succ_vector x is :" << succ_vector.getX() << "y is: " << succ_vector.getY();
-            //         DLOG(INFO) << "xp x is :" << xp.getX() << "y is: " << xp.getY();
-            //         DLOG(INFO) << "xi x is :" << xi.getX() << "y is: " << xi.getY();
-            //     }
-            //     else if (std::isnan(delta_angle))
-            //     {
-            //         DLOG(INFO) << "inside std::Cos is: " << temp;
-            //         DLOG(INFO) << "pre_vector_length is: " << pre_vector_length;
-            //         DLOG(INFO) << "xs x is :" << xs.getX() << "y is: " << xs.getY();
-            //         DLOG(INFO) << "pre_vector x is :" << pre_vector.getX() << "y is: " << pre_vector.getY();
-            //     }
-            // }
+            if (std::isnan(curvature))
+            {
+                DLOG(WARNING) << " curvature is NAN!!!";
+                if (std::isnan(delta_distance) || delta_distance == 0)
+                {
+                    DLOG(INFO) << "delta_distance is:" << delta_distance;
+                    DLOG(INFO) << "succ_vector x is :" << succ_vector.getX() << "y is: " << succ_vector.getY();
+                    DLOG(INFO) << "xp x is :" << xp.getX() << "y is: " << xp.getY();
+                    DLOG(INFO) << "xi x is :" << xi.getX() << "y is: " << xi.getY();
+                }
+                else if (std::isnan(delta_angle))
+                {
+                    DLOG(INFO) << "inside std::Cos is: " << temp;
+                    DLOG(INFO) << "pre_vector_length is: " << pre_vector_length;
+                    DLOG(INFO) << "xs x is :" << xs.getX() << "y is: " << xs.getY();
+                    DLOG(INFO) << "pre_vector x is :" << pre_vector.getX() << "y is: " << pre_vector.getY();
+                }
+            }
             // DLOG(INFO) << " in curvature_vec is:" << curvature_vec.back();
         }
         if (curvature_map_.count(topic_name) > 0)
@@ -101,7 +102,7 @@ namespace PathEvaluator
     {
         if (path.size() < 3)
         {
-            DLOG(INFO) << "In CalculateSmoothness: path does not have enough points!!!";
+            DLOG(WARNING) << "In CalculateSmoothness: path does not have enough points!!!";
             return 0;
         }
         // smoothness = (deltax(i+1)-delta(xi))^2
@@ -116,7 +117,7 @@ namespace PathEvaluator
             HybridAStar::Vector2D xs(path[i + 2].getX(), path[i + 2].getY());
             if (xp == xi || xi == xs)
             {
-                DLOG(INFO) << "In CalculateSmoothness: some points are equal, skip these points for curvature calculation!!";
+                DLOG(WARNING) << "In CalculateSmoothness: some points are equal, skip these points for curvature calculation!!";
                 continue;
             }
             //get two vector between these three nodes
@@ -143,7 +144,7 @@ namespace PathEvaluator
     {
         if (path.size() < 1)
         {
-            DLOG(INFO) << "In CalculateClearance: path does not have enough points!!!";
+            DLOG(WARNING) << "In CalculateClearance: path does not have enough points!!!";
             return 0;
         }
         // for clearance, node2d is enough, here clearance is the distance for current point to nearest obstacle.

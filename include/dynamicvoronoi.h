@@ -28,7 +28,7 @@ class DynamicVoronoi {
   //! remove an obstacle at the specified cell coordinate
   void clearCell(int x, int y);
   //! remove old dynamic obstacles and add the new ones
-  void exchangeObstacles(const std::vector<INTPOINT> &newObstacles);
+  void exchangeObstacles(const std::vector<INTPOINT> &neweight_obstacle_s);
 
   //! update distance map and Voronoi diagram to reflect the changes
   void update(bool updateRealDist = true);

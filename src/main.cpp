@@ -44,6 +44,12 @@ void message(const T& msg, T1 val = T1()) {
 */
 int main(int argc, char** argv) {
 
+  google::InitGoogleLogging(argv[0]);
+
+  google::ParseCommandLineFlags(&argc, &argv, true);
+
+  google::InstallFailureSignalHandler();
+
   message<string, int>("Hybrid A* Search\nA pathfinding algorithm on grids, by Karl Kurzer");
 
   message("cell size: ", HybridAStar::Constants::cellSize);
