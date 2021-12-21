@@ -6,50 +6,52 @@ using namespace HybridAStar;
 //###################################################
 Planner::Planner() {
   // _____
-  // TODOS
-  //    initializeLookups();
-  // Lookup::collisionLookup(collisionLookup);
+  //    InitializeLookups();
+  // Lookup::collisionLookup(collision_lookup_table);
   // ___________________
   // COLLISION DETECTION
-  //    CollisionDetection configurationSpace;
+  //    CollisionDetection configuration_space_;
   // _________________
   // TOPICS TO PUBLISH
-  pubStart = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/start", 1);
+  pub_start_ = nh_.advertise<geometry_msgs::PoseStamped>("/move_base_simple/start", 1);
 
   // ___________________
   // TOPICS TO SUBSCRIBE
   if (Constants::manual) {
-    subMap = n.subscribe("/map", 1, &Planner::setMap, this);
+    sub_map_ = nh_.subscribe("/map", 1, &Planner::SetMap, this);
   } else {
-    subMap = n.subscribe("/occ_map", 1, &Planner::setMap, this);
+    sub_map_ = nh_.subscribe("/occ_map", 1, &Planner::SetMap, this);
   }
 
-  subGoal = n.subscribe("/move_base_simple/goal", 1, &Planner::setGoal, this);
-  subStart = n.subscribe("/initialpose", 1, &Planner::setStart, this);
+  sub_goal_ = nh_.subscribe("/move_base_simple/goal", 1, &Planner::SetGoal, this);
+  sub_start_ = nh_.subscribe("/initialpose", 1, &Planner::SetStart, this);
+  smoother_ptr_.reset(new Smoother(nh_));
 };
 
 //###################################################
 //                                       LOOKUPTABLES
 //###################################################
-void Planner::initializeLookups() {
+void Planner::InitializeLookups()
+{
   if (Constants::dubinsLookup) {
-    Lookup::dubinsLookup(dubinsLookup);
+    Lookup::dubinsLookup(dubins_lookup_table);
   }
 
-  Lookup::collisionLookup(collisionLookup);
+  Lookup::collisionLookup(collision_lookup_table);
 }
 
 //###################################################
 //                                                MAP
 //###################################################
-void Planner::setMap(const nav_msgs::OccupancyGrid::Ptr map) {
+void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
+{
   if (Constants::coutDEBUG) {
     std::cout << "I am seeing the map..." << std::endl;
   }
 
-  grid = map;
+  grid_ = map;
   //update the configuration space with the current map
-  configurationSpace.updateGrid(map);
+  configuration_space_.updateGrid(map);
   //create array for Voronoi diagram
 //  ros::Time t0 = ros::Time::now();
   int height = map->info.height;
@@ -65,39 +67,44 @@ void Planner::setMap(const nav_msgs::OccupancyGrid::Ptr map) {
     }
   }
 
-  voronoiDiagram.initializeMap(width, height, binMap);
-  voronoiDiagram.update();
-  voronoiDiagram.visualize();
-//  ros::Time t1 = ros::Time::now();
-//  ros::Duration d(t1 - t0);
-//  std::cout << "created Voronoi Diagram in ms: " << d * 1000 << std::endl;
+  voronoi_diagram_.initializeMap(width, height, binMap);
+  voronoi_diagram_.update();
+  voronoi_diagram_.visualize();
+  //  ros::Time t1 = ros::Time::now();
+  //  ros::Duration d(t1 - t0);
+  //  std::cout << "created Voronoi Diagram in ms: " << d * 1000 << std::endl;
 
   // plan if the switch is not set to manual and a transform is available
-  if (!Constants::manual && listener.canTransform("/map", ros::Time(0), "/base_link", ros::Time(0), "/map", nullptr)) {
+  if (!Constants::manual && listener_.canTransform("/map", ros::Time(0), "/base_link", ros::Time(0), "/map", nullptr))
+  {
 
-    listener.lookupTransform("/map", "/base_link", ros::Time(0), transform);
+    listener_.lookupTransform("/map", "/base_link", ros::Time(0), transform_);
 
     // assign the values to start from base_link
-    start.pose.pose.position.x = transform.getOrigin().x();
-    start.pose.pose.position.y = transform.getOrigin().y();
-    tf::quaternionTFToMsg(transform.getRotation(), start.pose.pose.orientation);
+    start_.pose.pose.position.x = transform_.getOrigin().x();
+    start_.pose.pose.position.y = transform_.getOrigin().y();
+    tf::quaternionTFToMsg(transform_.getRotation(), start_.pose.pose.orientation);
 
-    if (grid->info.height >= start.pose.pose.position.y && start.pose.pose.position.y >= 0 &&
-        grid->info.width >= start.pose.pose.position.x && start.pose.pose.position.x >= 0) {
+    if (grid_->info.height >= start_.pose.pose.position.y && start_.pose.pose.position.y >= 0 &&
+        grid_->info.width >= start_.pose.pose.position.x && start_.pose.pose.position.x >= 0)
+    {
       // set the start as valid and plan
-      validStart = true;
-    } else  {
-      validStart = false;
+      valid_start_ = true;
+    }
+    else
+    {
+      valid_start_ = false;
     }
 
-    plan();
+    MakePlan();
   }
 }
 
 //###################################################
 //                                   INITIALIZE START
 //###################################################
-void Planner::setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& initial) {
+void Planner::SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &initial)
+{
   float x = initial->pose.pose.position.x / Constants::cellSize;
   float y = initial->pose.pose.position.y / Constants::cellSize;
   float t = tf::getYaw(initial->pose.pose.orientation);
@@ -110,15 +117,21 @@ void Planner::setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&
 
   std::cout << "I am seeing a new start x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
 
-  if (grid->info.height >= y && y >= 0 && grid->info.width >= x && x >= 0) {
-    validStart = true;
-    start = *initial;
+  if (grid_->info.height >= y && y >= 0 && grid_->info.width >= x && x >= 0)
+  {
+    valid_start_ = true;
+    start_ = *initial;
 
-    if (Constants::manual) { plan();}
+    if (Constants::manual)
+    {
+      MakePlan();
+    }
 
     // publish start for RViz
-    pubStart.publish(startN);
-  } else {
+    pub_start_.publish(startN);
+  }
+  else
+  {
     std::cout << "invalid start x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
   }
 }
@@ -126,7 +139,8 @@ void Planner::setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr&
 //###################################################
 //                                    INITIALIZE GOAL
 //###################################################
-void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end) {
+void Planner::SetGoal(const geometry_msgs::PoseStamped::ConstPtr &end)
+{
   // retrieving goal position
   float x = end->pose.position.x / Constants::cellSize;
   float y = end->pose.position.y / Constants::cellSize;
@@ -134,13 +148,18 @@ void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end) {
 
   std::cout << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
 
-  if (grid->info.height >= y && y >= 0 && grid->info.width >= x && x >= 0) {
-    validGoal = true;
-    goal = *end;
+  if (grid_->info.height >= y && y >= 0 && grid_->info.width >= x && x >= 0)
+  {
+    valid_goal_ = true;
+    goal_ = *end;
 
-    if (Constants::manual) { plan();}
-
-  } else {
+    if (Constants::manual)
+    {
+      MakePlan();
+    }
+  }
+  else
+  {
     std::cout << "invalid goal x:" << x << " y:" << y << " t:" << Helper::toDeg(t) << std::endl;
   }
 }
@@ -148,14 +167,16 @@ void Planner::setGoal(const geometry_msgs::PoseStamped::ConstPtr& end) {
 //###################################################
 //                                      PLAN THE PATH
 //###################################################
-void Planner::plan() {
+void Planner::MakePlan()
+{
   // if a start as well as goal are defined go ahead and plan
-  if (validStart && validGoal) {
+  if (valid_start_ && valid_goal_)
+  {
 
     // ___________________________
     // LISTS ALLOWCATED ROW MAJOR ORDER
-    int width = grid->info.width;
-    int height = grid->info.height;
+    int width = grid_->info.width;
+    int height = grid_->info.height;
     int depth = Constants::headings;
     int length = width * height * depth;
     // define list pointers and initialize lists
@@ -164,9 +185,9 @@ void Planner::plan() {
 
     // ________________________
     // retrieving goal position
-    float x = goal.pose.position.x / Constants::cellSize;
-    float y = goal.pose.position.y / Constants::cellSize;
-    float t = tf::getYaw(goal.pose.orientation);
+    float x = goal_.pose.position.x / Constants::cellSize;
+    float y = goal_.pose.position.y / Constants::cellSize;
+    float t = tf::getYaw(goal_.pose.orientation);
     // set theta to a value (0,2PI]
     t = Helper::normalizeHeadingRad(t);
     const Node3D nGoal(x, y, t, 0, 0, nullptr);
@@ -177,9 +198,9 @@ void Planner::plan() {
 
     // _________________________
     // retrieving start position
-    x = start.pose.pose.position.x / Constants::cellSize;
-    y = start.pose.pose.position.y / Constants::cellSize;
-    t = tf::getYaw(start.pose.pose.orientation);
+    x = start_.pose.pose.position.x / Constants::cellSize;
+    y = start_.pose.pose.position.y / Constants::cellSize;
+    t = tf::getYaw(start_.pose.pose.orientation);
     // set theta to a value (0,2PI]
     t = Helper::normalizeHeadingRad(t);
     Node3D nStart(x, y, t, 0, 0, nullptr);
@@ -193,43 +214,40 @@ void Planner::plan() {
     ros::Time t0 = ros::Time::now();
 
     // CLEAR THE VISUALIZATION
-    visualization.clear();
+    visualization_.clear();
     // CLEAR THE PATH
-    path.clear();
-    smoothedPath.clear();
+    path_.clear();
+    smoothed_path_.clear();
     // FIND THE PATH
-    Node3D* nSolution = Algorithm::hybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configurationSpace, dubinsLookup, visualization);
+    Node3D *nSolution = Algorithm::hybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_, dubins_lookup_table, visualization_);
     // TRACE THE PATH
-    smoother.tracePath(nSolution);
+    smoother_ptr_->TracePath(nSolution);
     // CREATE THE UPDATED PATH
-    path.updatePath(smoother.getPath());
+    path_.updatePath(smoother_ptr_->GetPath());
     // SMOOTH THE PATH
-    smoother.smoothPath(voronoiDiagram);
+    smoother_ptr_->SmoothPath(voronoi_diagram_);
     // CREATE THE UPDATED PATH
-    smoothedPath.updatePath(smoother.getPath());
+    smoothed_path_.updatePath(smoother_ptr_->GetPath());
     ros::Time t1 = ros::Time::now();
     ros::Duration d(t1 - t0);
     std::cout << "TIME in ms: " << d * 1000 << std::endl;
-    // path_evaluator_.CalculateCurvature(smoother.getPath());
-    // path_evaluator_.Plot();
 
     // _________________________________
     // PUBLISH THE RESULTS OF THE SEARCH
-    path.publishPath();
-    path.publishPathNodes();
-    path.publishPathVehicles();
-    smoothedPath.publishPath();
-    smoothedPath.publishPathNodes();
-    smoothedPath.publishPathVehicles();
-    visualization.publishNode3DCosts(nodes3D, width, height, depth);
-    visualization.publishNode2DCosts(nodes2D, width, height);
-
-
+    path_.publishPath();
+    path_.publishPathNodes();
+    path_.publishPathVehicles();
+    smoothed_path_.publishPath();
+    smoothed_path_.publishPathNodes();
+    smoothed_path_.publishPathVehicles();
+    visualization_.publishNode3DCosts(nodes3D, width, height, depth);
+    visualization_.publishNode2DCosts(nodes2D, width, height);
 
     delete [] nodes3D;
     delete [] nodes2D;
-
-  } else {
+  }
+  else
+  {
     std::cout << "missing goal or start" << std::endl;
   }
 }

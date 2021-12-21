@@ -2,8 +2,10 @@
  <!-- Turn on hybrid_astar node -->
 	<arg name="deploy_dir" default="/home/jialiang/Code/thesis_ws/src/path_planner"/>
 
-	<node name="hybrid_astar" pkg="hybrid_astar" type="hybrid_astar" args="--log_dir $(arg deploy_dir)/log --minloglevel 0 --max_log_size 100 --alsologtostderr" launch-prefix="xterm -e gdb -ex run --args "/> 
-
+	<node name="hybrid_astar" pkg="hybrid_astar" type="hybrid_astar" args="--log_dir $(arg deploy_dir)/log --minloglevel 0 --max_log_size 100 --alsologtostderr" launch-prefix="xterm -e gdb -ex run --args ">
+		<rosparam command="load" file="$(find hybrid_astar)/param/smoother_parameters.yaml" /> 
+	</node>
+	
 	<node name="tf_broadcaster" pkg="hybrid_astar" type="tf_broadcaster" />
 
 	<node name="map_server" pkg="map_server" type="map_server" args="$(find hybrid_astar)/maps/map.yaml" />

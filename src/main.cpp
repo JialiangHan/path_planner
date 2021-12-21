@@ -50,20 +50,10 @@ int main(int argc, char** argv) {
 
   google::InstallFailureSignalHandler();
 
-  message<string, int>("Hybrid A* Search\nA pathfinding algorithm on grids, by Karl Kurzer");
-
-  message("cell size: ", HybridAStar::Constants::cellSize);
-
-  if (HybridAStar::Constants::manual) {
-    message("mode: ", "manual");
-  } else {
-    message("mode: ", "auto");
-  }
-
   ros::init(argc, argv, "a_star");
 
   HybridAStar::Planner hy;
-  hy.plan(); 
+  hy.MakePlan();
 
   ros::spin();
   return 0;

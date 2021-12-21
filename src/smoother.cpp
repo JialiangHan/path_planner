@@ -17,35 +17,36 @@ inline bool isCusp(const std::vector<Node3D>& path, int i) {
 //###################################################
 //                                SMOOTHING ALGORITHM
 //###################################################
-void Smoother::smoothPath(DynamicVoronoi& voronoi) {
+void Smoother::SmoothPath(DynamicVoronoi &voronoi)
+{
   // load the current voronoi diagram into the smoother
   this->voronoi_ = voronoi;
   this->map_width_ = voronoi.getSizeX();
   this->map_height_ = voronoi.getSizeY();
   // current number of iterations of the gradient descent smoother
   int iterations = 0;
-  // the maximum iterations for the gd smoother
-  int maxIterations = 1000;
 
+  // remove duplicate points
   PreprocessPath();
+
   // path objects with all nodes oldPath the original, smoothed_path the resulting smoothed path
   std::vector<Node3D> smoothed_path = preprocessed_path_;
-
+  std::vector<Node3D> path_before_smooth = preprocessed_path_;
   // descent along the gradient until the maximum number of iterations has been reached
   float totalWeight = weight_smoothness_ + weight_curvature_ + weight_voronoi_ + weight_obstacle_ + weight_length_;
   DLOG(INFO) << "preprocessed path size is: " << preprocessed_path_.size();
-  while (iterations < maxIterations)
+  while (iterations < max_iterations_)
   {
     DLOG(INFO) << iterations << " starts!";
     // choose the first three nodes of the path
-    for (uint i = 2; i < smoothed_path.size() - 2; ++i)
+    for (uint i = 2; i < path_before_smooth.size() - 2; ++i)
     {
 
-      Vector2D xim2(smoothed_path[i - 2].getX(), smoothed_path[i - 2].getY());
-      Vector2D xim1(smoothed_path[i - 1].getX(), smoothed_path[i - 1].getY());
-      Vector2D xi(smoothed_path[i].getX(), smoothed_path[i].getY());
-      Vector2D xip1(smoothed_path[i + 1].getX(), smoothed_path[i + 1].getY());
-      Vector2D xip2(smoothed_path[i + 2].getX(), smoothed_path[i + 2].getY());
+      Vector2D xim2(path_before_smooth[i - 2].getX(), path_before_smooth[i - 2].getY());
+      Vector2D xim1(path_before_smooth[i - 1].getX(), path_before_smooth[i - 1].getY());
+      Vector2D xi(path_before_smooth[i].getX(), path_before_smooth[i].getY());
+      Vector2D xip1(path_before_smooth[i + 1].getX(), path_before_smooth[i + 1].getY());
+      Vector2D xip2(path_before_smooth[i + 2].getX(), path_before_smooth[i + 2].getY());
       Vector2D correction;
       // DLOG(INFO) << "xim2: " << xim2.getX() << " " << xim2.getY()
       //  << "xim1: " << xim1.getX() << " " << xim1.getY()
@@ -56,35 +57,35 @@ void Smoother::smoothPath(DynamicVoronoi& voronoi) {
       // the following points shall not be smoothed
       // keep these points fixed if they are a cusp point or adjacent to one
       DLOG(INFO) << i << "th node before correction: x: " << xi.getX() << " y: " << xi.getY();
-      if (isCusp(smoothed_path, i))
+      if (isCusp(path_before_smooth, i))
       {
         DLOG(INFO) << "node is cusp,skip it!";
         continue;
       }
 
       // ensure that it is on the grid
-      correction = correction - curvatureTerm(xim2, xim1, xi, xip1, xip2);
+      correction = correction - CurvatureTerm(xim2, xim1, xi, xip1, xip2);
       if (!isOnGrid(xi + correction))
       {
         DLOG(INFO) << "node after curvature correction is not on grid!!";
         continue;
       }
       // ensure that it is on the grid
-      correction = correction - obstacleTerm(xi);
+      correction = correction - ObstacleTerm(xi);
       if (!isOnGrid(xi + correction))
       {
         DLOG(INFO) << "node after curvature and obstacle correction is not on grid!!";
         continue;
       }
 
-      correction = correction - voronoiTerm(xi);
+      correction = correction - VoronoiTerm(xi);
       if (!isOnGrid(xi + correction))
       {
         DLOG(INFO) << "node after curvature, obstacles and voronoi correction is not on grid!!";
         continue;
       }
       // ensure that it is on the grid
-      correction = correction - smoothnessTerm(xim2, xim1, xi, xip1, xip2);
+      correction = correction - SmoothnessTerm(xim2, xim1, xi, xip1, xip2);
       if (!isOnGrid(xi + correction))
       {
         DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
@@ -109,6 +110,16 @@ void Smoother::smoothPath(DynamicVoronoi& voronoi) {
       DLOG(INFO) << i << "th node after correction: x: " << xi.getX() << " y: " << xi.getY();
     }
 
+    //add termination for while loop
+    if (GetPathDiff(smoothed_path, path_before_smooth) < epsilon_)
+    {
+      DLOG(INFO) << "path diff before and after is too small!!";
+      break;
+    }
+    else
+    {
+      path_before_smooth = smoothed_path;
+    }
     iterations++;
   }
 
@@ -119,7 +130,7 @@ void Smoother::smoothPath(DynamicVoronoi& voronoi) {
   }
 }
 
-void Smoother::tracePath(const Node3D *node, int i, std::vector<Node3D> path)
+void Smoother::TracePath(const Node3D *node, int i, std::vector<Node3D> path)
 {
   if (node == nullptr)
   {
@@ -129,13 +140,13 @@ void Smoother::tracePath(const Node3D *node, int i, std::vector<Node3D> path)
 
   i++;
   path.push_back(*node);
-  tracePath(node->getPred(), i, path);
+  TracePath(node->getPred(), i, path);
 }
 
 //###################################################
 //                                      OBSTACLE TERM
 //###################################################
-Vector2D Smoother::obstacleTerm(Vector2D xi)
+Vector2D Smoother::ObstacleTerm(Vector2D xi)
 {
   Vector2D gradient;
   // the distance to the closest obstacle from the current node
@@ -161,7 +172,7 @@ Vector2D Smoother::obstacleTerm(Vector2D xi)
 //###################################################
 //                                       VORONOI TERM
 //###################################################
-Vector2D Smoother::voronoiTerm(Vector2D xi)
+Vector2D Smoother::VoronoiTerm(Vector2D xi)
 {
   Vector2D gradient;
 
@@ -175,7 +186,6 @@ Vector2D Smoother::voronoiTerm(Vector2D xi)
   // the vector determining where the voronoi edge is
   Vector2D edgVct(xi.getX() - closest_edge_pt.x, xi.getY() - closest_edge_pt.y);
   //calculate the distance to the closest obstacle from the current node
-  //obsDist =  voronoiDiagram.getDistance(node->getX(),node->getY())
 
   if (obsDst < vor_obs_dmax_ && obsDst > 1e-6)
   {
@@ -203,7 +213,7 @@ Vector2D Smoother::voronoiTerm(Vector2D xi)
 //###################################################
 //                                     CURVATURE TERM
 //###################################################
-Vector2D Smoother::curvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2)
+Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2)
 {
   //use curvature square as cost function for curvature term
   Vector2D gradient;
@@ -301,7 +311,7 @@ Vector2D Smoother::curvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
 //###################################################
 //                                    SMOOTHNESS TERM
 //###################################################
-Vector2D Smoother::smoothnessTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2)
+Vector2D Smoother::SmoothnessTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2)
 {
   //this is correct, see https://zhuanlan.zhihu.com/p/118666410
   return weight_smoothness_ * (xim2 - 4 * xim1 + 6 * xi - 4 * xip1 + xip2);
@@ -327,4 +337,40 @@ int Smoother::PreprocessPath()
     preprocessed_path_.emplace_back(path_[index]);
   }
   return 1;
+}
+float Smoother::GetPathDiff(const std::vector<Node3D> &path_before_smooth, const std::vector<Node3D> &path_after_smooth)
+{
+  if (path_before_smooth.size() != path_after_smooth.size())
+  {
+    DLOG(WARNING) << "two path size are not equal!!!";
+    return INFINITY;
+  }
+  else
+  {
+    float diff = 0.0;
+    for (uint i = 0; i < path_after_smooth.size(); ++i)
+    {
+      Vector2D xi_before(path_before_smooth[i].getX(), path_before_smooth[i].getY());
+      Vector2D xi_after(path_after_smooth[i].getX(), path_after_smooth[i].getY());
+      diff += (xi_after - xi_before).length();
+    }
+    diff = diff / path_after_smooth.size();
+    DLOG(INFO) << "path diff is : " << diff;
+    return diff;
+  }
+}
+
+void Smoother::SetSmootherParams(std::shared_ptr<ParameterContainer> param_ptr)
+{
+  max_iterations_ = param_ptr->max_iterations;
+  epsilon_ = param_ptr->epsilon;
+  kappa_max_ = 1 / (param_ptr->min_turning_radius * 1.1);
+  obsd_max_ = param_ptr->obsd_max;
+  vor_obs_dmax_ = param_ptr->vor_obs_dmax;
+  alpha_ = param_ptr->alpha;
+  weight_obstacle_ = param_ptr->weight_obstacle;
+  weight_voronoi_ = param_ptr->weight_voronoi;
+  weight_curvature_ = param_ptr->weight_curvature;
+  weight_smoothness_ = param_ptr->weight_smoothness;
+  weight_length_ = param_ptr->weight_length;
 }

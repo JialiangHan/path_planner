@@ -37,73 +37,73 @@ class Planner {
      \brief Initializes the collision as well as heuristic lookup table
      \todo probably removed
   */
-  void initializeLookups();
+  void InitializeLookups();
 
   /*!
      \brief Sets the map e.g. through a callback from a subscriber listening to map updates.
      \param map the map or occupancy grid
   */
-  void setMap(const nav_msgs::OccupancyGrid::Ptr map);
+  void SetMap(const nav_msgs::OccupancyGrid::Ptr map);
 
   /*!
-     \brief setStart
+     \brief SetStart
      \param start the start pose
   */
-  void setStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& start);
+  void SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &start);
 
   /*!
-     \brief setGoal
+     \brief SetGoal
      \param goal the goal pose
   */
-  void setGoal(const geometry_msgs::PoseStamped::ConstPtr& goal);
+  void SetGoal(const geometry_msgs::PoseStamped::ConstPtr &goal);
 
   /*!
      \brief The central function entry point making the necessary preparations to start the planning.
   */
-  void plan();
+  void MakePlan();
 
- private:
+  private:
   /// The node handle
-  ros::NodeHandle n;
-  /// A publisher publishing the start position for RViz
-  ros::Publisher pubStart;
-  /// A subscriber for receiving map updates
-  ros::Subscriber subMap;
-  /// A subscriber for receiving goal updates
-  ros::Subscriber subGoal;
-  /// A subscriber for receiving start updates
-  ros::Subscriber subStart;
-  /// A listener that awaits transforms
-  tf::TransformListener listener;
-  /// A transform for moving start positions
-  tf::StampedTransform transform;
-  /// The path produced by the hybrid A* algorithm
-  Path path;
-  /// The smoother used for optimizing the path
-  Smoother smoother;
-  /// The path smoothed and ready for the controller
-  Path smoothedPath = Path(true);
-  /// The visualization used for search visualization
-  Visualize visualization;
-  /// The collission detection for testing specific configurations
-  CollisionDetection configurationSpace;
-  /// The voronoi diagram
-  DynamicVoronoi voronoiDiagram;
-  /// A pointer to the grid the planner runs on
-  nav_msgs::OccupancyGrid::Ptr grid;
-  /// The start pose set through RViz
-  geometry_msgs::PoseWithCovarianceStamped start;
-  /// The goal pose set through RViz
-  geometry_msgs::PoseStamped goal;
-  /// Flags for allowing the planner to plan
-  bool validStart = false;
-  /// Flags for allowing the planner to plan
-  bool validGoal = false;
-  /// A lookup table for configurations of the vehicle and their spatial occupancy enumeration
-  Constants::config collisionLookup[Constants::headings * Constants::positions];
-  /// A lookup of analytical solutions (Dubin's paths)
-  float* dubinsLookup = new float [Constants::headings * Constants::headings * Constants::dubinsWidth * Constants::dubinsWidth];
-  PathEvaluator::PathEvaluator path_evaluator_;
+     ros::NodeHandle nh_;
+     /// A publisher publishing the start position for RViz
+     ros::Publisher pub_start_;
+     /// A subscriber for receiving map updates
+     ros::Subscriber sub_map_;
+     /// A subscriber for receiving goal updates
+     ros::Subscriber sub_goal_;
+     /// A subscriber for receiving start updates
+     ros::Subscriber sub_start_;
+     /// A listener that awaits transforms
+     tf::TransformListener listener_;
+     /// A transform for moving start positions
+     tf::StampedTransform transform_;
+     /// The path produced by the hybrid A* algorithm
+     Path path_;
+     /// The smoother used for optimizing the path
+     std::shared_ptr<Smoother> smoother_ptr_;
+     /// The path smoothed and ready for the controller
+     Path smoothed_path_ = Path(true);
+     /// The visualization used for search visualization
+     Visualize visualization_;
+     /// The collission detection for testing specific configurations
+     CollisionDetection configuration_space_;
+     /// The voronoi diagram
+     DynamicVoronoi voronoi_diagram_;
+     /// A pointer to the grid_ the planner runs on
+     nav_msgs::OccupancyGrid::Ptr grid_;
+     /// The start pose set through RViz
+     geometry_msgs::PoseWithCovarianceStamped start_;
+     /// The goal pose set through RViz
+     geometry_msgs::PoseStamped goal_;
+     /// Flags for allowing the planner to plan
+     bool valid_start_ = false;
+     /// Flags for allowing the planner to plan
+     bool valid_goal_ = false;
+     /// A lookup table for configurations of the vehicle and their spatial occupancy enumeration
+     Constants::config collision_lookup_table[Constants::headings * Constants::positions];
+     /// A lookup of analytical solutions (Dubin's paths)
+     float *dubins_lookup_table = new float[Constants::headings * Constants::headings * Constants::dubinsWidth * Constants::dubinsWidth];
+     PathEvaluator::PathEvaluator path_evaluator_;
 };
 }
 #endif // PLANNER_H

@@ -47,6 +47,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bucketedqueue.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/src/path_evaluator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utility.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/parameter_manager.cpp
     )
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/algorithm.h
@@ -68,6 +69,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/point.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/include/path_evaluator.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/utility.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/parameter_manager.h
     )
 add_library(HYAS ${SOURCES} ${HEADERS} )
 ## Declare a catkin package

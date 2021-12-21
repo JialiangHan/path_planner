@@ -24,7 +24,7 @@ void Path::clear() {
 ////###################################################
 //// __________
 //// TRACE PATH
-//void Path::tracePath(const Node3D* node, int i) {
+//void Path::TracePath(const Node3D* node, int i) {
 //  if (i == 0) {
 //    path.header.stamp = ros::Time::now();
 //  }
@@ -37,7 +37,7 @@ void Path::clear() {
 //  addVehicle(node, i);
 //  i++;
 
-//  tracePath(node->getPred(), i);
+//  TracePath(node->getPred(), i);
 //}
 
 //###################################################

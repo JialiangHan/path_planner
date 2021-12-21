@@ -10,6 +10,7 @@
 #include "helper.h"
 #include "constants.h"
 #include "utility.h"
+#include "parameter_manager.h"
 namespace HybridAStar
 {
    /*!
@@ -20,7 +21,12 @@ namespace HybridAStar
    class Smoother
    {
    public:
-      Smoother() {}
+      Smoother(const ros::NodeHandle &nh)
+      {
+         param_manager_.reset(new ParameterManager(nh));
+         param_manager_->LoadSmootherParams();
+         SetSmootherParams(param_manager_->GetAllParam());
+      }
 
       /*!
      \brief This function takes a path consisting of nodes and attempts to iteratively smooth the same using gradient descent.
@@ -31,29 +37,29 @@ namespace HybridAStar
      smoothnessCost
      voronoiCost
   */
-      void smoothPath(DynamicVoronoi &voronoi);
+      void SmoothPath(DynamicVoronoi &voronoi);
 
       /*!
      \brief Given a node pointer the path to the root node will be traced recursively, output path is from goal to start.
      \param node a 3D node, usually the goal node
      \param i a parameter for counting the number of nodes
   */
-      void tracePath(const Node3D *node, int i = 0, std::vector<Node3D> path = std::vector<Node3D>());
+      void TracePath(const Node3D *node, int i = 0, std::vector<Node3D> path = std::vector<Node3D>());
 
       /// returns the path of the smoother object
-      const std::vector<Node3D> &getPath() { return path_; }
+      const std::vector<Node3D> &GetPath() { return path_; }
 
       /// obstacleCost - pushes the path away from obstacles
-      Vector2D obstacleTerm(Vector2D xi);
+      Vector2D ObstacleTerm(Vector2D xi);
 
       /// curvatureCost - forces a maximum curvature of 1/R along the path ensuring drivability
-      Vector2D curvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2);
+      Vector2D CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2);
 
       /// smoothnessCost - attempts to spread nodes equidistantly and with the same orientation
-      Vector2D smoothnessTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2);
+      Vector2D SmoothnessTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2);
 
       /// voronoiCost - trade off between path length and closeness to obstacles
-      Vector2D voronoiTerm(Vector2D xi);
+      Vector2D VoronoiTerm(Vector2D xi);
 
       // cost for path length, in order to minimize path length
       Vector2D PathLengthTerm(Vector2D xim1, Vector2D xi, Vector2D xip1);
@@ -74,26 +80,39 @@ namespace HybridAStar
        * @return int 
        */
       int PreprocessPath();
+      /**
+       * @brief Get the Path Difference between two path, these two path must have the same size
+       * 
+       * @param path_before_smooth 
+       * @param path_after_smooth 
+       * @return float 
+       */
+      float GetPathDiff(const std::vector<Node3D> &path_before_smooth, const std::vector<Node3D> &path_after_smooth);
 
    private:
+      void SetSmootherParams(std::shared_ptr<ParameterContainer> param_ptr);
+      // the maximum iterations for the gd smoother
+      int max_iterations_;
+      // the small number which will terminate loop if path difference smaller than this number.
+      float epsilon_;
       /// maximum possible curvature of the non-holonomic vehicle
-      float kappa_max_ = 1.f / (Constants::min_turning_radius * 1.1);
+      float kappa_max_;
       /// maximum distance to obstacles that is penalized
-      float obsd_max_ = Constants::minRoadWidth;
+      float obsd_max_;
       /// maximum distance for obstacles to influence the voronoi field
-      float vor_obs_dmax_ = Constants::MaxDistanceVoronoi;
+      float vor_obs_dmax_;
       /// falloff rate for the voronoi field
-      float alpha_ = 0.1;
+      float alpha_;
       /// weight for the obstacle term
-      float weight_obstacle_ = 2.0;
+      float weight_obstacle_;
       /// weight for the voronoi term
-      float weight_voronoi_ = 1.0;
+      float weight_voronoi_;
       /// weight for the curvature term
-      float weight_curvature_ = 0.0;
+      float weight_curvature_;
       /// weight for the smoothness term
-      float weight_smoothness_ = 1.0;
+      float weight_smoothness_;
       //weight for path length
-      float weight_length_ = 1.0;
+      float weight_length_;
       /// voronoi diagram describing the topology of the map
       DynamicVoronoi voronoi_;
       /// width of the map
@@ -104,6 +123,8 @@ namespace HybridAStar
       std::vector<Node3D> path_;
       ///path after preprocessed.
       std::vector<Node3D> preprocessed_path_;
+
+      std::shared_ptr<ParameterManager> param_manager_;
    };
 }
 #endif // SMOOTHER_H
