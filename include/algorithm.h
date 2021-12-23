@@ -12,22 +12,25 @@ typedef ompl::base::SE2StateSpace::StateType State;
 #include "node2d.h"
 #include "visualize.h"
 #include "collisiondetection.h"
+#include "parameter_manager.h"
+namespace HybridAStar
+{
 
-namespace HybridAStar {
-class Node3D;
-class Node2D;
-class Visualize;
-
-/*!
+   /*!
  * \brief A class that encompasses the functions central to the search.
  */
-class Algorithm {
- public:
-  /// The deault constructor
-  Algorithm() {}
+   class Algorithm
+   {
+   public:
+      /// The deault constructor
+      Algorithm(){};
+      Algorithm(const ParameterAlgorithm &params)
+      {
+         params_ = params;
+      };
 
-  // HYBRID A* ALGORITHM
-  /*!
+      // HYBRID A* ALGORITHM
+      /*!
      \brief The heart of the planner, the main algorithm starting the search for a collision free and drivable path.
 
      \param start the start pose
@@ -41,16 +44,31 @@ class Algorithm {
      \param visualization the visualization object publishing the search to RViz
      \return the pointer to the node satisfying the goal condition
   */
-  static Node3D* hybridAStar(Node3D& start,
-                             const Node3D& goal,
-                             Node3D* nodes3D,
-                             Node2D* nodes2D,
-                             int width,
-                             int height,
-                             CollisionDetection& configurationSpace,
-                             float* dubinsLookup,
-                             Visualize& visualization);
+      Node3D *HybridAStar(Node3D &start,
+                          const Node3D &goal,
+                          Node3D *nodes3D,
+                          Node2D *nodes2D,
+                          int width,
+                          int height,
+                          CollisionDetection &configurationSpace,
+                          float *dubinsLookup,
+                          Visualize &visualization);
 
-};
+      float aStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, int height, CollisionDetection &configurationSpace, Visualize &visualization);
+      void UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D, float *dubinsLookup, int width, int height, CollisionDetection &configurationSpace, Visualize &visualization);
+      /**
+       * @brief analytical expansion in paper, here use dubins curve.
+       * 
+       * @param start 
+       * @param goal 
+       * @param configurationSpace 
+       * @return Node3D* 
+       */
+      //TODO need to rewrite this function: add a param for curve type: dubins, RS curves or CC curve
+      Node3D *AnalyticExpansions(Node3D &start, const Node3D &goal, CollisionDetection &configurationSpace);
+
+   private:
+      ParameterAlgorithm params_;
+   };
 }
 #endif // ALGORITHM_H

@@ -569,8 +569,9 @@ void DynamicVoronoi::CollectVoronoiEdgePoints()
 INTPOINT DynamicVoronoi::GetClosestVoronoiEdgePoint(Vector2D xi, double &closest_dis)
 {
   INTPOINT closest_pt;
-  auto iter = closest_edge_points_.find(ComputeIndex(xi));
-  if (closest_edge_points_.find(ComputeIndex(xi)) != closest_edge_points_.end())
+  std::string index = ComputeIndex(xi);
+  auto iter = closest_edge_points_.find(index);
+  if (closest_edge_points_.find(index) != closest_edge_points_.end())
   {
     closest_pt = (*iter).second.first;
     closest_dis = (*iter).second.second;

@@ -6,14 +6,13 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
 #include <visualization_msgs/MarkerArray.h>
-
+#include "parameter_manager.h"
 #include "gradient.h"
 
 #include "node3d.h"
 #include "node2d.h"
 namespace HybridAStar {
-class Node3D;
-class Node2D;
+
 /*!
    \brief A class for visualizing the hybrid A* search.
 
@@ -25,22 +24,25 @@ class Visualize {
   // ___________
   // CONSTRUCTOR
   /// The default constructor initializing the visualization object and setting publishers for the same.
-  Visualize() {
-    // _________________
-    // TOPICS TO PUBLISH
-    pubNode3D = n.advertise<geometry_msgs::PoseStamped>("/visualizeNodes3DPose", 100);
-    pubNodes3D = n.advertise<geometry_msgs::PoseArray>("/visualizeNodes3DPoses", 100);
-    pubNodes3Dreverse = n.advertise<geometry_msgs::PoseArray>("/visualizeNodes3DPosesReverse", 100);
-    pubNodes3DCosts = n.advertise<visualization_msgs::MarkerArray>("/visualizeNodes3DCosts", 100);
-    pubNode2D = n.advertise<geometry_msgs::PoseStamped>("/visualizeNodes2DPose", 100);
-    pubNodes2D = n.advertise<geometry_msgs::PoseArray>("/visualizeNodes2DPoses", 100);
-    pubNodes2DCosts = n.advertise<visualization_msgs::MarkerArray>("/visualizeNodes2DCosts", 100);
+   Visualize(){};
+   Visualize(const ParameterVisualize &params)
+   {
+     params_ = params;
+     // _________________
+     // TOPICS TO PUBLISH
+     pubNode3D = n.advertise<geometry_msgs::PoseStamped>("/visualizeNodes3DPose", 100);
+     pubNodes3D = n.advertise<geometry_msgs::PoseArray>("/visualizeNodes3DPoses", 100);
+     pubNodes3Dreverse = n.advertise<geometry_msgs::PoseArray>("/visualizeNodes3DPosesReverse", 100);
+     pubNodes3DCosts = n.advertise<visualization_msgs::MarkerArray>("/visualizeNodes3DCosts", 100);
+     pubNode2D = n.advertise<geometry_msgs::PoseStamped>("/visualizeNodes2DPose", 100);
+     pubNodes2D = n.advertise<geometry_msgs::PoseArray>("/visualizeNodes2DPoses", 100);
+     pubNodes2DCosts = n.advertise<visualization_msgs::MarkerArray>("/visualizeNodes2DCosts", 100);
 
-    // CONFIGURE THE CONTAINER
-    poses3D.header.frame_id = "path";
-    poses3Dreverse.header.frame_id = "path";
-    poses2D.header.frame_id = "path";
-  }
+     // CONFIGURE THE CONTAINER
+     poses3D.header.frame_id = "path";
+     poses3Dreverse.header.frame_id = "path";
+     poses2D.header.frame_id = "path";
+   }
 
   // CLEAR VISUALIZATION
   /// Clears the entire visualization
@@ -73,7 +75,7 @@ class Visualize {
   ros::Publisher pubNode3D;
   /// Publisher for an array of 3D forward nodes
   ros::Publisher pubNodes3D;
-  /// Publisher for an array of 3D reaward nodes
+  /// Publisher for an array of 3D backward nodes
   ros::Publisher pubNodes3Dreverse;
   /// Publisher for an array of 3D cost with color gradient
   ros::Publisher pubNodes3DCosts;
@@ -85,11 +87,11 @@ class Visualize {
   ros::Publisher pubNodes2DCosts;
   /// Array of poses describing forward nodes
   geometry_msgs::PoseArray poses3D;
-  /// Array of poses describing reaward nodes
+  /// Array of poses describing backward nodes
   geometry_msgs::PoseArray poses3Dreverse;
   /// Array of poses describing 2D heuristic nodes
   geometry_msgs::PoseArray poses2D;
-
+  ParameterVisualize params_;
 };
 }
 #endif // VISUALIZE_H

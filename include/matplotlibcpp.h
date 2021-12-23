@@ -553,7 +553,6 @@ namespace matplotlibcpp
         return res;
     }
 
-// TODO - it should be possible to make this work by implementing
 // a non-numpy alternative for `detail::get_2darray()`.
 #ifndef WITHOUT_NUMPY
     template <typename Numeric>

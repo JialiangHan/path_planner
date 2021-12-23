@@ -85,7 +85,7 @@ class Node3D {
   // RANGE CHECKING
   /// Determines whether it is appropriate to find a analytical solution.
   bool isInRange(const Node3D& goal) const;
-
+  bool IsCloseEnough(const Node3D &goal) const;
   // GRID CHECKING
   /// Validity check to test, whether the node is in the 3D array.
   bool isOnGrid(const int width, const int height) const;

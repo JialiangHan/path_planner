@@ -3,7 +3,8 @@
 
 #include "dubins.h"
 #include "constants.h"
-
+#include "glog/logging.h"
+#include "gflags/gflags.h"
 namespace HybridAStar {
 namespace Lookup {
 
@@ -12,7 +13,7 @@ namespace Lookup {
 //###################################################
 inline void dubinsLookup(float* lookup) {
   bool DEBUG = false;
-  std::cout << "I am building the Dubin's lookup table...";
+  DLOG(INFO) << "I am building the Dubin's lookup table...";
 
   DubinsPath path;
 
@@ -50,18 +51,17 @@ inline void dubinsLookup(float* lookup) {
           lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] = dubins_path_length(&path);
 
           if (DEBUG && lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] < sqrt(X * X + Y * Y) * 1.000001) {
-            std::cout << X << " | " << Y << " | "
-                      << Constants::deltaHeadingDeg* h0 << " | "
-                      << Constants::deltaHeadingDeg* h1 << " length: "
-                      << lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] << "\n";
-
+            DLOG(INFO) << X << " | " << Y << " | "
+                       << Constants::deltaHeadingDeg * h0 << " | "
+                       << Constants::deltaHeadingDeg * h1 << " length: "
+                       << lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] << "\n";
           }
         }
       }
     }
   }
 
-  std::cout << " done!" << std::endl;
+  DLOG(INFO) << " done!";
 }
 
 //###################################################
@@ -79,7 +79,7 @@ inline int sign(double x) {
 // COLLISION LOOKUP CREATION
 inline void collisionLookup(Constants::config* lookup) {
   bool DEBUG = false;
-  std::cout << "I am building the collision lookup table...";
+  DLOG(INFO) << "I am building the collision lookup table...";
   // cell size
   const float cSize = Constants::cellSize;
   // bounding box size length/width
@@ -163,7 +163,10 @@ inline void collisionLookup(Constants::config* lookup) {
     p[3].y = c.y - Constants::width / 2 / cSize;
 
     for (int o = 0; o < Constants::headings; ++o) {
-      if (DEBUG) { std::cout << "\ndegrees: " << theta * 180.f / M_PI << std::endl; }
+      if (DEBUG)
+      {
+        DLOG(INFO) << "\ndegrees: " << theta * 180.f / M_PI;
+      }
 
       // initialize cSpace
       for (int i = 0; i < size; ++i) {
@@ -200,7 +203,7 @@ inline void collisionLookup(Constants::config* lookup) {
         //set indexes
         X = (int)start.x;
         Y = (int)start.y;
-        //      std::cout << "StartCell: " << X << "," << Y << std::endl;
+        //      DLOG(INFO) << "StartCell: " << X << "," << Y ;
         cSpace[Y * size + X] = true;
         t.x = end.x - start.x;
         t.y = end.y - start.y;
@@ -254,7 +257,7 @@ inline void collisionLookup(Constants::config* lookup) {
             }
           } else {
             // this SHOULD NOT happen
-            std::cout << "\n--->tie occured, please check for error in script\n";
+            DLOG(INFO) << "\n--->tie occured, please check for error in script\n";
             break;
           }
         }
@@ -306,28 +309,28 @@ inline void collisionLookup(Constants::config* lookup) {
       if (DEBUG) {
         //DEBUG
         for (int i = 0; i < size; ++i) {
-          std::cout << "\n";
+          DLOG(INFO) << "\n";
 
           for (int j = 0; j < size; ++j) {
             if (cSpace[i * size + j]) {
-              std::cout << "#";
+              DLOG(INFO) << "#";
             } else {
-              std::cout << ".";
+              DLOG(INFO) << ".";
             }
           }
         }
 
         //TESTING
-        std::cout << "\n\nthe center of " << q* Constants::headings + o << " is at " << c.x << " | " << c.y << std::endl;
+        DLOG(INFO) << "\n\nthe center of " << q * Constants::headings + o << " is at " << c.x << " | " << c.y;
 
         for (int i = 0; i < lookup[q * Constants::headings + o].length; ++i) {
-          std::cout << "[" << i << "]\t" << lookup[q * Constants::headings + o].pos[i].x << " | " << lookup[q * Constants::headings + o].pos[i].y << std::endl;
+          DLOG(INFO) << "[" << i << "]\t" << lookup[q * Constants::headings + o].pos[i].x << " | " << lookup[q * Constants::headings + o].pos[i].y;
         }
       }
     }
   }
 
-  std::cout << " done!" << std::endl;
+  DLOG(INFO) << " done!";
 }
 
 }

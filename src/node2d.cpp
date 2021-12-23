@@ -18,7 +18,8 @@ bool Node2D::isOnGrid(const int width, const int height) const {
 //###################################################
 //                                   CREATE SUCCESSOR
 //###################################################
-Node2D* Node2D::createSuccessor(const int i) {
+Node2D *Node2D::createSuccessor(const int &i)
+{
   int xSucc = x + Node2D::dx[i];
   int ySucc = y + Node2D::dy[i];
   return new Node2D(xSucc, ySucc, g, 0, this);

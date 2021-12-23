@@ -2,34 +2,159 @@
 #define PARAMETER_MANAGER_H
 
 #include <ros/ros.h>
-
 namespace HybridAStar
 {
-  struct ParameterContainer
+  //this struct contains some used parameters in visualize class
+  struct ParameterVisualize
+  {
+    /// [m] --- The cell size of the 2D grid of the world,used in planner.cpp
+    float cell_size = 1;
+  };
+
+  //this struct contains some used parameters in algorithm class
+  struct ParameterAlgorithm
+  {
+    /// A flag to toggle reversing (true = on; false = off)
+    bool reverse = true;
+    /// A flag for the visualization of 3D nodes (true = on; false = off)
+    bool visualization = false;
+    // max iterations for smoother
+    int max_iterations = 10000;
+    /// A flag to toggle the connection of the path via Dubin's shot (true = on; false = off)
+    bool dubins_shot = true;
+    /*!
+  \brief [m] --- The tie breaker breaks ties between nodes expanded in the same cell
+
+  As the cost-so-far are bigger than the cost-to-come it is reasonbale to believe that the algorithm would prefer the predecessor rather than the successor.
+  This would lead to the fact that the successor would never be placed and the the one cell could only expand one node. The tieBreaker artificially increases the cost of the predecessor
+  to allow the successor being placed in the same cell.
+*/
+    float tie_breaker = 0.01;
+    /// A flag for the visualization of 2D nodes (true = on; false = off)
+    bool visualization2D = true;
+    /// A flag to toggle the Dubin's heuristic, this should be false, if reversing is enabled (true = on; false = off)
+    bool dubins = true;
+    /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
+    float dubins_step_size = 1;
+    /// maximum possible curvature of the non-holonomic vehicle
+    float min_turning_radius = 6;
+    /// A flag to toggle the 2D heuristic (true = on; false = off)
+    bool two_D = true;
+    /// [m] --- The number of discretizations in heading,used in planner.cpp
+    int headings = 72;
+    /// [m] --- The width of the dubinsArea / 2 for the analytical solution (Dubin's shot)
+    int dubins_width = 15;
+  };
+  //this struct contains some used parameters in path class
+  struct ParameterPath
+  {
+    /// [m] --- The cell size of the 2D grid of the world,used in planner.cpp
+    float cell_size = 1;
+    // #********************** vehicle parameters *****************
+
+    /// [m] --- Uniformly adds a padding around the vehicle
+    double bloating = 0;
+    /// [m] --- The width of the vehicle
+    double vehicle_width = 1.75;
+    /// [m] --- The length of the vehicle
+    double vehicle_length = 2.65;
+    struct color
+    {
+      /// the red portion of the color
+      float red;
+      /// the green portion of the color
+      float green;
+      /// the blue portion of the color
+      float blue;
+    };
+    /// A definition for a color used for visualization
+    color teal = {102.f / 255.f, 217.f / 255.f, 239.f / 255.f};
+    /// A definition for a color used for visualization
+    color green = {166.f / 255.f, 226.f / 255.f, 46.f / 255.f};
+    /// A definition for a color used for visualization
+    color orange = {253.f / 255.f, 151.f / 255.f, 31.f / 255.f};
+    /// A definition for a color used for visualization
+    color pink = {249.f / 255.f, 38.f / 255.f, 114.f / 255.f};
+    /// A definition for a color used for visualization
+    color purple = {174.f / 255.f, 129.f / 255.f, 255.f / 255.f};
+  };
+  //this struct contains some used parameter in planner.cpp
+  struct ParameterPlanner
+  {
+    /// A flag for the mode (true = manual; false = dynamic). Manual for  map or dynamic for dynamic map. used in planner.cpp
+    bool manual = true;
+    /*!
+   \var   bool dubinsLookup
+   \brief A flag to toggle the Dubin's heuristic via lookup, potentially speeding up the search by a lot
+   \todo not yet functional,used in planner.cpp
+*/
+    bool dubins_lookup = false;
+    /// [m] --- The cell size of the 2D grid of the world,used in planner.cpp
+    float cell_size = 1;
+    /// [m] --- The number of discretizations in heading,used in planner.cpp
+    int headings = 72;
+  };
+
+  struct ParameterSearch
+  {
+
+    // ___________________
+    // HEURISTIC CONSTANTS
+
+    /// [#] --- A factor to ensure admissibility of the holonomic with obstacles heuristic
+    float factor2D = 2.58;
+    /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
+    float penalty_turning = 1.05;
+    /// [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
+    float penalty_reversing = 1;
+    /// [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
+    float penalty_COD = 2;
+    /// [m] --- The distance to the goal when the analytical solution (Dubin's shot) first triggers
+    float dubins_shot_distance = 100;
+
+    // ______________________
+    // DUBINS LOOKUP SPECIFIC
+
+    // _________________________
+    // COLLISION LOOKUP SPECIFIC
+
+    /// [#] --- The sqrt of the number of discrete positions per cell
+    int position_resolution = 10;
+  };
+  struct ParameterSmoother
   {
     //****************************** smoother parameter************************************
     // max iterations for smoother
     int max_iterations = 10000;
     // the small number which will terminate loop if path difference smaller than this number.
-    float epsilon = 1e-3;
+    float epsilon = 1e-6;
     /// maximum possible curvature of the non-holonomic vehicle
     float min_turning_radius = 6;
     /// maximum distance to obstacles that is penalized
-    float obsd_max = 6;
+    float obsd_max = 4;
     /// maximum distance for obstacles to influence the voronoi field
     float vor_obs_dmax = 3;
     /// falloff rate for the voronoi field
     float alpha = 0.1;
     /// weight for the obstacle term
-    float weight_obstacle = 2.0;
+    float weight_obstacle = 0;
     /// weight for the voronoi term
-    float weight_voronoi = 2.0;
+    float weight_voronoi = 0;
     /// weight for the curvature term
-    float weight_curvature = 0.0;
+    float weight_curvature = 0;
     /// weight for the smoothness term
-    float weight_smoothness = 2.0;
+    float weight_smoothness = 0;
     //weight for path length
-    float weight_length = 0.5;
+    float weight_length = 0;
+  };
+  struct ParameterContainer
+  {
+    ParameterAlgorithm algorithm_params;
+    ParameterPath path_params;
+    ParameterSearch search_params;
+    ParameterSmoother smoother_params;
+    ParameterPlanner planner_params;
+    ParameterVisualize visualize_params;
   };
 
   class ParameterManager
@@ -47,21 +172,31 @@ namespace HybridAStar
     virtual ~ParameterManager() {}
 
     virtual void Initialization() {}
-
+    virtual void LoadParams();
+    virtual void LoadAlgorithmParams();
+    virtual void LoadPathParams();
+    virtual void LoadSearchParams();
     //load param for smoother
     virtual void LoadSmootherParams();
-
+    virtual void LoadPlannerParams();
+    virtual void LoadVisualizeParams();
     //load param by param name, member variable, param type
     template <typename T>
     void GetSingleParam(const std::string &param_name, T &param_data);
 
     //get the ptr of all param
-    std::shared_ptr<ParameterContainer> GetAllParam();
+    std::shared_ptr<ParameterContainer> GetAllParams();
+
+    ParameterSearch GetSearchParams();
+    ParameterSmoother GetSmootherParams();
+    ParameterPath GetPathParams();
+    ParameterPlanner GetPlannerParams();
+    ParameterAlgorithm GetAlgorithmParams();
+    ParameterVisualize GetVisualizeParams();
 
   private:
     std::shared_ptr<ParameterContainer> param_container_ptr_;
     ros::NodeHandle nh_;
   };
-
 }
 #endif //

@@ -33,101 +33,116 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
   std::vector<Node3D> smoothed_path = preprocessed_path_;
   std::vector<Node3D> path_before_smooth = preprocessed_path_;
   // descent along the gradient until the maximum number of iterations has been reached
-  float totalWeight = weight_smoothness_ + weight_curvature_ + weight_voronoi_ + weight_obstacle_ + weight_length_;
-  DLOG(INFO) << "preprocessed path size is: " << preprocessed_path_.size();
-  while (iterations < max_iterations_)
+  float total_weight = params_.weight_smoothness + params_.weight_curvature + params_.weight_voronoi + params_.weight_obstacle + params_.weight_length;
+  if (params_.weight_curvature < 0 ||
+      params_.weight_length < 0 ||
+      params_.weight_obstacle < 0 ||
+      params_.weight_smoothness < 0 ||
+      params_.weight_voronoi < 0)
   {
-    DLOG(INFO) << iterations << " starts!";
-    // choose the first three nodes of the path
-    for (uint i = 2; i < path_before_smooth.size() - 2; ++i)
+    DLOG(WARNING) << "one of weighting is smaller than 0!!";
+  }
+  else if (total_weight <= 0)
+  {
+    DLOG(WARNING) << "total weight is smaller or equal to 0!!!!";
+  }
+  else
+  {
+    DLOG(INFO) << "preprocessed path size is: " << preprocessed_path_.size();
+    while (iterations < params_.max_iterations)
     {
+      DLOG(INFO) << iterations << " starts!";
+      // choose the first three nodes of the path
+      for (uint i = 2; i < path_before_smooth.size() - 2; ++i)
+      {
 
-      Vector2D xim2(path_before_smooth[i - 2].getX(), path_before_smooth[i - 2].getY());
-      Vector2D xim1(path_before_smooth[i - 1].getX(), path_before_smooth[i - 1].getY());
-      Vector2D xi(path_before_smooth[i].getX(), path_before_smooth[i].getY());
-      Vector2D xip1(path_before_smooth[i + 1].getX(), path_before_smooth[i + 1].getY());
-      Vector2D xip2(path_before_smooth[i + 2].getX(), path_before_smooth[i + 2].getY());
-      Vector2D correction;
-      // DLOG(INFO) << "xim2: " << xim2.getX() << " " << xim2.getY()
-      //  << "xim1: " << xim1.getX() << " " << xim1.getY()
-      //  << "xi: " << xi.getX() << " " << xi.getY()
-      //  << "xip1:" << xip1.getX() << " " << xip1.getY()
-      //  << "xip2:" << xip2.getX() << " " << xip2.getY();
+        Vector2D xim2(path_before_smooth[i - 2].getX(), path_before_smooth[i - 2].getY());
+        Vector2D xim1(path_before_smooth[i - 1].getX(), path_before_smooth[i - 1].getY());
+        Vector2D xi(path_before_smooth[i].getX(), path_before_smooth[i].getY());
+        Vector2D xip1(path_before_smooth[i + 1].getX(), path_before_smooth[i + 1].getY());
+        Vector2D xip2(path_before_smooth[i + 2].getX(), path_before_smooth[i + 2].getY());
+        Vector2D correction;
+        // DLOG(INFO) << "xim2: " << xim2.getX() << " " << xim2.getY()
+        //  << "xim1: " << xim1.getX() << " " << xim1.getY()
+        //  << "xi: " << xi.getX() << " " << xi.getY()
+        //  << "xip1:" << xip1.getX() << " " << xip1.getY()
+        //  << "xip2:" << xip2.getX() << " " << xip2.getY();
 
-      // the following points shall not be smoothed
-      // keep these points fixed if they are a cusp point or adjacent to one
-      DLOG(INFO) << i << "th node before correction: x: " << xi.getX() << " y: " << xi.getY();
-      if (isCusp(path_before_smooth, i))
-      {
-        DLOG(INFO) << "node is cusp,skip it!";
-        continue;
+        // the following points shall not be smoothed
+        // keep these points fixed if they are a cusp point or adjacent to one
+        // DLOG(INFO) << i << "th node before correction: x: " << xi.getX() << " y: " << xi.getY();
+        if (isCusp(path_before_smooth, i))
+        {
+          DLOG(INFO) << "node is cusp,skip it!";
+          continue;
+        }
+
+        // ensure that it is on the grid
+        correction = correction - CurvatureTerm(xim2, xim1, xi, xip1, xip2);
+        if (!isOnGrid(xi + correction))
+        {
+          DLOG(INFO) << "node after curvature correction is not on grid!!";
+          continue;
+        }
+        // ensure that it is on the grid
+        correction = correction - ObstacleTerm(xi);
+        if (!isOnGrid(xi + correction))
+        {
+          DLOG(INFO) << "node after curvature and obstacle correction is not on grid!!";
+          continue;
+        }
+
+        correction = correction - VoronoiTerm(xi);
+        if (!isOnGrid(xi + correction))
+        {
+          DLOG(INFO) << "node after curvature, obstacles and voronoi correction is not on grid!!";
+          continue;
+        }
+        // ensure that it is on the grid
+        correction = correction - SmoothnessTerm(xim2, xim1, xi, xip1, xip2);
+        if (!isOnGrid(xi + correction))
+        {
+          DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
+          continue;
+        }
+        correction = correction - PathLengthTerm(xim1, xi, xip1);
+        if (!isOnGrid(xi + correction))
+        {
+          DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
+          continue;
+        }
+
+        xi = xi + params_.alpha * correction / total_weight;
+        if (correction.getX() == 0 && correction.getY() == 0)
+        {
+          DLOG(WARNING) << "correction is zero, no correction performed!!!";
+        }
+        smoothed_path[i].setX(xi.getX());
+        smoothed_path[i].setY(xi.getY());
+        Vector2D Dxi = xi - xim1;
+        smoothed_path[i - 1].setT(std::atan2(Dxi.getY(), Dxi.getX()));
+        // DLOG(INFO) << i << "th node after correction: x: " << xi.getX() << " y: " << xi.getY();
       }
 
-      // ensure that it is on the grid
-      correction = correction - CurvatureTerm(xim2, xim1, xi, xip1, xip2);
-      if (!isOnGrid(xi + correction))
+      //add termination for while loop
+      if (GetPathDiff(smoothed_path, path_before_smooth) < params_.epsilon)
       {
-        DLOG(INFO) << "node after curvature correction is not on grid!!";
-        continue;
+        DLOG(INFO) << "path diff before and after is too small, terminate while loop!!";
+        break;
       }
-      // ensure that it is on the grid
-      correction = correction - ObstacleTerm(xi);
-      if (!isOnGrid(xi + correction))
+      else
       {
-        DLOG(INFO) << "node after curvature and obstacle correction is not on grid!!";
-        continue;
+        path_before_smooth = smoothed_path;
       }
-
-      correction = correction - VoronoiTerm(xi);
-      if (!isOnGrid(xi + correction))
-      {
-        DLOG(INFO) << "node after curvature, obstacles and voronoi correction is not on grid!!";
-        continue;
-      }
-      // ensure that it is on the grid
-      correction = correction - SmoothnessTerm(xim2, xim1, xi, xip1, xip2);
-      if (!isOnGrid(xi + correction))
-      {
-        DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
-        continue;
-      }
-      correction = correction - PathLengthTerm(xim1, xi, xip1);
-      if (!isOnGrid(xi + correction))
-      {
-        DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
-        continue;
-      }
-
-      xi = xi + alpha_ * correction / totalWeight;
-      if (correction.getX() == 0 && correction.getY() == 0)
-      {
-        DLOG(WARNING) << "correction is zero, no correction performed!!!";
-      }
-      smoothed_path[i].setX(xi.getX());
-      smoothed_path[i].setY(xi.getY());
-      Vector2D Dxi = xi - xim1;
-      smoothed_path[i - 1].setT(std::atan2(Dxi.getY(), Dxi.getX()));
-      DLOG(INFO) << i << "th node after correction: x: " << xi.getX() << " y: " << xi.getY();
+      iterations++;
     }
-
-    //add termination for while loop
-    if (GetPathDiff(smoothed_path, path_before_smooth) < epsilon_)
-    {
-      DLOG(INFO) << "path diff before and after is too small!!";
-      break;
-    }
-    else
-    {
-      path_before_smooth = smoothed_path;
-    }
-    iterations++;
   }
 
   path_ = smoothed_path;
-  for (auto node : path_)
-  {
-    DLOG(INFO) << "smoothed path is x: " << node.getX() << " y: " << node.getY() << " t: " << node.getT();
-  }
+  // for (auto node : path_)
+  // {
+  //   DLOG(INFO) << "smoothed path is x: " << node.getX() << " y: " << node.getY() << " t: " << node.getT();
+  // }
 }
 
 void Smoother::TracePath(const Node3D *node, int i, std::vector<Node3D> path)
@@ -161,9 +176,9 @@ Vector2D Smoother::ObstacleTerm(Vector2D xi)
                     xi.getY() - voronoi_.data[(int)xi.getX()][(int)xi.getY()].obstY);
 
     // the closest obstacle is closer than desired correct the path for that
-    if (obsDst < obsd_max_ && obsDst > 1e-6)
+    if (obsDst < params_.obsd_max && obsDst > 1e-6)
     {
-      return gradient = weight_obstacle_ * 2 * (obsDst - obsd_max_) * obsVct / obsDst;
+      return gradient = params_.weight_obstacle * 2 * (obsDst - params_.obsd_max) * obsVct / obsDst;
     }
   }
   return gradient;
@@ -187,7 +202,7 @@ Vector2D Smoother::VoronoiTerm(Vector2D xi)
   Vector2D edgVct(xi.getX() - closest_edge_pt.x, xi.getY() - closest_edge_pt.y);
   //calculate the distance to the closest obstacle from the current node
 
-  if (obsDst < vor_obs_dmax_ && obsDst > 1e-6)
+  if (obsDst < params_.vor_obs_dmax && obsDst > 1e-6)
   {
     //calculate the distance to the closest GVD edge from the current node
     // the node is away from the optimal free space area
@@ -197,11 +212,11 @@ Vector2D Smoother::VoronoiTerm(Vector2D xi)
       Vector2D PobsDst_Pxi = obsVct / obsDst;
       Vector2D PedgDst_Pxi = edgVct / edgDst;
 
-      float PvorPtn_PedgDst = (alpha_ / (alpha_ + obsDst)) * std::pow((obsDst - vor_obs_dmax_) / vor_obs_dmax_, 2) * (obsDst / std::pow(obsDst + edgDst, 2));
+      float PvorPtn_PedgDst = (params_.alpha / (params_.alpha + obsDst)) * std::pow((obsDst - params_.vor_obs_dmax) / params_.vor_obs_dmax, 2) * (obsDst / std::pow(obsDst + edgDst, 2));
 
-      float PvorPtn_PobsDst = (alpha_ / (alpha_ + obsDst)) * (edgDst / (obsDst + edgDst)) * ((obsDst - vor_obs_dmax_) / std::pow(vor_obs_dmax_, 2)) * (-(obsDst - vor_obs_dmax_) / (alpha_ + obsDst) - (obsDst - vor_obs_dmax_) / (obsDst + edgDst) + 2);
+      float PvorPtn_PobsDst = (params_.alpha / (params_.alpha + obsDst)) * (edgDst / (obsDst + edgDst)) * ((obsDst - params_.vor_obs_dmax) / std::pow(params_.vor_obs_dmax, 2)) * (-(obsDst - params_.vor_obs_dmax) / (params_.alpha + obsDst) - (obsDst - params_.vor_obs_dmax) / (obsDst + edgDst) + 2);
 
-      gradient = weight_voronoi_ * (PvorPtn_PobsDst * PobsDst_Pxi + PvorPtn_PedgDst * PedgDst_Pxi);
+      gradient = params_.weight_voronoi * (PvorPtn_PobsDst * PobsDst_Pxi + PvorPtn_PedgDst * PedgDst_Pxi);
 
       return gradient;
     }
@@ -235,7 +250,12 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
     float Dphi = std::acos(Helper::clamp(Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1), -1, 1));
     float Dphip1 = std::acos(Helper::clamp(Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2), -1, 1));
     float Dphim1 = std::acos(Helper::clamp(Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi), -1, 1));
-
+    if (Dphim1 == 0 || Dphi == 0 || Dphip1 == 0)
+    {
+      DLOG(INFO) << "one of the changing angle is 0!!!";
+      Vector2D zeros;
+      return zeros;
+    }
     float absDxi1Inv = 1 / norm_Dxi;
     float absDxim1Inv = 1 / norm_Dxim1;
     float absDxip1Inv = 1 / norm_Dxip1;
@@ -257,11 +277,120 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
     Vector2D Pcurvature_p_Pxi = uip1 * PcosDphip1_Pxi + Dphip1 / std::pow(norm_Dxip1, 2);
 
     // calculate the gradient
-    gradient = weight_curvature_ * (2 * Pcurvature_m_Pxi + 2 * Pcurvature_i_Pxi + 2 * Pcurvature_p_Pxi);
+    gradient = params_.weight_curvature * (2 * Pcurvature_m_Pxi + 2 * Pcurvature_i_Pxi + 2 * Pcurvature_p_Pxi);
 
     if (std::isnan(gradient.getX()) || std::isnan(gradient.getY()))
     {
       DLOG(WARNING) << "nan values in curvature term";
+      DLOG(INFO) << "gradient is: " << gradient.getX() << " " << gradient.getY();
+      // DLOG(INFO) << "weighting is " << params_.weight_curvature;
+      // DLOG(INFO) << "Pcurvature_m_Pxi is nan: x: " << Pcurvature_m_Pxi.getX() << " y: " << Pcurvature_m_Pxi.getY();
+      // DLOG(INFO) << "Pcurvature_i_Pxi is nan: x: " << Pcurvature_i_Pxi.getX() << " y: " << Pcurvature_i_Pxi.getY();
+      // DLOG(INFO) << "Pcurvature_p_Pxi is nan: x: " << Pcurvature_p_Pxi.getX() << " y: " << Pcurvature_p_Pxi.getY();
+      if (std::isinf(Pcurvature_m_Pxi.getX()) || std::isinf(Pcurvature_m_Pxi.getY()))
+      {
+        DLOG(INFO) << "Pcurvature_m_Pxi is inf: x: " << Pcurvature_m_Pxi.getX() << " y: " << Pcurvature_m_Pxi.getY();
+        if (std::isinf(uim1))
+        {
+          DLOG(INFO) << "uim1 is " << uim1;
+          if (std::isinf(absDxim1Inv))
+          {
+            DLOG(INFO) << "absDxim1Inv is " << absDxim1Inv;
+            DLOG(INFO) << "norm_Dxim1 is " << norm_Dxim1;
+          }
+          if (std::isinf(PDphim1_PcosDphim1))
+          {
+            DLOG(INFO) << "PDphim1_PcosDphim1 is " << PDphim1_PcosDphim1;
+            if ((1 - std::pow(std::cos(Dphim1), 2)) == 0)
+            {
+              DLOG(INFO) << "1- cosDpim1 == 0";
+              DLOG(INFO) << "Dphim1 is " << Dphim1;
+            }
+          }
+        }
+        if (std::isinf(PcosDphim1_Pxi.getX()) || std::isinf(PcosDphim1_Pxi.getY()))
+        {
+          DLOG(INFO) << "PcosDphim1_Pxi is inf: x: " << PcosDphim1_Pxi.getX() << " y: " << PcosDphim1_Pxi.getY();
+          if (norm_Dxim1 * norm_Dxi == 0)
+          {
+            DLOG(INFO) << "norm_Dxim1 is: " << norm_Dxim1 << " norm_Dxi is: " << norm_Dxi;
+          }
+          if (std::isinf(xim1.ort(-xi).getX()) || std::isinf(xim1.ort(-xi).getY()))
+          {
+            DLOG(INFO) << "xim1 is: x: " << xim1.getX() << " y: " << xim1.getY() << " length is: " << xim1.length();
+            DLOG(INFO) << "xi is: x: " << xi.getX() << " y: " << xi.getY() << " length is: " << xi.length();
+          }
+        }
+      }
+      if (std::isnan(Pcurvature_m_Pxi.getX()) || std::isnan(Pcurvature_m_Pxi.getY()))
+      {
+        DLOG(INFO) << "Pcurvature_m_Pxi is nan: x: " << Pcurvature_m_Pxi.getX() << " y: " << Pcurvature_m_Pxi.getY();
+        if (std::isnan(PcosDphim1_Pxi.getX()) || std::isnan(PcosDphim1_Pxi.getY()))
+        {
+          DLOG(INFO) << "PcosDphim1_Pxi is nan: x: " << PcosDphim1_Pxi.getX() << " y: " << PcosDphim1_Pxi.getY();
+          if (norm_Dxim1 * norm_Dxi == 0)
+          {
+            DLOG(INFO) << "norm_Dxim1 is: " << norm_Dxim1 << " norm_Dxi is: " << norm_Dxi;
+          }
+          if (std::isnan(xim1.ort(-xi).getX()) || std::isnan(xim1.ort(-xi).getY()))
+          {
+            DLOG(INFO) << "xim1 is: x: " << xim1.getX() << " y: " << xim1.getY() << " length is: " << xim1.length();
+            DLOG(INFO) << "xi is: x: " << xi.getX() << " y: " << xi.getY() << " length is: " << xi.length();
+          }
+        }
+      }
+      if (std::isnan(Pcurvature_i_Pxi.getX()) || std::isnan(Pcurvature_i_Pxi.getY()))
+      {
+        DLOG(INFO) << "Pcurvature_i_Pxi is nan: x: " << Pcurvature_i_Pxi.getX() << " y: " << Pcurvature_i_Pxi.getY();
+        if (std::isnan(PcosDphi_Pxi.getX()) || std::isnan(PcosDphi_Pxi.getY()))
+        {
+          DLOG(INFO) << "PcosDphi_Pxi is nan: x: " << PcosDphi_Pxi.getX() << " y: " << PcosDphi_Pxi.getY();
+          if (norm_Dxi * norm_Dxip1 == 0)
+          {
+            DLOG(INFO) << "norm_Dxi is: " << norm_Dxi << " norm_Dxip1 is: " << norm_Dxip1;
+          }
+          if (std::isnan(xi.ort(-xip1).getX()) || std::isnan(xi.ort(-xip1).getY()))
+          {
+            DLOG(INFO) << "xip1 is: x: " << xip1.getX() << " y: " << xip1.getY() << " length is: " << xip1.length();
+            DLOG(INFO) << "xi is: x: " << xi.getX() << " y: " << xi.getY() << " length is: " << xi.length();
+          }
+        }
+        if (norm_Dxi == 0)
+        {
+          DLOG(INFO) << "norm_Dxi is: " << norm_Dxi;
+        }
+        if (std::isnan(Dphi))
+        {
+          DLOG(INFO) << "Dphi is " << Dphi;
+          DLOG(INFO) << "inside acos : " << Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1);
+        }
+      }
+      if (std::isnan(Pcurvature_p_Pxi.getX()) || std::isnan(Pcurvature_p_Pxi.getY()))
+      {
+        DLOG(INFO) << "Pcurvature_p_Pxi is nan: x: " << Pcurvature_p_Pxi.getX() << " y: " << Pcurvature_p_Pxi.getY();
+        if (std::isnan(PcosDphip1_Pxi.getX()) || std::isnan(PcosDphip1_Pxi.getY()))
+        {
+          DLOG(INFO) << "PcosDphip1_Pxi is nan: x: " << PcosDphip1_Pxi.getX() << " y: " << PcosDphip1_Pxi.getY();
+          if (norm_Dxip1 * norm_Dxip2 == 0)
+          {
+            DLOG(INFO) << "norm_Dxip1 is: " << norm_Dxip1 << " norm_Dxip2 is: " << norm_Dxip2;
+          }
+          if (std::isnan((-xip2).ort(xip1).getX()) || std::isnan((-xip2).ort(xip1).getY()))
+          {
+            DLOG(INFO) << "xip2 is: x: " << xip2.getX() << " y: " << xip2.getY() << " length is: " << xip2.length();
+            DLOG(INFO) << "xip1 is: x: " << xip1.getX() << " y: " << xip1.getY() << " length is: " << xip1.length();
+          }
+        }
+        if (norm_Dxip1 == 0)
+        {
+          DLOG(INFO) << "norm_Dxip1 is: " << norm_Dxip1;
+        }
+        if (std::isnan(Dphip1))
+        {
+          DLOG(INFO) << "Dphip1 is " << Dphip1;
+          DLOG(INFO) << "inside acos : " << Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2);
+        }
+      }
       Vector2D zeros;
       return zeros;
     }
@@ -314,11 +443,11 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
 Vector2D Smoother::SmoothnessTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2)
 {
   //this is correct, see https://zhuanlan.zhihu.com/p/118666410
-  return weight_smoothness_ * (xim2 - 4 * xim1 + 6 * xi - 4 * xip1 + xip2);
+  return params_.weight_smoothness * (xim2 - 4 * xim1 + 6 * xi - 4 * xip1 + xip2);
 }
 Vector2D Smoother::PathLengthTerm(Vector2D xim1, Vector2D xi, Vector2D xip1)
 {
-  return weight_length_ * 2 * (2 * xi - xim1 - xip1);
+  return params_.weight_length * 2 * (2 * xi - xim1 - xip1);
 }
 int Smoother::PreprocessPath()
 {
@@ -355,22 +484,8 @@ float Smoother::GetPathDiff(const std::vector<Node3D> &path_before_smooth, const
       diff += (xi_after - xi_before).length();
     }
     diff = diff / path_after_smooth.size();
-    DLOG(INFO) << "path diff is : " << diff;
+    // DLOG(INFO) << "path diff is : " << diff;
     return diff;
   }
 }
 
-void Smoother::SetSmootherParams(std::shared_ptr<ParameterContainer> param_ptr)
-{
-  max_iterations_ = param_ptr->max_iterations;
-  epsilon_ = param_ptr->epsilon;
-  kappa_max_ = 1 / (param_ptr->min_turning_radius * 1.1);
-  obsd_max_ = param_ptr->obsd_max;
-  vor_obs_dmax_ = param_ptr->vor_obs_dmax;
-  alpha_ = param_ptr->alpha;
-  weight_obstacle_ = param_ptr->weight_obstacle;
-  weight_voronoi_ = param_ptr->weight_voronoi;
-  weight_curvature_ = param_ptr->weight_curvature;
-  weight_smoothness_ = param_ptr->weight_smoothness;
-  weight_length_ = param_ptr->weight_length;
-}

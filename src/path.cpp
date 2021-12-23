@@ -7,53 +7,34 @@ using namespace HybridAStar;
 //                                         CLEAR PATH
 //###################################################
 
-void Path::clear() {
+void Path::Clear()
+{
   Node3D node;
-  path.poses.clear();
-  pathNodes.markers.clear();
-  pathVehicles.markers.clear();
-  addNode(node, 0);
-  addVehicle(node, 1);
-  publishPath();
-  publishPathNodes();
-  publishPathVehicles();
+  path_.poses.clear();
+  path_nodes_.markers.clear();
+  path_vehicles_.markers.clear();
+  AddNode(node, 0);
+  AddVehicle(node, 1);
+  PublishPath();
+  PublishPathNodes();
+  PublishPathVehicles();
 }
-
-////###################################################
-////                                         TRACE PATH
-////###################################################
-//// __________
-//// TRACE PATH
-//void Path::TracePath(const Node3D* node, int i) {
-//  if (i == 0) {
-//    path.header.stamp = ros::Time::now();
-//  }
-
-//  if (node == nullptr) { return; }
-
-//  addSegment(node);
-//  addNode(node, i);
-//  i++;
-//  addVehicle(node, i);
-//  i++;
-
-//  TracePath(node->getPred(), i);
-//}
 
 //###################################################
 //                                         TRACE PATH
 //###################################################
 // __________
 // TRACE PATH
-void Path::updatePath(const std::vector<Node3D>& nodePath) {
-  path.header.stamp = ros::Time::now();
+void Path::UpdatePath(const std::vector<Node3D> &nodePath)
+{
+  path_.header.stamp = ros::Time::now();
   int k = 0;
 
   for (size_t i = 0; i < nodePath.size(); ++i) {
-    addSegment(nodePath[i]);
-    addNode(nodePath[i], k);
+    AddSegment(nodePath[i]);
+    AddNode(nodePath[i], k);
     k++;
-    addVehicle(nodePath[i], k);
+    AddVehicle(nodePath[i], k);
     k++;
   }
 
@@ -61,21 +42,23 @@ void Path::updatePath(const std::vector<Node3D>& nodePath) {
 }
 // ___________
 // ADD SEGMENT
-void Path::addSegment(const Node3D& node) {
+void Path::AddSegment(const Node3D &node)
+{
   geometry_msgs::PoseStamped vertex;
-  vertex.pose.position.x = node.getX() * Constants::cellSize;
-  vertex.pose.position.y = node.getY() * Constants::cellSize;
+  vertex.pose.position.x = node.getX() * params_.cell_size;
+  vertex.pose.position.y = node.getY() * params_.cell_size;
   vertex.pose.position.z = 0;
   vertex.pose.orientation.x = 0;
   vertex.pose.orientation.y = 0;
   vertex.pose.orientation.z = 0;
   vertex.pose.orientation.w = 0;
-  path.poses.push_back(vertex);
+  path_.poses.push_back(vertex);
 }
 
 // ________
 // ADD NODE
-void Path::addNode(const Node3D& node, int i) {
+void Path::AddNode(const Node3D &node, int i)
+{
   visualization_msgs::Marker pathNode;
 
   // delete all previous markers
@@ -92,22 +75,26 @@ void Path::addNode(const Node3D& node, int i) {
   pathNode.scale.z = 0.1;
   pathNode.color.a = 1.0;
 
-  if (smoothed) {
-    pathNode.color.r = Constants::pink.red;
-    pathNode.color.g = Constants::pink.green;
-    pathNode.color.b = Constants::pink.blue;
-  } else {
-    pathNode.color.r = Constants::purple.red;
-    pathNode.color.g = Constants::purple.green;
-    pathNode.color.b = Constants::purple.blue;
+  if (smoothed_)
+  {
+    pathNode.color.r = params_.pink.red;
+    pathNode.color.g = params_.pink.green;
+    pathNode.color.b = params_.pink.blue;
+  }
+  else
+  {
+    pathNode.color.r = params_.purple.red;
+    pathNode.color.g = params_.purple.green;
+    pathNode.color.b = params_.purple.blue;
   }
 
-  pathNode.pose.position.x = node.getX() * Constants::cellSize;
-  pathNode.pose.position.y = node.getY() * Constants::cellSize;
-  pathNodes.markers.push_back(pathNode);
+  pathNode.pose.position.x = node.getX() * params_.cell_size;
+  pathNode.pose.position.y = node.getY() * params_.cell_size;
+  path_nodes_.markers.push_back(pathNode);
 }
 
-void Path::addVehicle(const Node3D& node, int i) {
+void Path::AddVehicle(const Node3D &node, int i)
+{
   visualization_msgs::Marker pathVehicle;
 
   // delete all previous markersg
@@ -119,23 +106,26 @@ void Path::addVehicle(const Node3D& node, int i) {
   pathVehicle.header.stamp = ros::Time(0);
   pathVehicle.id = i;
   pathVehicle.type = visualization_msgs::Marker::CUBE;
-  pathVehicle.scale.x = Constants::length - Constants::bloating * 2;
-  pathVehicle.scale.y = Constants::width - Constants::bloating * 2;
+  pathVehicle.scale.x = params_.vehicle_length - params_.bloating * 2;
+  pathVehicle.scale.y = params_.vehicle_width - params_.bloating * 2;
   pathVehicle.scale.z = 1;
   pathVehicle.color.a = 0.1;
 
-  if (smoothed) {
-    pathVehicle.color.r = Constants::orange.red;
-    pathVehicle.color.g = Constants::orange.green;
-    pathVehicle.color.b = Constants::orange.blue;
-  } else {
-    pathVehicle.color.r = Constants::teal.red;
-    pathVehicle.color.g = Constants::teal.green;
-    pathVehicle.color.b = Constants::teal.blue;
+  if (smoothed_)
+  {
+    pathVehicle.color.r = params_.orange.red;
+    pathVehicle.color.g = params_.orange.green;
+    pathVehicle.color.b = params_.orange.blue;
+  }
+  else
+  {
+    pathVehicle.color.r = params_.teal.red;
+    pathVehicle.color.g = params_.teal.green;
+    pathVehicle.color.b = params_.teal.blue;
   }
 
-  pathVehicle.pose.position.x = node.getX() * Constants::cellSize;
-  pathVehicle.pose.position.y = node.getY() * Constants::cellSize;
+  pathVehicle.pose.position.x = node.getX() * params_.cell_size;
+  pathVehicle.pose.position.y = node.getY() * params_.cell_size;
   pathVehicle.pose.orientation = tf::createQuaternionMsgFromYaw(node.getT());
-  pathVehicles.markers.push_back(pathVehicle);
+  path_vehicles_.markers.push_back(pathVehicle);
 }

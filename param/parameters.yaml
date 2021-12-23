@@ -1,0 +1,83 @@
+# **********************flag parameters*****************
+#  A flag for the mode (true = manual; false = dynamic). Manual for static map or dynamic for dynamic map.
+manual : true
+#  A flag for the visualization of 3D nodes (true = on; false = off)
+visualization : false
+#  A flag for the visualization of 2D nodes (true = on; false = off)
+visualization2D : false 
+#  A flag to toggle reversing (true = on; false = off)
+reverse : true
+#  A flag to toggle the connection of the path via Dubin's shot (true = on; false = off)
+dubins_shot : true
+#  A flag to toggle the Dubin's heuristic, this should be false, if reversing is enabled (true = on; false = off)
+dubins : false
+  #  \var static const bool dubinsLookup
+  #  \brief A flag to toggle the Dubin's heuristic via lookup, potentially speeding up the search by a lot
+  #  \todo not yet functional
+dubins_Lookup : false 
+#  A flag to toggle the 2D heuristic (true = on; false = off)
+two_D : true
+
+# **********************vehicle parameters*****************
+# [m] --- Uniformly adds a padding around the vehicle
+bloating : 0
+# [m] --- The width of the vehicle
+vehicle_width : 1.75 
+# [m] --- The length of the vehicle
+vehicle_length : 2.65 
+
+# **********************Search parameters*****************
+#   \brief [m] --- The tie breaker breaks ties between nodes expanded in the same cell
+
+#   As the cost-so-far are bigger than the cost-to-come it is reasonable to believe that the algorithm would prefer the predecessor rather than the successor.
+#   This would lead to the fact that the successor would never be placed and the the one cell could only expand one node. The tieBreaker artificially increases the cost of the predecessor
+#   to allow the successor being placed in the same cell.
+# */
+tie_breaker : 0.01
+# [#] --- A factor to ensure admissibility of the holonomic with obstacles heuristic std::sqrt(5) / std::sqrt(2) + 1
+factor2D : 2.58113883
+# [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
+penalty_turning : 1.05
+# [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
+penalty_reversing : 2.0
+# [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
+penalty_COD : 2.0
+# [m] --- The distance to the goal when the analytical solution (Dubin's shot) first triggers
+dubins_shot_distance : 100
+# [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
+dubins_step_size : 1
+#  DUBINS LOOKUP SPECIFIC
+# [m] --- The width of the dubinsArea / 2 for the analytical solution (Dubin's shot)
+dubins_width : 15
+
+#  COLLISION LOOKUP SPECIFIC
+# [#] --- The sqrt of the number of discrete positions per cell
+position_resolution : 10
+
+#  [m] --- The number of discretizations in heading
+headings : 72
+#  [m] --- The cell size of the 2D grid of the world
+cell_size : 1
+
+# **********************Smoother parameters*****************
+max_iterations : 10000
+#  the small number which will terminate loop if path difference smaller than this number.
+epsilon : 1.0e-4
+#maximum possible curvature of the non-holonomic vehicle
+min_turning_radius : 7
+#maximum distance to obstacles that is penalized
+obsd_max : 4
+# maximum distance for obstacles to influence the voronoi field
+vor_obs_dmax : 3
+#falloff rate for the voronoi field
+alpha: 0.1
+# weight for the obstacle term
+weight_obstacle : 0.0
+# weight for the voronoi term
+weight_voronoi : 0.0
+# weight for the curvature term
+weight_curvature : 0.0
+# weight for the smoothness term
+weight_smoothness : 0.0
+#weight for path length
+weight_length : 0.0

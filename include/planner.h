@@ -1,7 +1,6 @@
 #ifndef PLANNER_H
 #define PLANNER_H
 
-#include <iostream>
 #include <ctime>
 
 #include <ros/ros.h>
@@ -21,6 +20,8 @@
 #include "visualize.h"
 #include "lookup.h"
 #include "path_evaluator.h"
+#include "glog/logging.h"
+#include "gflags/gflags.h"
 namespace HybridAStar {
 /*!
    \brief A class that creates the interface for the hybrid A* algorithm.
@@ -62,6 +63,8 @@ class Planner {
   */
   void MakePlan();
 
+  void SetPlannerParams(const ParameterPlanner &params);
+
   private:
   /// The node handle
      ros::NodeHandle nh_;
@@ -78,11 +81,11 @@ class Planner {
      /// A transform for moving start positions
      tf::StampedTransform transform_;
      /// The path produced by the hybrid A* algorithm
-     Path path_;
+     std::shared_ptr<Path> path_ptr_;
      /// The smoother used for optimizing the path
      std::shared_ptr<Smoother> smoother_ptr_;
      /// The path smoothed and ready for the controller
-     Path smoothed_path_ = Path(true);
+     std::shared_ptr<Path> smoothed_path_ptr_;
      /// The visualization used for search visualization
      Visualize visualization_;
      /// The collission detection for testing specific configurations
@@ -104,6 +107,10 @@ class Planner {
      /// A lookup of analytical solutions (Dubin's paths)
      float *dubins_lookup_table = new float[Constants::headings * Constants::headings * Constants::dubinsWidth * Constants::dubinsWidth];
      PathEvaluator::PathEvaluator path_evaluator_;
+     //parameter manager, load param from *.yaml file
+     std::shared_ptr<ParameterManager> param_manager_;
+     ParameterPlanner params_;
+     std::shared_ptr<Algorithm> algorithm_ptr_;
 };
 }
 #endif // PLANNER_H

@@ -7,30 +7,12 @@
 //                      HYBRID A* ALGORITHM
 //  AUTHOR:   Karl Kurzer
 //  WRITTEN:  2015-03-02
+//  REVISED: Jialiang Han
 //###################################################
 
-#include <cstring>
-#include <iostream>
 #include <ros/ros.h>
-
 #include "constants.h"
 #include "planner.h"
-
-//###################################################
-//                              COUT STANDARD MESSAGE
-//###################################################
-/**
-   \fn message(const T& msg, T1 val = T1())
-   \brief Convenience method to display text
-*/
-template<typename T, typename T1>
-void message(const T& msg, T1 val = T1()) {
-  if (!val) {
-    std::cout << "### " << msg << std::endl;
-  } else {
-    std::cout << "### " << msg << val << std::endl;
-  }
-}
 
 //###################################################
 //                                               MAIN

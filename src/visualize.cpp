@@ -39,8 +39,8 @@ void Visualize::publishNode3DPose(Node3D& node) {
   pose.header.frame_id = "path";
   pose.header.stamp = ros::Time::now();
   pose.header.seq = 0;
-  pose.pose.position.x = node.getX() * Constants::cellSize;
-  pose.pose.position.y = node.getY() * Constants::cellSize;
+  pose.pose.position.x = node.getX() * params_.cell_size;
+  pose.pose.position.y = node.getY() * params_.cell_size;
 
   //FORWARD
   if (node.getPrim() < 3) {
@@ -60,8 +60,8 @@ void Visualize::publishNode3DPose(Node3D& node) {
 //###################################################
 void Visualize::publishNode3DPoses(Node3D& node) {
   geometry_msgs::Pose pose;
-  pose.position.x = node.getX() * Constants::cellSize;
-  pose.position.y = node.getY() * Constants::cellSize;
+  pose.position.x = node.getX() * params_.cell_size;
+  pose.position.y = node.getY() * params_.cell_size;
 
   //FORWARD
   if (node.getPrim() < 3) {
@@ -90,8 +90,8 @@ void Visualize::publishNode2DPose(Node2D& node) {
   pose.header.frame_id = "path";
   pose.header.stamp = ros::Time::now();
   pose.header.seq = 0;
-  pose.pose.position.x = (node.getX() + 0.5) * Constants::cellSize;
-  pose.pose.position.y = (node.getY() + 0.5) * Constants::cellSize;
+  pose.pose.position.x = (node.getX() + 0.5) * params_.cell_size;
+  pose.pose.position.y = (node.getY() + 0.5) * params_.cell_size;
   pose.pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
   // PUBLISH THE POSE
@@ -104,8 +104,8 @@ void Visualize::publishNode2DPose(Node2D& node) {
 void Visualize::publishNode2DPoses(Node2D& node) {
   if (node.isDiscovered()) {
     geometry_msgs::Pose pose;
-    pose.position.x = (node.getX() + 0.5) * Constants::cellSize;
-    pose.position.y = (node.getY() + 0.5) * Constants::cellSize;
+    pose.position.x = (node.getX() + 0.5) * params_.cell_size;
+    pose.position.y = (node.getY() + 0.5) * params_.cell_size;
     pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
     poses2D.poses.push_back(pose);
@@ -184,8 +184,8 @@ void Visualize::publishNode3DCosts(Node3D* nodes, int width, int height, int dep
       costCube.id = i;
       costCube.type = visualization_msgs::Marker::CUBE;
       values[i] = (values[i] - min) / (max - min);
-      costCube.scale.x = Constants::cellSize;
-      costCube.scale.y = Constants::cellSize;
+      costCube.scale.x = params_.cell_size;
+      costCube.scale.y = params_.cell_size;
       costCube.scale.z = 0.1;
       costCube.color.a = 0.5;
       heatMapGradient.getColorAtValue(values[i], red, green, blue);
@@ -193,15 +193,10 @@ void Visualize::publishNode3DCosts(Node3D* nodes, int width, int height, int dep
       costCube.color.g = green;
       costCube.color.b = blue;
       // center in cell +0.5
-      costCube.pose.position.x = (i % width + 0.5) * Constants::cellSize;
-      costCube.pose.position.y = ((i / width) % height + 0.5) * Constants::cellSize;
+      costCube.pose.position.x = (i % width + 0.5) * params_.cell_size;
+      costCube.pose.position.y = ((i / width) % height + 0.5) * params_.cell_size;
       costCubes.markers.push_back(costCube);
     }
-  }
-
-  if (Constants::coutDEBUG) {
-    std::cout << "3D min cost: " << min << " | max cost: " << max << std::endl;
-    std::cout << count << " 3D nodes expanded " << std::endl;
   }
 
   // PUBLISH THE COSTCUBES
@@ -211,7 +206,8 @@ void Visualize::publishNode3DCosts(Node3D* nodes, int width, int height, int dep
 //###################################################
 //                                    COST HEATMAP 2D
 //###################################################
-void Visualize::publishNode2DCosts(Node2D* nodes, int width, int height) {
+void Visualize::publishNode2DCosts(Node2D *nodes, int width, int height)
+{
   visualization_msgs::MarkerArray costCubes;
   visualization_msgs::Marker costCube;
 
@@ -230,44 +226,56 @@ void Visualize::publishNode2DCosts(Node2D* nodes, int width, int height) {
 
   // ________________________________
   // DETERMINE THE MAX AND MIN VALUES
-  for (int i = 0; i < width * height; ++i) {
+  for (int i = 0; i < width * height; ++i)
+  {
     values[i] = 1000;
 
     // set the minimum for the cell
-    if (nodes[i].isDiscovered()) {
+    if (nodes[i].isDiscovered())
+    {
       values[i] = nodes[i].getG();
 
       // set a new minimum
-      if (values[i] > 0 && values[i] < min) { min = values[i]; }
+      if (values[i] > 0 && values[i] < min)
+      {
+        min = values[i];
+      }
 
       // set a new maximum
-      if (values[i] > 0 && values[i] > max) { max = values[i]; }
+      if (values[i] > 0 && values[i] > max)
+      {
+        max = values[i];
+      }
     }
   }
 
   // _______________
   // PAINT THE CUBES
-  for (int i = 0; i < width * height; ++i) {
+  for (int i = 0; i < width * height; ++i)
+  {
     // if a value exists continue
-    if (nodes[i].isDiscovered()) {
+    if (nodes[i].isDiscovered())
+    {
       count++;
 
       // delete all previous markers
-      if (once) {
+      if (once)
+      {
         costCube.action = 3;
         once = false;
-      } else {
+      }
+      else
+      {
         costCube.action = 0;
       }
-
 
       costCube.header.frame_id = "path";
       costCube.header.stamp = ros::Time::now();
       costCube.id = i;
       costCube.type = visualization_msgs::Marker::CUBE;
       values[i] = (values[i] - min) / (max - min);
-      costCube.scale.x = Constants::cellSize;
-      costCube.scale.y = Constants::cellSize;
+      costCube.scale.x = params_.cell_size;
+      costCube.scale.y = params_.cell_size;
       costCube.scale.z = 0.1;
       costCube.color.a = 0.5;
       heatMapGradient.getColorAtValue(values[i], red, green, blue);
@@ -275,15 +283,10 @@ void Visualize::publishNode2DCosts(Node2D* nodes, int width, int height) {
       costCube.color.g = green;
       costCube.color.b = blue;
       // center in cell +0.5
-      costCube.pose.position.x = (i % width + 0.5) * Constants::cellSize;
-      costCube.pose.position.y = ((i / width) % height + 0.5) * Constants::cellSize;
+      costCube.pose.position.x = (i % width + 0.5) * params_.cell_size;
+      costCube.pose.position.y = ((i / width) % height + 0.5) * params_.cell_size;
       costCubes.markers.push_back(costCube);
     }
-  }
-
-  if (Constants::coutDEBUG) {
-    std::cout << "2D min cost: " << min << " | max cost: " << max << std::endl;
-    std::cout << count << " 2D nodes expanded " << std::endl;
   }
 
   // PUBLISH THE COSTCUBES

@@ -63,7 +63,7 @@ INTPOINT BucketPrioQueue::pop() {
 
 
 void BucketPrioQueue::initSqrIndices() {
-  //    std::cout << "BUCKETQUEUE Starting to build the index array...\n";
+  //    DLOG(INFO) << "BUCKETQUEUE Starting to build the index array...\n";
   //  std::set<int> sqrNumbers;
 
   sqrIndices = std::vector<int>(2*MAXDIST*MAXDIST+1, -1);
@@ -76,5 +76,5 @@ void BucketPrioQueue::initSqrIndices() {
     }
   }
   numBuckets = count;
-  //    std::cout << "BUCKETQUEUE Done with building the index arrays.\n";
+  //    DLOG(INFO) << "BUCKETQUEUE Done with building the index arrays.\n";
 }

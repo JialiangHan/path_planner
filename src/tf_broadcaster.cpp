@@ -5,17 +5,25 @@
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
 #include <nav_msgs/OccupancyGrid.h>
-
+#include "glog/logging.h"
+#include "gflags/gflags.h"
 // map pointer
 nav_msgs::OccupancyGridPtr grid;
 
 // map callback
 void setMap(const nav_msgs::OccupancyGrid::Ptr map) {
-  std::cout << "Creating transform for map..." << std::endl;
+  DLOG(INFO) << "Creating transform for map...";
   grid = map;
 }
 
 int main(int argc, char** argv) {
+
+  google::InitGoogleLogging(argv[0]);
+
+  google::ParseCommandLineFlags(&argc, &argv, true);
+
+  google::InstallFailureSignalHandler();
+
   // initiate the broadcaster
   ros::init(argc, argv, "tf_broadcaster");
   ros::NodeHandle n;

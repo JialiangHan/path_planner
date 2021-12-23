@@ -21,11 +21,9 @@ namespace HybridAStar
    class Smoother
    {
    public:
-      Smoother(const ros::NodeHandle &nh)
+      Smoother(const ParameterSmoother &smoother_params)
       {
-         param_manager_.reset(new ParameterManager(nh));
-         param_manager_->LoadSmootherParams();
-         SetSmootherParams(param_manager_->GetAllParam());
+         params_ = smoother_params;
       }
 
       /*!
@@ -90,29 +88,9 @@ namespace HybridAStar
       float GetPathDiff(const std::vector<Node3D> &path_before_smooth, const std::vector<Node3D> &path_after_smooth);
 
    private:
-      void SetSmootherParams(std::shared_ptr<ParameterContainer> param_ptr);
-      // the maximum iterations for the gd smoother
-      int max_iterations_;
-      // the small number which will terminate loop if path difference smaller than this number.
-      float epsilon_;
-      /// maximum possible curvature of the non-holonomic vehicle
-      float kappa_max_;
-      /// maximum distance to obstacles that is penalized
-      float obsd_max_;
-      /// maximum distance for obstacles to influence the voronoi field
-      float vor_obs_dmax_;
-      /// falloff rate for the voronoi field
-      float alpha_;
-      /// weight for the obstacle term
-      float weight_obstacle_;
-      /// weight for the voronoi term
-      float weight_voronoi_;
-      /// weight for the curvature term
-      float weight_curvature_;
-      /// weight for the smoothness term
-      float weight_smoothness_;
-      //weight for path length
-      float weight_length_;
+      void SetSmootherParams(const ParameterSmoother &smoother_params);
+      ParameterSmoother params_;
+
       /// voronoi diagram describing the topology of the map
       DynamicVoronoi voronoi_;
       /// width of the map
