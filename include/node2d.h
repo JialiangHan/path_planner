@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-#include "constants.h"
+#include <vector>
 namespace HybridAStar {
 
 /*!
@@ -89,17 +89,15 @@ class Node2D {
 
   // SUCCESSOR CREATION
   /// Creates a successor on a eight-connected grid.
-  Node2D* createSuccessor(const int i);
+  /**
+   * @brief Create possible successors of current node according its possible direction
+   * 
+   * @param possible_dir this value can only be 4 or 8;
+   * @return std::vector<Node2D> 
+   */
+  std::vector<Node2D *> CreateSuccessor(const int &possible_dir);
 
-  // CONSTANT VALUES
-  /// Number of possible directions
-  static const int dir;
-  /// Possible movements in the x direction
-  static const int dx[];
-  /// Possible movements in the y direction
-  static const int dy[];
-
- private:
+private:
   /// the x position
   int x;
   /// the y position

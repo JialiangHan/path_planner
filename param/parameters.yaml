@@ -1,4 +1,4 @@
-# **********************flag parameters*****************
+# **********************Algorithm parameters*****************
 #  A flag for the mode (true = manual; false = dynamic). Manual for static map or dynamic for dynamic map.
 manual : true
 #  A flag for the visualization of 3D nodes (true = on; false = off)
@@ -7,8 +7,7 @@ visualization : false
 visualization2D : false 
 #  A flag to toggle reversing (true = on; false = off)
 reverse : true
-#  A flag to toggle the connection of the path via Dubin's shot (true = on; false = off)
-dubins_shot : true
+
 #  A flag to toggle the Dubin's heuristic, this should be false, if reversing is enabled (true = on; false = off)
 dubins : false
   #  \var static const bool dubinsLookup
@@ -17,7 +16,8 @@ dubins : false
 dubins_Lookup : false 
 #  A flag to toggle the 2D heuristic (true = on; false = off)
 two_D : true
-
+    # number of direction to create successor for A-star algorithm
+possible_direction : 8
 # **********************vehicle parameters*****************
 # [m] --- Uniformly adds a padding around the vehicle
 bloating : 0

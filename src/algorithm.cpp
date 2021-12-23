@@ -124,7 +124,7 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
         // _______________________
         // SEARCH WITH DUBINS SHOT
         // TODO change this to the way in original paper, check every N node for analytic expansion, N decrease as a function of cost-to-goal heuristics.
-        if (params_.dubins_shot && nPred->isInRange(goal) && nPred->getPrim() < 3)
+        if (nPred->isInRange(goal) && nPred->getPrim() < 3)
         {
           nSucc = AnalyticExpansions(*nPred, goal, configurationSpace);
 
@@ -296,22 +296,26 @@ float Algorithm::aStar(Node2D &start,
       else {
         // _______________________________
         // CREATE POSSIBLE SUCCESSOR NODES
-        for (int i = 0; i < Node2D::dir; i++) {
+        std::vector<Node2D *> successor_vec = nPred->CreateSuccessor(params_.possible_direction);
+        for (uint i = 0; i < successor_vec.size(); ++i)
+        {
           // create possible successor
-          nSucc = nPred->createSuccessor(i);
+          nSucc = successor_vec[i];
           // set index of the successor
           iSucc = nSucc->setIdx(width);
 
           // ensure successor is on grid ROW MAJOR
           // ensure successor is not blocked by obstacle
           // ensure successor is not on closed list
-          if (nSucc->isOnGrid(width, height) &&  configurationSpace.isTraversable(nSucc) && !nodes2D[iSucc].isClosed()) {
+          if (nSucc->isOnGrid(width, height) && configurationSpace.isTraversable(nSucc) && !nodes2D[iSucc].isClosed())
+          {
             // calculate new G value
             nSucc->updateG();
             newG = nSucc->getG();
 
             // if successor not on open list or g value lower than before put it on open list
-            if (!nodes2D[iSucc].isOpen() || newG < nodes2D[iSucc].getG()) {
+            if (!nodes2D[iSucc].isOpen() || newG < nodes2D[iSucc].getG())
+            {
               // calculate the H value
               nSucc->updateH(goal);
               // put successor on open list
@@ -319,8 +323,16 @@ float Algorithm::aStar(Node2D &start,
               nodes2D[iSucc] = *nSucc;
               openlist.push(&nodes2D[iSucc]);
               delete nSucc;
-            } else { delete nSucc; }
-          } else { delete nSucc; }
+            }
+            else
+            {
+              delete nSucc;
+            }
+          }
+          else
+          {
+            delete nSucc;
+          }
         }
       }
     }
@@ -382,7 +394,7 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
     //                                + h1];
     //    } else {
 
-    /*if (params_.dubins_shot && std::abs(start.getX() - goal.getX()) >= 10 && std::abs(start.getY() - goal.getY()) >= 10)*/
+    /*if ( std::abs(start.getX() - goal.getX()) >= 10 && std::abs(start.getY() - goal.getY()) >= 10)*/
     //      // start
     //      double q0[] = { start.getX(), start.getY(), start.getT()};
     //      // goal

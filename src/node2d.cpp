@@ -1,12 +1,7 @@
 #include "node2d.h"
-
+#include "glog/logging.h"
+#include "gflags/gflags.h"
 using namespace HybridAStar;
-
-// possible directions
-const int Node2D::dir = 8;
-// possible movements
-const int Node2D::dx[] = { -1, -1, 0, 1, 1, 1, 0, -1 };
-const int Node2D::dy[] = { 0, 1, 1, 1, 0, -1, -1, -1 };
 
 //###################################################
 //                                         IS ON GRID
@@ -18,11 +13,47 @@ bool Node2D::isOnGrid(const int width, const int height) const {
 //###################################################
 //                                   CREATE SUCCESSOR
 //###################################################
-Node2D *Node2D::createSuccessor(const int &i)
+
+std::vector<Node2D *> Node2D::CreateSuccessor(const int &possible_dir)
 {
-  int xSucc = x + Node2D::dx[i];
-  int ySucc = y + Node2D::dy[i];
-  return new Node2D(xSucc, ySucc, g, 0, this);
+  std::vector<Node2D *> successor_vec;
+  if (possible_dir == 4)
+  {
+    std::vector<int> delta = {-1, 1};
+    for (uint i = 0; i < delta.size(); ++i)
+    {
+      int x_successor = x + delta[i];
+      successor_vec.emplace_back(new Node2D(x_successor, y, g, 0, this));
+    }
+    for (uint i = 0; i < delta.size(); ++i)
+    {
+      int y_successor = y + delta[i];
+      successor_vec.emplace_back(new Node2D(x, y_successor, g, 0, this));
+    }
+  }
+  else if (possible_dir == 8)
+  {
+    std::vector<int> delta_x = {-1, 0, 1};
+    std::vector<int> delta_y = {-1, 0, 1};
+    for (uint i = 0; i < delta_x.size(); ++i)
+    {
+      for (uint j = 0; j < delta_y.size(); ++j)
+      {
+        if (delta_x[i] == 0 && delta_y[j] == 0)
+        {
+          continue;
+        }
+        int x_successor = x + delta_x[i];
+        int y_successor = y + delta_y[j];
+        successor_vec.emplace_back(new Node2D(x_successor, y_successor, g, 0, this));
+      }
+    }
+  }
+  else
+  {
+    DLOG(WARNING) << "Wrong possible_dir!!!";
+  }
+  return successor_vec;
 }
 
 //###################################################

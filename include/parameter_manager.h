@@ -20,8 +20,7 @@ namespace HybridAStar
     bool visualization = false;
     // max iterations for smoother
     int max_iterations = 10000;
-    /// A flag to toggle the connection of the path via Dubin's shot (true = on; false = off)
-    bool dubins_shot = true;
+
     /*!
   \brief [m] --- The tie breaker breaks ties between nodes expanded in the same cell
 
@@ -44,6 +43,8 @@ namespace HybridAStar
     int headings = 72;
     /// [m] --- The width of the dubinsArea / 2 for the analytical solution (Dubin's shot)
     int dubins_width = 15;
+    // nubmer of direction to create successor for A-star algorithm
+    int possible_direction = 8;
   };
   //this struct contains some used parameters in path class
   struct ParameterPath
