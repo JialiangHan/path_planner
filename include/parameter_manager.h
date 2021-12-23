@@ -28,7 +28,10 @@ namespace HybridAStar
     bool visualization = false;
     // max iterations for smoother
     int max_iterations = 10000;
-
+    /// [m] --- The distance to the goal when the analytical solution (Dubin's shot) first triggers
+    float dubins_shot_distance = 100;
+    // the small number which will terminate loop if path difference smaller than this number.
+    float epsilon = 1e-3;
     /*!
   \brief [m] --- The tie breaker breaks ties between nodes expanded in the same cell
 
@@ -118,8 +121,6 @@ namespace HybridAStar
     float penalty_reversing = 1;
     /// [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
     float penalty_COD = 2;
-    /// [m] --- The distance to the goal when the analytical solution (Dubin's shot) first triggers
-    float dubins_shot_distance = 100;
 
     // ______________________
     // DUBINS LOOKUP SPECIFIC

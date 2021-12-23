@@ -118,9 +118,6 @@ namespace HybridAStar
     ros_param_name = "penalty_COD";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->search_params.penalty_COD);
 
-    ros_param_name = "dubins_shot_distance";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->search_params.dubins_shot_distance);
-
     ;
   }
   void ParameterManager::LoadCollisionDetectionParams()
@@ -159,13 +156,15 @@ namespace HybridAStar
     ros_param_name = "visualization";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.visualization);
     ros_param_name = "max_iterations";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->smoother_params.max_iterations);
-
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.max_iterations);
+    ros_param_name = "dubins_shot_distance";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.dubins_shot_distance);
     ros_param_name = "tie_breaker";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.tie_breaker);
     ros_param_name = "visualization2D";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.visualization2D);
-
+    ros_param_name = "epsilon";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.epsilon);
     ros_param_name = "dubins";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.dubins);
     ros_param_name = "dubins_step_size";

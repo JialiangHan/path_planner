@@ -13,8 +13,8 @@ Planner::Planner() {
   path_ptr_.reset(new Path(param_manager_->GetPathParams()));
   smoothed_path_ptr_.reset(new Path(param_manager_->GetPathParams(), true));
   algorithm_ptr_.reset(new Algorithm(param_manager_->GetAlgorithmParams()));
-  visualization_ = Visualize(param_manager_->GetVisualizeParams());
-  configuration_space_ = CollisionDetection(param_manager_->GetCollisionDetectionParams());
+  visualization_ptr_.reset(new Visualize(param_manager_->GetVisualizeParams()));
+  configuration_space_ptr_.reset(new CollisionDetection(param_manager_->GetCollisionDetectionParams()));
 
   // _________________
   // TOPICS TO PUBLISH
@@ -33,6 +33,7 @@ Planner::Planner() {
 
   sub_goal_ = nh_.subscribe("/move_base_simple/goal", 1, &Planner::SetGoal, this);
   sub_start_ = nh_.subscribe("/initialpose", 1, &Planner::SetStart, this);
+  DLOG(INFO) << "Initialized finished planner!!";
 };
 
 //###################################################
@@ -56,7 +57,7 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
 
   grid_ = map;
   //update the configuration space with the current map
-  configuration_space_.updateGrid(map);
+  configuration_space_ptr_->updateGrid(map);
   //create array for Voronoi diagram
 //  ros::Time t0 = ros::Time::now();
   int height = map->info.height;
@@ -219,12 +220,12 @@ void Planner::MakePlan()
     ros::Time t0 = ros::Time::now();
 
     // CLEAR THE VISUALIZATION
-    visualization_.clear();
+    visualization_ptr_->clear();
     // CLEAR THE PATH
     path_ptr_->Clear();
     smoothed_path_ptr_->Clear();
     // FIND THE PATH
-    Node3D *nSolution = algorithm_ptr_->HybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_, dubins_lookup_table, visualization_);
+    Node3D *nSolution = algorithm_ptr_->HybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_ptr_, dubins_lookup_table, visualization_ptr_);
     // TRACE THE PATH
     smoother_ptr_->TracePath(nSolution);
     // CREATE THE UPDATED PATH
@@ -245,8 +246,8 @@ void Planner::MakePlan()
     smoothed_path_ptr_->PublishPath();
     smoothed_path_ptr_->PublishPathNodes();
     smoothed_path_ptr_->PublishPathVehicles();
-    visualization_.publishNode3DCosts(nodes3D, width, height, depth);
-    visualization_.publishNode2DCosts(nodes2D, width, height);
+    visualization_ptr_->publishNode3DCosts(nodes3D, width, height, depth);
+    visualization_ptr_->publishNode2DCosts(nodes2D, width, height);
 
     delete [] nodes3D;
     delete [] nodes2D;

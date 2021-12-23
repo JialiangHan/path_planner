@@ -61,16 +61,12 @@ namespace Constants
   static const float penaltyCOD = 2.0;
   /// [m] --- The distance to the goal when the analytical solution (Dubin's shot) first triggers
   static const float dubinsShotDistance = 100;
-  /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
-  static const float dubinsStepSize = 1;
 
   // ______________________
   // DUBINS LOOKUP SPECIFIC
 
   /// [m] --- The width of the dubinsArea / 2 for the analytical solution (Dubin's shot)
   static const int dubinsWidth = 15;
-  /// [m] --- The area of the lookup for the analytical solution (Dubin's shot)
-  static const int dubinsArea = dubinsWidth * dubinsWidth;
 
   // _________________________
   // COLLISION LOOKUP SPECIFIC

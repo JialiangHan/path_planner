@@ -114,7 +114,7 @@ inline void collisionLookup(Constants::config* lookup) {
   // t value for crossing vertical and horizontal boundary
   double tMaxX;
   double tMaxY;
-  // t value for width/heigth of cell
+  // t value for width/height of cell
   double tDeltaX;
   double tDeltaY;
   // positive or negative step direction
@@ -257,7 +257,7 @@ inline void collisionLookup(Constants::config* lookup) {
             }
           } else {
             // this SHOULD NOT happen
-            DLOG(INFO) << "\n--->tie occured, please check for error in script\n";
+            DLOG(INFO) << "\n--->tie occurred, please check for error in script\n";
             break;
           }
         }

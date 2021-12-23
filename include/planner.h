@@ -87,9 +87,9 @@ class Planner {
      /// The path smoothed and ready for the controller
      std::shared_ptr<Path> smoothed_path_ptr_;
      /// The visualization used for search visualization
-     Visualize visualization_;
+     std::shared_ptr<Visualize> visualization_ptr_;
      /// The collission detection for testing specific configurations
-     CollisionDetection configuration_space_;
+     std::shared_ptr<CollisionDetection> configuration_space_ptr_;
      /// The voronoi diagram
      DynamicVoronoi voronoi_diagram_;
      /// A pointer to the grid_ the planner runs on

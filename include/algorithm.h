@@ -50,12 +50,37 @@ namespace HybridAStar
                           Node2D *nodes2D,
                           int width,
                           int height,
-                          CollisionDetection &configurationSpace,
+                          std::shared_ptr<CollisionDetection> &configurationSpace,
                           float *dubinsLookup,
-                          Visualize &visualization);
-
-      float aStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, int height, CollisionDetection &configurationSpace, Visualize &visualization);
-      void UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D, float *dubinsLookup, int width, int height, CollisionDetection &configurationSpace, Visualize &visualization);
+                          std::shared_ptr<Visualize> &visualization);
+      /**
+    * 
+    * @brief this is traditional A-star algorithm
+    * 
+    * @param start 
+    * @param goal 
+    * @param nodes2D 
+    * @param width 
+    * @param height 
+    * @param configurationSpace 
+    * @param visualization 
+    * @return float 
+    */
+      float AStar(Node2D &start,
+                  Node2D &goal,
+                  Node2D *nodes2D,
+                  int width,
+                  int height,
+                  std::shared_ptr<CollisionDetection> &configurationSpace,
+                  std::shared_ptr<Visualize> &visualization);
+      void UpdateHeuristic(Node3D &start,
+                           const Node3D &goal,
+                           Node2D *nodes2D,
+                           float *dubinsLookup,
+                           int width,
+                           int height,
+                           std::shared_ptr<CollisionDetection> &configurationSpace,
+                           std::shared_ptr<Visualize> &visualization);
       /**
        * @brief analytical expansion in paper, here use dubins curve.
        * 
@@ -65,7 +90,7 @@ namespace HybridAStar
        * @return Node3D* 
        */
       //TODO need to rewrite this function: add a param for curve type: dubins, RS curves or CC curve
-      Node3D *AnalyticExpansions(Node3D &start, const Node3D &goal, CollisionDetection &configurationSpace);
+      Node3D *AnalyticExpansions(Node3D &start, const Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace);
 
    private:
       ParameterAlgorithm params_;

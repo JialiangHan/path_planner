@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
   google::InstallFailureSignalHandler();
 
-  ros::init(argc, argv, "a_star");
+  ros::init(argc, argv, "hybrid_a_star");
 
   HybridAStar::Planner hy;
   hy.MakePlan();

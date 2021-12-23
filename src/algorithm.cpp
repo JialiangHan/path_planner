@@ -33,11 +33,11 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
                                Node2D *nodes2D,
                                int width,
                                int height,
-                               CollisionDetection &configurationSpace,
+                               std::shared_ptr<CollisionDetection> &configurationSpace,
                                float *dubinsLookup,
-                               Visualize &visualization)
+                               std::shared_ptr<Visualize> &visualization)
 {
-
+  DLOG(INFO) << "Hybrid A star start!!";
   // PREDECESSOR AND SUCCESSOR INDEX
   int iPred, iSucc;
   float newG;
@@ -55,6 +55,8 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
 
   // update h value
   UpdateHeuristic(start, goal, nodes2D, dubinsLookup, width, height, configurationSpace, visualization);
+  //this N is for analytic expansion
+  int N = start.getH() / 2;
   // mark start as open
   start.open();
   // push on priority queue aka open list
@@ -81,8 +83,8 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
     // RViz visualization
     if (params_.visualization)
     {
-      visualization.publishNode3DPoses(*nPred);
-      visualization.publishNode3DPose(*nPred);
+      visualization->publishNode3DPoses(*nPred);
+      visualization->publishNode3DPose(*nPred);
       d.sleep();
     }
 
@@ -111,7 +113,7 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
         DLOG(INFO) << "max iterations reached!!!";
         return nPred;
       }
-      else if (*nPred == goal || nPred->IsCloseEnough(goal))
+      else if (*nPred == goal || nPred->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings))
       {
         DLOG(INFO) << "Goal reached!!!";
         return nPred;
@@ -123,18 +125,30 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
       {
         // _______________________
         // SEARCH WITH DUBINS SHOT
-        // TODO change this to the way in original paper, check every N node for analytic expansion, N decrease as a function of cost-to-goal heuristics.
-        if (nPred->isInRange(goal) && nPred->getPrim() < 3)
+        if (iterations == N)
         {
+          DLOG(INFO) << "Start Analytic Expansion!!";
+          N = N + nPred->getH() / 2;
           nSucc = AnalyticExpansions(*nPred, goal, configurationSpace);
 
-          if (nSucc != nullptr && *nSucc == goal)
+          if (nSucc != nullptr && (*nSucc == goal || nSucc->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings)))
           {
             //DEBUG
             // DLOG(INFO) << "max diff " << max ;
             return nSucc;
           }
         }
+        // if (nPred->IsInRange(goal, params_.dubins_shot_distance) && nPred->getPrim() < 3)
+        // {
+        //   nSucc = AnalyticExpansions(*nPred, goal, configurationSpace);
+
+        //   if (nSucc != nullptr && (*nSucc == goal || nSucc->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings)))
+        //   {
+        //     //DEBUG
+        //     // DLOG(INFO) << "max diff " << max ;
+        //     return nSucc;
+        //   }
+        // }
 
         // ______________________________
         // SEARCH WITH FORWARD SIMULATION
@@ -146,7 +160,7 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
           iSucc = nSucc->setIdx(width, height);
 
           // ensure successor is on grid and traversable
-          if (nSucc->isOnGrid(width, height) && configurationSpace.isTraversable(nSucc))
+          if (nSucc->isOnGrid(width, height) && configurationSpace->isTraversable(nSucc))
           {
 
             // ensure successor is not on closed list or it has the same index as the predecessor
@@ -217,13 +231,13 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
 //###################################################
 //                                        2D A*
 //###################################################
-float Algorithm::aStar(Node2D &start,
+float Algorithm::AStar(Node2D &start,
                        Node2D &goal,
                        Node2D *nodes2D,
                        int width,
                        int height,
-                       CollisionDetection &configurationSpace,
-                       Visualize &visualization)
+                       std::shared_ptr<CollisionDetection> &configurationSpace,
+                       std::shared_ptr<Visualize> &visualization)
 {
 
   // PREDECESSOR AND SUCCESSOR INDEX
@@ -278,8 +292,8 @@ float Algorithm::aStar(Node2D &start,
       // RViz visualization
       if (params_.visualization2D)
       {
-        visualization.publishNode2DPoses(*nPred);
-        visualization.publishNode2DPose(*nPred);
+        visualization->publishNode2DPoses(*nPred);
+        visualization->publishNode2DPose(*nPred);
         //        d.sleep();
       }
 
@@ -307,7 +321,7 @@ float Algorithm::aStar(Node2D &start,
           // ensure successor is on grid ROW MAJOR
           // ensure successor is not blocked by obstacle
           // ensure successor is not on closed list
-          if (nSucc->isOnGrid(width, height) && configurationSpace.isTraversable(nSucc) && !nodes2D[iSucc].isClosed())
+          if (nSucc->isOnGrid(width, height) && configurationSpace->isTraversable(nSucc) && !nodes2D[iSucc].isClosed())
           {
             // calculate new G value
             nSucc->updateG();
@@ -345,7 +359,7 @@ float Algorithm::aStar(Node2D &start,
 //###################################################
 //                                         COST TO GO
 //###################################################
-void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D, float *dubinsLookup, int width, int height, CollisionDetection &configurationSpace, Visualize &visualization)
+void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D, float *dubinsLookup, int width, int height, std::shared_ptr<CollisionDetection> &configurationSpace, std::shared_ptr<Visualize> &visualization)
 {
   float dubinsCost = 0;
   float reedsSheppCost = 0;
@@ -439,8 +453,8 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
     Node2D start2d(start.getX(), start.getY(), 0, 0, nullptr);
     // create a 2d goal node
     Node2D goal2d(goal.getX(), goal.getY(), 0, 0, nullptr);
-    // run 2d astar and return the cost of the cheapest path for that node
-    nodes2D[(int)start.getY() * width + (int)start.getX()].setG(aStar(goal2d, start2d, nodes2D, width, height, configurationSpace, visualization));
+    // run 2d AStar and return the cost of the cheapest path for that node
+    nodes2D[(int)start.getY() * width + (int)start.getX()].setG(AStar(goal2d, start2d, nodes2D, width, height, configurationSpace, visualization));
     //    ros::Time t1 = ros::Time::now();
     //    ros::Duration d(t1 - t0);
     //    DLOG(INFO) << "calculated 2D Heuristic in ms: " << d * 1000 ;
@@ -461,7 +475,7 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
 //###################################################
 //                                        DUBINS SHOT
 //###################################################
-Node3D *Algorithm::AnalyticExpansions(Node3D &start, const Node3D &goal, CollisionDetection &configurationSpace)
+Node3D *Algorithm::AnalyticExpansions(Node3D &start, const Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace)
 {
   // start
   double q0[] = { start.getX(), start.getY(), start.getT() };
@@ -486,7 +500,8 @@ Node3D *Algorithm::AnalyticExpansions(Node3D &start, const Node3D &goal, Collisi
     dubinsNodes[i].setT(Helper::normalizeHeadingRad(q[2]));
 
     // collision check
-    if (configurationSpace.isTraversable(&dubinsNodes[i])) {
+    if (configurationSpace->isTraversable(&dubinsNodes[i]))
+    {
 
       // set the predecessor to the previous step
       if (i > 0) {
@@ -501,16 +516,16 @@ Node3D *Algorithm::AnalyticExpansions(Node3D &start, const Node3D &goal, Collisi
 
       x += params_.dubins_step_size;
       i++;
-    } else {
-      DLOG(INFO) << "Dubins shot collided, discarding the path"
-                 << "\n";
+    }
+    else
+    {
+      DLOG(INFO) << "Dubins shot collided, discarding the path";
       // delete all nodes
       delete [] dubinsNodes;
       return nullptr;
     }
   }
 
-  DLOG(INFO) << "Dubins shot connected, returning the path"
-             << "\n";
+  DLOG(INFO) << "Dubins shot connected, returning the path";
   return &dubinsNodes[i - 1];
 }

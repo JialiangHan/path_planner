@@ -29,29 +29,32 @@ const float Node3D::dt[] = { 0,         0.1178097,   -0.1178097};
 //                                         IS ON GRID
 //###################################################
 bool Node3D::isOnGrid(const int width, const int height) const {
-  return x >= 0 && x < width && y >= 0 && y < height && (int)(t / Constants::deltaHeadingRad) >= 0 && (int)(t / Constants::deltaHeadingRad) < Constants::headings;
+  return x >= 0 && x < width &&
+         y >= 0 && y < height &&
+         (int)(t / Constants::deltaHeadingRad) >= 0 && (int)(t / Constants::deltaHeadingRad) < Constants::headings;
 }
 
 
 //###################################################
 //                                        IS IN RANGE
 //###################################################
-bool Node3D::isInRange(const Node3D& goal) const {
+bool Node3D::IsInRange(const Node3D &goal, const float &range) const
+{
   int random = rand() % 10 + 1;
   float dx = std::abs(x - goal.x) / random;
   float dy = std::abs(y - goal.y) / random;
-  return (dx * dx) + (dy * dy) < Constants::dubinsShotDistance;
+  return (dx * dx) + (dy * dy) < range;
 }
 //###################################################
 //                                        IS close enough
 //###################################################
-bool Node3D::IsCloseEnough(const Node3D &goal) const
+bool Node3D::IsCloseEnough(const Node3D &goal, const float &distance_range, const float &angle_range) const
 {
   float dx = std::abs(x - goal.x);
   float dy = std::abs(y - goal.y);
-  if ((dx * dx) + (dy * dy) < Constants::dubinsShotDistance)
+  if ((dx * dx) + (dy * dy) < distance_range)
   {
-    if (std::abs(t - goal.t) <= Constants::deltaHeadingRad)
+    if (std::abs(t - goal.t) <= angle_range)
     {
       DLOG(INFO) << "two node distance and orientation are close enough, return true";
       return true;
