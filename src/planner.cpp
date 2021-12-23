@@ -178,6 +178,7 @@ void Planner::MakePlan()
   // if a start as well as goal are defined go ahead and plan
   if (valid_start_ && valid_goal_)
   {
+    DLOG(INFO) << "valid start and valid goal, start to make plan!";
 
     // ___________________________
     // LISTS ALLOCATED ROW MAJOR ORDER
@@ -186,8 +187,8 @@ void Planner::MakePlan()
     int depth = params_.headings;
     int length = width * height * depth;
     // define list pointers and initialize lists
-    Node3D* nodes3D = new Node3D[length]();
-    Node2D* nodes2D = new Node2D[width * height]();
+    Node3D *nodes3D = new Node3D[length]();
+    Node2D *nodes2D = new Node2D[width * height]();
 
     // ________________________
     // retrieving goal position
@@ -201,7 +202,6 @@ void Planner::MakePlan()
     // DEBUG GOAL
     //    const Node3D nGoal(155.349, 36.1969, 0.7615936, 0, 0, nullptr);
 
-
     // _________________________
     // retrieving start position
     x = start_.pose.pose.position.x / params_.cell_size;
@@ -213,7 +213,6 @@ void Planner::MakePlan()
     // ___________
     // DEBUG START
     //    Node3D nStart(108.291, 30.1081, 0, 0, 0, nullptr);
-
 
     // ___________________________
     // START AND TIME THE PLANNING
@@ -249,8 +248,11 @@ void Planner::MakePlan()
     visualization_ptr_->publishNode3DCosts(nodes3D, width, height, depth);
     visualization_ptr_->publishNode2DCosts(nodes2D, width, height);
 
-    delete [] nodes3D;
-    delete [] nodes2D;
+    delete[] nodes3D;
+    delete[] nodes2D;
+    //set these two flag to false when finished planning to avoid unwanted planning
+    valid_start_ = false;
+    valid_goal_ = false;
   }
   else
   {

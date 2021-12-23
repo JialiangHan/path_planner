@@ -11,9 +11,8 @@ namespace HybridAStar
     LoadSmootherParams();
     LoadAlgorithmParams();
     LoadPathParams();
-    // LoadSearchParams();
     LoadPlannerParams();
-    // LoadPathParams();
+    LoadPathParams();
     LoadVisualizeParams();
     LoadCollisionDetectionParams();
   }
@@ -68,10 +67,6 @@ namespace HybridAStar
     return param_container_ptr_;
   }
 
-  ParameterSearch ParameterManager::GetSearchParams()
-  {
-    return param_container_ptr_->search_params;
-  }
   ParameterAlgorithm ParameterManager::GetAlgorithmParams()
   {
     return param_container_ptr_->algorithm_params;
@@ -101,25 +96,7 @@ namespace HybridAStar
   {
     return param_container_ptr_->collision_detection_params;
   }
-  void ParameterManager::LoadSearchParams()
-  {
-    std::string ros_param_name;
-    std::string node_prefix = "/hybrid_astar/";
 
-    ros_param_name = "factor2D";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->search_params.factor2D);
-
-    ros_param_name = "penalty_turning";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->search_params.penalty_turning);
-
-    ros_param_name = "penalty_reversing";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->search_params.penalty_reversing);
-
-    ros_param_name = "penalty_COD";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->search_params.penalty_COD);
-
-    ;
-  }
   void ParameterManager::LoadCollisionDetectionParams()
   {
     std::string ros_param_name;
@@ -151,6 +128,14 @@ namespace HybridAStar
   {
     std::string ros_param_name;
     std::string node_prefix = "/hybrid_astar/";
+
+    ros_param_name = "penalty_turning";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.penalty_turning);
+    ros_param_name = "penalty_reverse";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.penalty_reverse);
+    ros_param_name = "penalty_change_of_direction";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.penalty_change_of_direction);
+
     ros_param_name = "reverse";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.reverse);
     ros_param_name = "visualization";

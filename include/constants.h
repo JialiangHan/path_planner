@@ -48,20 +48,6 @@ namespace Constants
   /// [m] --- The cell size of the 2D grid of the world
   static const float cellSize = 1;
 
-  // ___________________
-  // HEURISTIC CONSTANTS
-
-  /// [#] --- A factor to ensure admissibility of the holonomic with obstacles heuristic
-  static const float factor2D = sqrt(5) / sqrt(2) + 1;
-  /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
-  static const float penaltyTurning = 1.05;
-  /// [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
-  static const float penaltyReversing = 2.0;
-  /// [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
-  static const float penaltyCOD = 2.0;
-  /// [m] --- The distance to the goal when the analytical solution (Dubin's shot) first triggers
-  static const float dubinsShotDistance = 100;
-
   // ______________________
   // DUBINS LOOKUP SPECIFIC
 

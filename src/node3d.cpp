@@ -30,8 +30,7 @@ const float Node3D::dt[] = { 0,         0.1178097,   -0.1178097};
 //###################################################
 bool Node3D::isOnGrid(const int width, const int height) const {
   return x >= 0 && x < width &&
-         y >= 0 && y < height &&
-         (int)(t / Constants::deltaHeadingRad) >= 0 && (int)(t / Constants::deltaHeadingRad) < Constants::headings;
+         y >= 0 && y < height;
 }
 
 
@@ -98,16 +97,17 @@ Node3D* Node3D::createSuccessor(const int i) {
 //###################################################
 //                                      MOVEMENT COST
 //###################################################
-void Node3D::updateG() {
+void Node3D::updateG(const float &weight_turning, const float &weight_change_of_direction, const float &weight_reverse)
+{
   // forward driving
   if (prim < 3) {
     // penalize turning
     if (pred->prim != prim) {
       // penalize change of direction
       if (pred->prim > 2) {
-        g += dx[0] * Constants::penaltyTurning * Constants::penaltyCOD;
+        g += dx[0] * weight_turning * weight_change_of_direction;
       } else {
-        g += dx[0] * Constants::penaltyTurning;
+        g += dx[0] * weight_turning;
       }
     } else {
       g += dx[0];
@@ -119,12 +119,12 @@ void Node3D::updateG() {
     if (pred->prim != prim) {
       // penalize change of direction
       if (pred->prim < 3) {
-        g += dx[0] * Constants::penaltyTurning * Constants::penaltyReversing * Constants::penaltyCOD;
+        g += dx[0] * weight_turning * weight_reverse * weight_change_of_direction;
       } else {
-        g += dx[0] * Constants::penaltyTurning * Constants::penaltyReversing;
+        g += dx[0] * weight_turning * weight_reverse;
       }
     } else {
-      g += dx[0] * Constants::penaltyReversing;
+      g += dx[0] * weight_reverse;
     }
   }
 }
@@ -135,6 +135,5 @@ void Node3D::updateG() {
 bool Node3D::operator == (const Node3D& rhs) const {
   return (int)x == (int)rhs.x &&
          (int)y == (int)rhs.y &&
-         (std::abs(t - rhs.t) <= Constants::deltaHeadingRad ||
-          std::abs(t - rhs.t) >= Constants::deltaHeadingNegRad);
+         (t == rhs.t);
 }

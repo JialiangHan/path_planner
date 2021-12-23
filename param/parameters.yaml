@@ -34,14 +34,13 @@ vehicle_length : 2.65
 #   to allow the successor being placed in the same cell.
 # */
 tie_breaker : 0.01
-# [#] --- A factor to ensure admissibility of the holonomic with obstacles heuristic std::sqrt(5) / std::sqrt(2) + 1
-factor2D : 2.58113883
+
 # [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
 penalty_turning : 1.05
 # [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
-penalty_reversing : 2.0
+penalty_reverse : 2.0
 # [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
-penalty_COD : 2.0
+penalty_change_of_direction : 2.0
 # [m] --- The distance to the goal when the analytical solution (Dubin's shot) first triggers
 dubins_shot_distance : 100
 # [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
@@ -60,9 +59,9 @@ headings : 72
 cell_size : 1
 
 # **********************Smoother parameters*****************
-max_iterations : 10000
+max_iterations : 1000000
 #  the small number which will terminate loop if path difference smaller than this number.
-epsilon : 1.0e-4
+epsilon : 1.0e-2
 #maximum possible curvature of the non-holonomic vehicle
 min_turning_radius : 7
 #maximum distance to obstacles that is penalized

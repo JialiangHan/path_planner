@@ -22,6 +22,12 @@ namespace HybridAStar
   //this struct contains some used parameters in algorithm class
   struct ParameterAlgorithm
   {
+    /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
+    float penalty_turning = 1.05;
+    /// [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
+    float penalty_reverse = 1;
+    /// [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
+    float penalty_change_of_direction = 2;
     /// A flag to toggle reversing (true = on; false = off)
     bool reverse = true;
     /// A flag for the visualization of 3D nodes (true = on; false = off)
@@ -107,27 +113,6 @@ namespace HybridAStar
     int headings = 72;
   };
 
-  struct ParameterSearch
-  {
-
-    // ___________________
-    // HEURISTIC CONSTANTS
-
-    /// [#] --- A factor to ensure admissibility of the holonomic with obstacles heuristic
-    float factor2D = 2.58;
-    /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
-    float penalty_turning = 1.05;
-    /// [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
-    float penalty_reversing = 1;
-    /// [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
-    float penalty_COD = 2;
-
-    // ______________________
-    // DUBINS LOOKUP SPECIFIC
-
-    // _________________________
-    // COLLISION LOOKUP SPECIFIC
-  };
   struct ParameterSmoother
   {
     //****************************** smoother parameter************************************
@@ -158,7 +143,6 @@ namespace HybridAStar
   {
     ParameterAlgorithm algorithm_params;
     ParameterPath path_params;
-    ParameterSearch search_params;
     ParameterSmoother smoother_params;
     ParameterPlanner planner_params;
     ParameterVisualize visualize_params;
@@ -183,7 +167,6 @@ namespace HybridAStar
     virtual void LoadParams();
     virtual void LoadAlgorithmParams();
     virtual void LoadPathParams();
-    virtual void LoadSearchParams();
     //load param for smoother
     virtual void LoadSmootherParams();
     virtual void LoadPlannerParams();
@@ -196,7 +179,6 @@ namespace HybridAStar
     //get the ptr of all param
     std::shared_ptr<ParameterContainer> GetAllParams();
 
-    ParameterSearch GetSearchParams();
     ParameterSmoother GetSmootherParams();
     ParameterPath GetPathParams();
     ParameterPlanner GetPlannerParams();

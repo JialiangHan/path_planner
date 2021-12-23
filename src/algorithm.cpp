@@ -61,7 +61,7 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
   start.open();
   // push on priority queue aka open list
   openlist.push(&start);
-  iPred = start.setIdx(width, height);
+  iPred = start.setIdx(width, height, (float)2 * M_PI / params_.headings);
   nodes3D[iPred] = start;
 
   // NODE POINTER
@@ -77,7 +77,7 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
     // pop node with lowest cost from priority queue
     nPred = openlist.top();
     // set index
-    iPred = nPred->setIdx(width, height);
+    iPred = nPred->setIdx(width, height, (float)2 * M_PI / params_.headings);
     iterations++;
 
     // RViz visualization
@@ -110,10 +110,10 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
       // GOAL TEST
       if (iterations > params_.max_iterations)
       {
-        DLOG(INFO) << "max iterations reached!!!";
+        DLOG(INFO) << "max iterations reached!!!, current iterations is :" << iterations;
         return nPred;
       }
-      else if (*nPred == goal || nPred->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings))
+      else if (nPred->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings))
       {
         DLOG(INFO) << "Goal reached!!!";
         return nPred;
@@ -131,7 +131,7 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
           N = N + nPred->getH() / 2;
           nSucc = AnalyticExpansions(*nPred, goal, configurationSpace);
 
-          if (nSucc != nullptr && (*nSucc == goal || nSucc->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings)))
+          if (nSucc != nullptr && (nSucc->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings)))
           {
             //DEBUG
             // DLOG(INFO) << "max diff " << max ;
@@ -157,7 +157,7 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
           // create possible successor
           nSucc = nPred->createSuccessor(i);
           // set index of the successor
-          iSucc = nSucc->setIdx(width, height);
+          iSucc = nSucc->setIdx(width, height, (float)2 * M_PI / params_.headings);
 
           // ensure successor is on grid and traversable
           if (nSucc->isOnGrid(width, height) && configurationSpace->isTraversable(nSucc))
@@ -168,7 +168,7 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
             {
 
               // calculate new G value
-              nSucc->updateG();
+              nSucc->updateG(params_.penalty_turning, params_.penalty_change_of_direction, params_.penalty_reverse);
               newG = nSucc->getG();
 
               // if successor not on open list or found a shorter way to the cell
@@ -219,12 +219,10 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
       }
     }
   }
-
   if (openlist.empty())
   {
     return nullptr;
   }
-
   return nullptr;
 }
 

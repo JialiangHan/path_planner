@@ -3,7 +3,6 @@
 
 #include <cmath>
 
-#include "constants.h"
 #include "helper.h"
 namespace HybridAStar {
 /*!
@@ -13,7 +12,6 @@ namespace HybridAStar {
 */
 class Node3D {
  public:
-   //TODO rewrite Node3D to avoid using constants
    /// The default constructor for 3D array initialization
    Node3D() : Node3D(0, 0, 0, 0, 0, nullptr) {}
    /// Constructor for a node with the given arguments
@@ -67,9 +65,9 @@ class Node3D {
    /// set the cost-to-come (heuristic value)
    void setH(const float &h) { this->h = h; }
    /// set and get the index of the node in the 3D grid
-   int setIdx(int width, int height)
+   int setIdx(int width, int height, const float &delta_heading_in_rad)
    {
-     this->idx = (int)(t / Constants::deltaHeadingRad) * width * height + (int)(y)*width + (int)(x);
+     this->idx = (int)(t / delta_heading_in_rad) * width * height + (int)(y)*width + (int)(x);
      return idx;
    }
    /// open the node
@@ -85,11 +83,12 @@ class Node3D {
      o = false;
    }
    /// set a pointer to the predecessor of the node
+
    void setPred(const Node3D *pred) { this->pred = pred; }
 
    // UPDATE METHODS
    /// Updates the cost-so-far for the node x' coming from its predecessor. It also discovers the node.
-   void updateG();
+   void updateG(const float &weight_turning, const float &weight_change_of_direction, const float &weight_reverse);
 
    // CUSTOM OPERATORS
    /// Custom operator to compare nodes. Nodes are equal if their x and y position as well as heading is similar.
@@ -98,9 +97,19 @@ class Node3D {
    // RANGE CHECKING
    /// Determines whether it is appropriate to find a analytical solution.
    bool IsInRange(const Node3D &goal, const float &range) const;
+   /**
+    * @brief determin if two Node3D are close enough to say they are equal
+    * 
+    * @param goal 
+    * @param distance_range 
+    * @param angle_range 
+    * @return true 
+    * @return false 
+    */
    bool IsCloseEnough(const Node3D &goal, const float &distance_range, const float &angle_range) const;
    // GRID CHECKING
    /// Validity check to test, whether the node is in the 3D array.
+
    bool isOnGrid(const int width, const int height) const;
 
    // SUCCESSOR CREATION
