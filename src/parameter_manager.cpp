@@ -11,10 +11,11 @@ namespace HybridAStar
     LoadSmootherParams();
     LoadAlgorithmParams();
     LoadPathParams();
-    LoadSearchParams();
+    // LoadSearchParams();
     LoadPlannerParams();
-    LoadPathParams();
+    // LoadPathParams();
     LoadVisualizeParams();
+    LoadCollisionDetectionParams();
   }
   void ParameterManager::LoadSmootherParams()
   {
@@ -75,21 +76,30 @@ namespace HybridAStar
   {
     return param_container_ptr_->algorithm_params;
   }
+
   ParameterSmoother ParameterManager::GetSmootherParams()
   {
     return param_container_ptr_->smoother_params;
   }
+
   ParameterPlanner ParameterManager::GetPlannerParams()
   {
     return param_container_ptr_->planner_params;
   }
+
   ParameterPath ParameterManager::GetPathParams()
   {
     return param_container_ptr_->path_params;
   }
+
   ParameterVisualize ParameterManager::GetVisualizeParams()
   {
     return param_container_ptr_->visualize_params;
+  }
+
+  ParameterCollisionDetection ParameterManager::GetCollisionDetectionParams()
+  {
+    return param_container_ptr_->collision_detection_params;
   }
   void ParameterManager::LoadSearchParams()
   {
@@ -111,10 +121,18 @@ namespace HybridAStar
     ros_param_name = "dubins_shot_distance";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->search_params.dubins_shot_distance);
 
-    ros_param_name = "position_resolution";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->search_params.position_resolution);
+    ;
   }
+  void ParameterManager::LoadCollisionDetectionParams()
+  {
+    std::string ros_param_name;
+    std::string node_prefix = "/hybrid_astar/";
 
+    ros_param_name = "position_resolution";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.position_resolution);
+    ros_param_name = "headings";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.headings);
+  }
   void ParameterManager::LoadPlannerParams()
   {
     std::string ros_param_name;

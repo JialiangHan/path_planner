@@ -4,6 +4,14 @@
 #include <ros/ros.h>
 namespace HybridAStar
 {
+  //this struct contains some used parameters in collisiondetection class
+  struct ParameterCollisionDetection
+  {
+    /// [#] --- The sqrt of the number of discrete positions per cell
+    int position_resolution = 10;
+    /// [m] --- The number of discretizations in heading,used in planner.cpp
+    int headings = 72;
+  };
   //this struct contains some used parameters in visualize class
   struct ParameterVisualize
   {
@@ -118,9 +126,6 @@ namespace HybridAStar
 
     // _________________________
     // COLLISION LOOKUP SPECIFIC
-
-    /// [#] --- The sqrt of the number of discrete positions per cell
-    int position_resolution = 10;
   };
   struct ParameterSmoother
   {
@@ -156,6 +161,7 @@ namespace HybridAStar
     ParameterSmoother smoother_params;
     ParameterPlanner planner_params;
     ParameterVisualize visualize_params;
+    ParameterCollisionDetection collision_detection_params;
   };
 
   class ParameterManager
@@ -181,6 +187,7 @@ namespace HybridAStar
     virtual void LoadSmootherParams();
     virtual void LoadPlannerParams();
     virtual void LoadVisualizeParams();
+    virtual void LoadCollisionDetectionParams();
     //load param by param name, member variable, param type
     template <typename T>
     void GetSingleParam(const std::string &param_name, T &param_data);
@@ -194,6 +201,7 @@ namespace HybridAStar
     ParameterPlanner GetPlannerParams();
     ParameterAlgorithm GetAlgorithmParams();
     ParameterVisualize GetVisualizeParams();
+    ParameterCollisionDetection GetCollisionDetectionParams();
 
   private:
     std::shared_ptr<ParameterContainer> param_container_ptr_;

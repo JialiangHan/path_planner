@@ -5,7 +5,7 @@ using namespace HybridAStar;
 //                                        CONSTRUCTOR
 //###################################################
 Planner::Planner() {
-
+  //load all params
   param_manager_.reset(new ParameterManager(nh_));
   param_manager_->LoadParams();
   params_ = param_manager_->GetPlannerParams();
@@ -14,6 +14,7 @@ Planner::Planner() {
   smoothed_path_ptr_.reset(new Path(param_manager_->GetPathParams(), true));
   algorithm_ptr_.reset(new Algorithm(param_manager_->GetAlgorithmParams()));
   visualization_ = Visualize(param_manager_->GetVisualizeParams());
+  configuration_space_ = CollisionDetection(param_manager_->GetCollisionDetectionParams());
 
   // _________________
   // TOPICS TO PUBLISH
