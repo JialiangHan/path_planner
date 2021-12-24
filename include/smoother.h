@@ -3,12 +3,10 @@
 
 #include <cmath>
 #include <vector>
-
+#include <eigen3/Eigen/Dense>
 #include "dynamicvoronoi.h"
 #include "node3d.h"
-#include "vector2d.h"
 #include "helper.h"
-#include "constants.h"
 #include "utility.h"
 #include "parameter_manager.h"
 namespace HybridAStar
@@ -48,25 +46,25 @@ namespace HybridAStar
       const std::vector<Node3D> &GetPath() { return path_; }
 
       /// obstacleCost - pushes the path away from obstacles
-      Vector2D ObstacleTerm(Vector2D xi);
+      Eigen::Vector2d ObstacleTerm(Eigen::Vector2d xi);
 
       /// curvatureCost - forces a maximum curvature of 1/R along the path ensuring drivability
-      Vector2D CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2);
+      Eigen::Vector2d CurvatureTerm(Eigen::Vector2d xim2, Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1, Eigen::Vector2d xip2);
 
       /// smoothnessCost - attempts to spread nodes equidistantly and with the same orientation
-      Vector2D SmoothnessTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2);
+      Eigen::Vector2d SmoothnessTerm(Eigen::Vector2d xim2, Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1, Eigen::Vector2d xip2);
 
       /// voronoiCost - trade off between path length and closeness to obstacles
-      Vector2D VoronoiTerm(Vector2D xi);
+      Eigen::Vector2d VoronoiTerm(Eigen::Vector2d xi);
 
       // cost for path length, in order to minimize path length
-      Vector2D PathLengthTerm(Vector2D xim1, Vector2D xi, Vector2D xip1);
+      Eigen::Vector2d PathLengthTerm(Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1);
 
       /// a boolean test, whether vector is on the grid or not
-      bool isOnGrid(Vector2D vec)
+      bool isOnGrid(Eigen::Vector2d vec)
       {
-         if (vec.getX() >= 0 && vec.getX() < map_width_ &&
-             vec.getY() >= 0 && vec.getY() < map_height_)
+         if (vec(0, 0) >= 0 && vec(0, 0) < map_width_ &&
+             vec(1, 0) >= 0 && vec(1, 0) < map_height_)
          {
             return true;
          }
@@ -86,6 +84,8 @@ namespace HybridAStar
        * @return float 
        */
       float GetPathDiff(const std::vector<Node3D> &path_before_smooth, const std::vector<Node3D> &path_after_smooth);
+
+      Eigen::Vector2d OrthogonalComplements(const Eigen::Vector2d &a, const Eigen::Vector2d &b);
 
    private:
       void SetSmootherParams(const ParameterSmoother &smoother_params);

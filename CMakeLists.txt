@@ -32,7 +32,9 @@ if (${Python_FOUND})
 else()
   message(FATAL_ERROR "Python3 not found, please install it.")
 endif()
+find_package(Eigen3 REQUIRED)
 
+include_directories(${EIGEN3_INCLUDE_DIRS})
 set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/algorithm.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/node2d.cpp
@@ -57,7 +59,6 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/planner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/path.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/smoother.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/vector2d.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/visualize.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/helper.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/constants.h

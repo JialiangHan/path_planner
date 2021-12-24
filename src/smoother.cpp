@@ -56,21 +56,21 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
       for (uint i = 2; i < path_before_smooth.size() - 2; ++i)
       {
 
-        Vector2D xim2(path_before_smooth[i - 2].getX(), path_before_smooth[i - 2].getY());
-        Vector2D xim1(path_before_smooth[i - 1].getX(), path_before_smooth[i - 1].getY());
-        Vector2D xi(path_before_smooth[i].getX(), path_before_smooth[i].getY());
-        Vector2D xip1(path_before_smooth[i + 1].getX(), path_before_smooth[i + 1].getY());
-        Vector2D xip2(path_before_smooth[i + 2].getX(), path_before_smooth[i + 2].getY());
-        Vector2D correction;
-        // DLOG(INFO) << "xim2: " << xim2.getX() << " " << xim2.getY()
-        //  << "xim1: " << xim1.getX() << " " << xim1.getY()
-        //  << "xi: " << xi.getX() << " " << xi.getY()
-        //  << "xip1:" << xip1.getX() << " " << xip1.getY()
-        //  << "xip2:" << xip2.getX() << " " << xip2.getY();
+        Eigen::Vector2d xim2(path_before_smooth[i - 2].getX(), path_before_smooth[i - 2].getY());
+        Eigen::Vector2d xim1(path_before_smooth[i - 1].getX(), path_before_smooth[i - 1].getY());
+        Eigen::Vector2d xi(path_before_smooth[i].getX(), path_before_smooth[i].getY());
+        Eigen::Vector2d xip1(path_before_smooth[i + 1].getX(), path_before_smooth[i + 1].getY());
+        Eigen::Vector2d xip2(path_before_smooth[i + 2].getX(), path_before_smooth[i + 2].getY());
+        Eigen::Vector2d correction;
+        // DLOG(INFO) << "xim2: " << xim2(0,0) << " " << xim2(1,0)
+        //  << "xim1: " << xim1(0,0) << " " << xim1(1,0)
+        //  << "xi: " << xi(0,0) << " " << xi(1,0)
+        //  << "xip1:" << xip1(0,0) << " " << xip1(1,0)
+        //  << "xip2:" << xip2(0,0) << " " << xip2(1,0);
 
         // the following points shall not be smoothed
         // keep these points fixed if they are a cusp point or adjacent to one
-        // DLOG(INFO) << i << "th node before correction: x: " << xi.getX() << " y: " << xi.getY();
+        // DLOG(INFO) << i << "th node before correction: x: " << xi(0,0) << " y: " << xi(1,0);
         if (isCusp(path_before_smooth, i))
         {
           DLOG(INFO) << "node is cusp,skip it!";
@@ -113,15 +113,15 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
         }
 
         xi = xi + params_.alpha * correction / total_weight;
-        if (correction.getX() == 0 && correction.getY() == 0)
+        if (correction(0, 0) == 0 && correction(1, 0) == 0)
         {
           DLOG(WARNING) << "correction is zero, no correction performed!!!";
         }
-        smoothed_path[i].setX(xi.getX());
-        smoothed_path[i].setY(xi.getY());
-        Vector2D Dxi = xi - xim1;
-        smoothed_path[i - 1].setT(std::atan2(Dxi.getY(), Dxi.getX()));
-        // DLOG(INFO) << i << "th node after correction: x: " << xi.getX() << " y: " << xi.getY();
+        smoothed_path[i].setX(xi(0, 0));
+        smoothed_path[i].setY(xi(1, 0));
+        Eigen::Vector2d Dxi = xi - xim1;
+        smoothed_path[i - 1].setT(std::atan2(Dxi(1, 0), Dxi(0, 0)));
+        // DLOG(INFO) << i << "th node after correction: x: " << xi(0,0) << " y: " << xi(1,0);
       }
 
       //add termination for while loop
@@ -161,19 +161,19 @@ void Smoother::TracePath(const Node3D *node, int i, std::vector<Node3D> path)
 //###################################################
 //                                      OBSTACLE TERM
 //###################################################
-Vector2D Smoother::ObstacleTerm(Vector2D xi)
+Eigen::Vector2d Smoother::ObstacleTerm(Eigen::Vector2d xi)
 {
-  Vector2D gradient;
+  Eigen::Vector2d gradient;
   // the distance to the closest obstacle from the current node
-  float obsDst = voronoi_.getDistance(xi.getX(), xi.getY());
+  float obsDst = voronoi_.getDistance(xi(0, 0), xi(1, 0));
   // the vector determining where the obstacle is
-  int x = (int)xi.getX();
-  int y = (int)xi.getY();
+  int x = (int)xi(0, 0);
+  int y = (int)xi(1, 0);
   // if the node is within the map
   if (x < map_width_ && x >= 0 && y < map_height_ && y >= 0)
   {
-    Vector2D obsVct(xi.getX() - voronoi_.data[(int)xi.getX()][(int)xi.getY()].obstX,
-                    xi.getY() - voronoi_.data[(int)xi.getX()][(int)xi.getY()].obstY);
+    Eigen::Vector2d obsVct(xi(0, 0) - voronoi_.data[(int)xi(0, 0)][(int)xi(1, 0)].obstX,
+                           xi(1, 0) - voronoi_.data[(int)xi(0, 0)][(int)xi(1, 0)].obstY);
 
     // the closest obstacle is closer than desired correct the path for that
     if (obsDst < params_.obsd_max && obsDst > 1e-6)
@@ -187,19 +187,19 @@ Vector2D Smoother::ObstacleTerm(Vector2D xi)
 //###################################################
 //                                       VORONOI TERM
 //###################################################
-Vector2D Smoother::VoronoiTerm(Vector2D xi)
+Eigen::Vector2d Smoother::VoronoiTerm(Eigen::Vector2d xi)
 {
-  Vector2D gradient;
+  Eigen::Vector2d gradient;
 
-  float obsDst = voronoi_.getDistance(xi.getX(), xi.getY());
+  float obsDst = voronoi_.getDistance(xi(0, 0), xi(1, 0));
   // the vector determining where the obstacle is
-  Vector2D obsVct(xi.getX() - voronoi_.data[(int)xi.getX()][(int)xi.getY()].obstX,
-                  xi.getY() - voronoi_.data[(int)xi.getX()][(int)xi.getY()].obstY);
+  Eigen::Vector2d obsVct(xi(0, 0) - voronoi_.data[(int)xi(0, 0)][(int)xi(1, 0)].obstX,
+                         xi(1, 0) - voronoi_.data[(int)xi(0, 0)][(int)xi(1, 0)].obstY);
   // distance to the closest voronoi edge
   double edgDst = 0.0;
   INTPOINT closest_edge_pt = voronoi_.GetClosestVoronoiEdgePoint(xi, edgDst);
   // the vector determining where the voronoi edge is
-  Vector2D edgVct(xi.getX() - closest_edge_pt.x, xi.getY() - closest_edge_pt.y);
+  Eigen::Vector2d edgVct(xi(0, 0) - closest_edge_pt.x, xi(1, 0) - closest_edge_pt.y);
   //calculate the distance to the closest obstacle from the current node
 
   if (obsDst < params_.vor_obs_dmax && obsDst > 1e-6)
@@ -209,8 +209,8 @@ Vector2D Smoother::VoronoiTerm(Vector2D xi)
     if (edgDst > 0)
     {
       // equations can be found in paper "Path Planning for autonomous vehicle in unknown semi-structured environments"
-      Vector2D PobsDst_Pxi = obsVct / obsDst;
-      Vector2D PedgDst_Pxi = edgVct / edgDst;
+      Eigen::Vector2d PobsDst_Pxi = obsVct / obsDst;
+      Eigen::Vector2d PedgDst_Pxi = edgVct / edgDst;
 
       float PvorPtn_PedgDst = (params_.alpha / (params_.alpha + obsDst)) * std::pow((obsDst - params_.vor_obs_dmax) / params_.vor_obs_dmax, 2) * (obsDst / std::pow(obsDst + edgDst, 2));
 
@@ -228,21 +228,21 @@ Vector2D Smoother::VoronoiTerm(Vector2D xi)
 //###################################################
 //                                     CURVATURE TERM
 //###################################################
-Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2)
+Eigen::Vector2d Smoother::CurvatureTerm(Eigen::Vector2d xim2, Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1, Eigen::Vector2d xip2)
 {
   //use curvature square as cost function for curvature term
-  Vector2D gradient;
+  Eigen::Vector2d gradient;
   // the vectors between the nodes
-  Vector2D Dxi = xi - xim1;
-  Vector2D Dxip1 = xip1 - xi;
-  Vector2D Dxip2 = xip2 - xip1;
-  Vector2D Dxim1 = xim1 - xim2;
+  Eigen::Vector2d Dxi = xi - xim1;
+  Eigen::Vector2d Dxip1 = xip1 - xi;
+  Eigen::Vector2d Dxip2 = xip2 - xip1;
+  Eigen::Vector2d Dxim1 = xim1 - xim2;
 
   // the distance of the vectors
-  float norm_Dxi = Dxi.length();
-  float norm_Dxip1 = Dxip1.length();
-  float norm_Dxim1 = Dxim1.length();
-  float norm_Dxip2 = Dxip2.length();
+  float norm_Dxi = Dxi.norm();
+  float norm_Dxip1 = Dxip1.norm();
+  float norm_Dxim1 = Dxim1.norm();
+  float norm_Dxip2 = Dxip2.norm();
   // ensure that the absolute values are not null
   if (norm_Dxi > 0 && norm_Dxim1 > 0 && norm_Dxip1 > 0)
   {
@@ -253,7 +253,7 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
     if (Dphim1 == 0 || Dphi == 0 || Dphip1 == 0)
     {
       DLOG(INFO) << "one of the changing angle is 0!!!";
-      Vector2D zeros;
+      Eigen::Vector2d zeros(0, 0);
       return zeros;
     }
     float absDxi1Inv = 1 / norm_Dxi;
@@ -268,28 +268,28 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
     float uim1 = absDxim1Inv * PDphim1_PcosDphim1;
     float uip1 = absDxip1Inv * PDphip1_PcosDphip1;
 
-    Vector2D PcosDphi_Pxi = -xi.ort(-xip1) / (norm_Dxi * norm_Dxip1) - (-xip1).ort(xi) / (norm_Dxi * norm_Dxip1);
-    Vector2D PcosDphim1_Pxi = xim1.ort(-xi) / (norm_Dxim1 * norm_Dxi);
-    Vector2D PcosDphip1_Pxi = (-xip2).ort(xip1) / (norm_Dxip1 * norm_Dxip2);
-
-    Vector2D Pcurvature_m_Pxi = uim1 * PcosDphim1_Pxi;
-    Vector2D Pcurvature_i_Pxi = ui * PcosDphi_Pxi - Dphi / std::pow(norm_Dxi, 2);
-    Vector2D Pcurvature_p_Pxi = uip1 * PcosDphip1_Pxi + Dphip1 / std::pow(norm_Dxip1, 2);
+    Eigen::Vector2d PcosDphi_Pxi = -OrthogonalComplements(xi, -xip1) / (norm_Dxi * norm_Dxip1) - OrthogonalComplements(-xip1, xi) / (norm_Dxi * norm_Dxip1);
+    Eigen::Vector2d PcosDphim1_Pxi = OrthogonalComplements(xim1, -xi) / (norm_Dxim1 * norm_Dxi);
+    Eigen::Vector2d PcosDphip1_Pxi = OrthogonalComplements(-xip2, xip1) / (norm_Dxip1 * norm_Dxip2);
+    Eigen::Vector2d ones(1, 1);
+    Eigen::Vector2d Pcurvature_m_Pxi = uim1 * PcosDphim1_Pxi;
+    Eigen::Vector2d Pcurvature_i_Pxi = ui * PcosDphi_Pxi - Dphi / std::pow(norm_Dxi, 2) * ones;
+    Eigen::Vector2d Pcurvature_p_Pxi = uip1 * PcosDphip1_Pxi + Dphip1 / std::pow(norm_Dxip1, 2) * ones;
 
     // calculate the gradient
     gradient = params_.weight_curvature * (2 * Pcurvature_m_Pxi + 2 * Pcurvature_i_Pxi + 2 * Pcurvature_p_Pxi);
 
-    if (std::isnan(gradient.getX()) || std::isnan(gradient.getY()))
+    if (std::isnan(gradient(0, 0)) || std::isnan(gradient(1, 0)))
     {
       DLOG(WARNING) << "nan values in curvature term";
-      DLOG(INFO) << "gradient is: " << gradient.getX() << " " << gradient.getY();
+      DLOG(INFO) << "gradient is: " << gradient(0, 0) << " " << gradient(1, 0);
       // DLOG(INFO) << "weighting is " << params_.weight_curvature;
-      // DLOG(INFO) << "Pcurvature_m_Pxi is nan: x: " << Pcurvature_m_Pxi.getX() << " y: " << Pcurvature_m_Pxi.getY();
-      // DLOG(INFO) << "Pcurvature_i_Pxi is nan: x: " << Pcurvature_i_Pxi.getX() << " y: " << Pcurvature_i_Pxi.getY();
-      // DLOG(INFO) << "Pcurvature_p_Pxi is nan: x: " << Pcurvature_p_Pxi.getX() << " y: " << Pcurvature_p_Pxi.getY();
-      if (std::isinf(Pcurvature_m_Pxi.getX()) || std::isinf(Pcurvature_m_Pxi.getY()))
+      // DLOG(INFO) << "Pcurvature_m_Pxi is nan: x: " << Pcurvature_m_Pxi(0,0) << " y: " << Pcurvature_m_Pxi(1,0);
+      // DLOG(INFO) << "Pcurvature_i_Pxi is nan: x: " << Pcurvature_i_Pxi(0,0) << " y: " << Pcurvature_i_Pxi(1,0);
+      // DLOG(INFO) << "Pcurvature_p_Pxi is nan: x: " << Pcurvature_p_Pxi(0,0) << " y: " << Pcurvature_p_Pxi(1,0);
+      if (std::isinf(Pcurvature_m_Pxi(0, 0)) || std::isinf(Pcurvature_m_Pxi(1, 0)))
       {
-        DLOG(INFO) << "Pcurvature_m_Pxi is inf: x: " << Pcurvature_m_Pxi.getX() << " y: " << Pcurvature_m_Pxi.getY();
+        DLOG(INFO) << "Pcurvature_m_Pxi is inf: x: " << Pcurvature_m_Pxi(0, 0) << " y: " << Pcurvature_m_Pxi(1, 0);
         if (std::isinf(uim1))
         {
           DLOG(INFO) << "uim1 is " << uim1;
@@ -308,51 +308,51 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
             }
           }
         }
-        if (std::isinf(PcosDphim1_Pxi.getX()) || std::isinf(PcosDphim1_Pxi.getY()))
+        if (std::isinf(PcosDphim1_Pxi(0, 0)) || std::isinf(PcosDphim1_Pxi(1, 0)))
         {
-          DLOG(INFO) << "PcosDphim1_Pxi is inf: x: " << PcosDphim1_Pxi.getX() << " y: " << PcosDphim1_Pxi.getY();
+          DLOG(INFO) << "PcosDphim1_Pxi is inf: x: " << PcosDphim1_Pxi(0, 0) << " y: " << PcosDphim1_Pxi(1, 0);
           if (norm_Dxim1 * norm_Dxi == 0)
           {
             DLOG(INFO) << "norm_Dxim1 is: " << norm_Dxim1 << " norm_Dxi is: " << norm_Dxi;
           }
-          if (std::isinf(xim1.ort(-xi).getX()) || std::isinf(xim1.ort(-xi).getY()))
+          if (std::isinf(OrthogonalComplements(xim1, -xi)(0, 0)) || std::isinf(OrthogonalComplements(xim1, -xi)(1, 0)))
           {
-            DLOG(INFO) << "xim1 is: x: " << xim1.getX() << " y: " << xim1.getY() << " length is: " << xim1.length();
-            DLOG(INFO) << "xi is: x: " << xi.getX() << " y: " << xi.getY() << " length is: " << xi.length();
+            DLOG(INFO) << "xim1 is: x: " << xim1(0, 0) << " y: " << xim1(1, 0) << " length is: " << xim1.norm();
+            DLOG(INFO) << "xi is: x: " << xi(0, 0) << " y: " << xi(1, 0) << " length is: " << xi.norm();
           }
         }
       }
-      if (std::isnan(Pcurvature_m_Pxi.getX()) || std::isnan(Pcurvature_m_Pxi.getY()))
+      if (std::isnan(Pcurvature_m_Pxi(0, 0)) || std::isnan(Pcurvature_m_Pxi(1, 0)))
       {
-        DLOG(INFO) << "Pcurvature_m_Pxi is nan: x: " << Pcurvature_m_Pxi.getX() << " y: " << Pcurvature_m_Pxi.getY();
-        if (std::isnan(PcosDphim1_Pxi.getX()) || std::isnan(PcosDphim1_Pxi.getY()))
+        DLOG(INFO) << "Pcurvature_m_Pxi is nan: x: " << Pcurvature_m_Pxi(0, 0) << " y: " << Pcurvature_m_Pxi(1, 0);
+        if (std::isnan(PcosDphim1_Pxi(0, 0)) || std::isnan(PcosDphim1_Pxi(1, 0)))
         {
-          DLOG(INFO) << "PcosDphim1_Pxi is nan: x: " << PcosDphim1_Pxi.getX() << " y: " << PcosDphim1_Pxi.getY();
+          DLOG(INFO) << "PcosDphim1_Pxi is nan: x: " << PcosDphim1_Pxi(0, 0) << " y: " << PcosDphim1_Pxi(1, 0);
           if (norm_Dxim1 * norm_Dxi == 0)
           {
             DLOG(INFO) << "norm_Dxim1 is: " << norm_Dxim1 << " norm_Dxi is: " << norm_Dxi;
           }
-          if (std::isnan(xim1.ort(-xi).getX()) || std::isnan(xim1.ort(-xi).getY()))
+          if (std::isnan(OrthogonalComplements(xim1, -xi)(0, 0)) || std::isnan(OrthogonalComplements(xim1, -xi)(1, 0)))
           {
-            DLOG(INFO) << "xim1 is: x: " << xim1.getX() << " y: " << xim1.getY() << " length is: " << xim1.length();
-            DLOG(INFO) << "xi is: x: " << xi.getX() << " y: " << xi.getY() << " length is: " << xi.length();
+            DLOG(INFO) << "xim1 is: x: " << xim1(0, 0) << " y: " << xim1(1, 0) << " length is: " << xim1.norm();
+            DLOG(INFO) << "xi is: x: " << xi(0, 0) << " y: " << xi(1, 0) << " length is: " << xi.norm();
           }
         }
       }
-      if (std::isnan(Pcurvature_i_Pxi.getX()) || std::isnan(Pcurvature_i_Pxi.getY()))
+      if (std::isnan(Pcurvature_i_Pxi(0, 0)) || std::isnan(Pcurvature_i_Pxi(1, 0)))
       {
-        DLOG(INFO) << "Pcurvature_i_Pxi is nan: x: " << Pcurvature_i_Pxi.getX() << " y: " << Pcurvature_i_Pxi.getY();
-        if (std::isnan(PcosDphi_Pxi.getX()) || std::isnan(PcosDphi_Pxi.getY()))
+        DLOG(INFO) << "Pcurvature_i_Pxi is nan: x: " << Pcurvature_i_Pxi(0, 0) << " y: " << Pcurvature_i_Pxi(1, 0);
+        if (std::isnan(PcosDphi_Pxi(0, 0)) || std::isnan(PcosDphi_Pxi(1, 0)))
         {
-          DLOG(INFO) << "PcosDphi_Pxi is nan: x: " << PcosDphi_Pxi.getX() << " y: " << PcosDphi_Pxi.getY();
+          DLOG(INFO) << "PcosDphi_Pxi is nan: x: " << PcosDphi_Pxi(0, 0) << " y: " << PcosDphi_Pxi(1, 0);
           if (norm_Dxi * norm_Dxip1 == 0)
           {
             DLOG(INFO) << "norm_Dxi is: " << norm_Dxi << " norm_Dxip1 is: " << norm_Dxip1;
           }
-          if (std::isnan(xi.ort(-xip1).getX()) || std::isnan(xi.ort(-xip1).getY()))
+          if (std::isnan(OrthogonalComplements(xi, -xip1)(0, 0)) || std::isnan(OrthogonalComplements(xi, -xip1)(1, 0)))
           {
-            DLOG(INFO) << "xip1 is: x: " << xip1.getX() << " y: " << xip1.getY() << " length is: " << xip1.length();
-            DLOG(INFO) << "xi is: x: " << xi.getX() << " y: " << xi.getY() << " length is: " << xi.length();
+            DLOG(INFO) << "xip1 is: x: " << xip1(0, 0) << " y: " << xip1(1, 0) << " length is: " << xip1.norm();
+            DLOG(INFO) << "xi is: x: " << xi(0, 0) << " y: " << xi(1, 0) << " length is: " << xi.norm();
           }
         }
         if (norm_Dxi == 0)
@@ -365,20 +365,20 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
           DLOG(INFO) << "inside acos : " << Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1);
         }
       }
-      if (std::isnan(Pcurvature_p_Pxi.getX()) || std::isnan(Pcurvature_p_Pxi.getY()))
+      if (std::isnan(Pcurvature_p_Pxi(0, 0)) || std::isnan(Pcurvature_p_Pxi(1, 0)))
       {
-        DLOG(INFO) << "Pcurvature_p_Pxi is nan: x: " << Pcurvature_p_Pxi.getX() << " y: " << Pcurvature_p_Pxi.getY();
-        if (std::isnan(PcosDphip1_Pxi.getX()) || std::isnan(PcosDphip1_Pxi.getY()))
+        DLOG(INFO) << "Pcurvature_p_Pxi is nan: x: " << Pcurvature_p_Pxi(0, 0) << " y: " << Pcurvature_p_Pxi(1, 0);
+        if (std::isnan(PcosDphip1_Pxi(0, 0)) || std::isnan(PcosDphip1_Pxi(1, 0)))
         {
-          DLOG(INFO) << "PcosDphip1_Pxi is nan: x: " << PcosDphip1_Pxi.getX() << " y: " << PcosDphip1_Pxi.getY();
+          DLOG(INFO) << "PcosDphip1_Pxi is nan: x: " << PcosDphip1_Pxi(0, 0) << " y: " << PcosDphip1_Pxi(1, 0);
           if (norm_Dxip1 * norm_Dxip2 == 0)
           {
             DLOG(INFO) << "norm_Dxip1 is: " << norm_Dxip1 << " norm_Dxip2 is: " << norm_Dxip2;
           }
-          if (std::isnan((-xip2).ort(xip1).getX()) || std::isnan((-xip2).ort(xip1).getY()))
+          if (std::isnan(OrthogonalComplements(-xip2, xip1)(0, 0)) || std::isnan(OrthogonalComplements(-xip2, xip1)(1, 0)))
           {
-            DLOG(INFO) << "xip2 is: x: " << xip2.getX() << " y: " << xip2.getY() << " length is: " << xip2.length();
-            DLOG(INFO) << "xip1 is: x: " << xip1.getX() << " y: " << xip1.getY() << " length is: " << xip1.length();
+            DLOG(INFO) << "xip2 is: x: " << xip2(0, 0) << " y: " << xip2(1, 0) << " length is: " << xip2.norm();
+            DLOG(INFO) << "xip1 is: x: " << xip1(0, 0) << " y: " << xip1(1, 0) << " length is: " << xip1.norm();
           }
         }
         if (norm_Dxip1 == 0)
@@ -391,7 +391,7 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
           DLOG(INFO) << "inside acos : " << Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2);
         }
       }
-      Vector2D zeros;
+      Eigen::Vector2d zeros(0, 0);
       return zeros;
     }
     // return gradient of 0
@@ -407,12 +407,12 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
     if (norm_Dxi <= 0)
     {
       DLOG(INFO) << "absDxi value is: " << norm_Dxi
-                 << " Dxi x: " << Dxi.getX()
-                 << " Dxi y: " << Dxi.getY()
-                 << " xi x: " << xi.getX()
-                 << " xi y: " << xi.getY()
-                 << " xim1 x: " << xim1.getX()
-                 << " xim1 y: " << xim1.getY();
+                 << " Dxi x: " << Dxi(0, 0)
+                 << " Dxi y: " << Dxi(1, 0)
+                 << " xi x: " << xi(0, 0)
+                 << " xi y: " << xi(1, 0)
+                 << " xim1 x: " << xim1(0, 0)
+                 << " xim1 y: " << xim1(1, 0);
       if (xi == xim1)
       {
         DLOG(WARNING) << "xi is equal to xim1!!!!";
@@ -421,18 +421,18 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
     if (norm_Dxip1 <= 0)
     {
       DLOG(INFO) << "absDxip1 value is: " << norm_Dxip1
-                 << " Dxip1 x: " << Dxip1.getX()
-                 << " Dxip1 y: " << Dxip1.getY()
-                 << " xip1 x: " << xip1.getX()
-                 << " xip1 y: " << xip1.getY()
-                 << " xi x: " << xi.getX()
-                 << " xi y: " << xi.getY();
+                 << " Dxip1 x: " << Dxip1(0, 0)
+                 << " Dxip1 y: " << Dxip1(1, 0)
+                 << " xip1 x: " << xip1(0, 0)
+                 << " xip1 y: " << xip1(1, 0)
+                 << " xi x: " << xi(0, 0)
+                 << " xi y: " << xi(1, 0);
       if (xi == xip1)
       {
         DLOG(WARNING) << "xi is equal to xip1!!!!";
       }
     }
-    Vector2D zeros;
+    Eigen::Vector2d zeros(0, 0);
     return zeros;
   }
 }
@@ -440,12 +440,12 @@ Vector2D Smoother::CurvatureTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vect
 //###################################################
 //                                    SMOOTHNESS TERM
 //###################################################
-Vector2D Smoother::SmoothnessTerm(Vector2D xim2, Vector2D xim1, Vector2D xi, Vector2D xip1, Vector2D xip2)
+Eigen::Vector2d Smoother::SmoothnessTerm(Eigen::Vector2d xim2, Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1, Eigen::Vector2d xip2)
 {
   //this is correct, see https://zhuanlan.zhihu.com/p/118666410
   return params_.weight_smoothness * (xim2 - 4 * xim1 + 6 * xi - 4 * xip1 + xip2);
 }
-Vector2D Smoother::PathLengthTerm(Vector2D xim1, Vector2D xi, Vector2D xip1)
+Eigen::Vector2d Smoother::PathLengthTerm(Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1)
 {
   return params_.weight_length * 2 * (2 * xi - xim1 - xip1);
 }
@@ -479,9 +479,9 @@ float Smoother::GetPathDiff(const std::vector<Node3D> &path_before_smooth, const
     float diff = 0.0;
     for (uint i = 0; i < path_after_smooth.size(); ++i)
     {
-      Vector2D xi_before(path_before_smooth[i].getX(), path_before_smooth[i].getY());
-      Vector2D xi_after(path_after_smooth[i].getX(), path_after_smooth[i].getY());
-      diff += (xi_after - xi_before).length();
+      Eigen::Vector2d xi_before(path_before_smooth[i].getX(), path_before_smooth[i].getY());
+      Eigen::Vector2d xi_after(path_after_smooth[i].getX(), path_after_smooth[i].getY());
+      diff += (xi_after - xi_before).norm();
     }
     diff = diff / path_after_smooth.size();
     // DLOG(INFO) << "path diff is : " << diff;
@@ -489,3 +489,9 @@ float Smoother::GetPathDiff(const std::vector<Node3D> &path_before_smooth, const
   }
 }
 
+Eigen::Vector2d Smoother::OrthogonalComplements(const Eigen::Vector2d &a, const Eigen::Vector2d &b)
+{
+  Eigen::Vector2d out;
+  out = a - a.dot(b) * b / b.norm() / b.norm();
+  return out;
+}

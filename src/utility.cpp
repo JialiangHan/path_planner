@@ -4,6 +4,14 @@ namespace HybridAStar
 {
     namespace Utility
     {
+        // Eigen::Vector2d ConvertVector2DToEigenVecter2d(const Vector2D &x)
+        // {
+        //     Eigen::Vector2d out;
+        //     out(0, 0) = x.getX();
+        //     out(1, 0) = x.getY();
+        //     return out;
+        // }
+
         void ConvertRosPathToVectorNode3D(const nav_msgs::Path::ConstPtr &path, std::vector<Node3D> &node_3d_vec)
         {
             node_3d_vec.clear();
@@ -43,12 +51,12 @@ namespace HybridAStar
             return distance;
         }
 
-        INTPOINT ConvertVector2DToIntPoint(const Vector2D &xi)
-        {
-            INTPOINT out;
-            out.x = (int)xi.getX();
-            out.y = (int)xi.getY();
-            return out;
-        }
+        // INTPOINT ConvertVector2DToIntPoint(const Vector2D &xi)
+        // {
+        //     INTPOINT out;
+        //     out.x = (int)xi.getX();
+        //     out.y = (int)xi.getY();
+        //     return out;
+        // }
     }
 }

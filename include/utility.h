@@ -5,13 +5,13 @@
 */
 #ifndef UTILITY
 #define UTILITY
-
+#include <eigen3/Eigen/Dense>
 #include <cmath>
 #include <nav_msgs/Path.h>
 #include "node2d.h"
 #include "node3d.h"
 #include "point.h"
-#include "vector2d.h"
+// #include "vector2d.h"
 namespace HybridAStar
 {
     /*!
@@ -34,7 +34,9 @@ namespace HybridAStar
 
         float GetDistanceFromNode2DToNode3D(const Node2D &obstacle_2d, const Node3D &node_3d);
 
-        INTPOINT ConvertVector2DToIntPoint(const Vector2D &xi);
+        // INTPOINT ConvertVector2DToIntPoint(const Vector2D &xi);
+
+        // Eigen::Vector2d ConvertVector2DToEigenVecter2d(const Vector2D &x);
     }
 }
 

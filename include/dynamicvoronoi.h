@@ -1,14 +1,14 @@
 #ifndef _DYNAMICVORONOI_H_
 #define _DYNAMICVORONOI_H_
 
-
+#include <eigen3/Eigen/Dense>
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
 #include <queue>
 #include <unordered_map>
 #include "bucketedqueue.h"
-#include "vector2d.h"
+
 namespace HybridAStar {
 //! A DynamicVoronoi object computes and updates a distance map and Voronoi diagram.
 class DynamicVoronoi {
@@ -49,12 +49,12 @@ class DynamicVoronoi {
   //! returns the vertical size of the workspace/map
   unsigned int getSizeY() const { return sizeY; };
 
-  INTPOINT GetClosestVoronoiEdgePoint(Vector2D point, double &closest_dis);
+  INTPOINT GetClosestVoronoiEdgePoint(Eigen::Vector2d point, double &closest_dis);
 
   void CollectVoronoiEdgePoints();
 
   std::string ComputeIndex(const INTPOINT &pi);
-  std::string ComputeIndex(const Vector2D &pd);
+  std::string ComputeIndex(const Eigen::Vector2d &pd);
   // was private, changed to public for obstX, obstY
  public:
   struct dataCell {
