@@ -1,62 +1,36 @@
 #include "utility.h"
 
-namespace HybridAStar
-{
     namespace Utility
     {
-        // Eigen::Vector2d ConvertVector2DToEigenVecter2d(const Vector2D &x)
-        // {
-        //     Eigen::Vector2d out;
-        //     out(0, 0) = x.getX();
-        //     out(1, 0) = x.getY();
-        //     return out;
-        // }
 
-        void ConvertRosPathToVectorNode3D(const nav_msgs::Path::ConstPtr &path, std::vector<Node3D> &node_3d_vec)
+        void ConvertRosPathToVectorVector3D(const nav_msgs::Path::ConstPtr &path, std::vector<Eigen::Vector3d> &vector_3d_vec)
         {
-            node_3d_vec.clear();
+            vector_3d_vec.clear();
             for (uint i = 0; i < path->poses.size(); ++i)
             {
-                Node3D point;
-                point.setX(path->poses[i].pose.position.x);
-                point.setY(path->poses[i].pose.position.y);
+                Eigen::Vector3d point;
+                point.x() = (path->poses[i].pose.position.x);
+                point.y() = (path->poses[i].pose.position.y);
                 //not sure this is correct;
-                point.setT(path->poses[i].pose.position.z);
-                node_3d_vec.emplace_back(point);
+                point.z() = (path->poses[i].pose.position.z);
+                vector_3d_vec.emplace_back(point);
             }
         }
 
-        Node2D ConvertNode3DToNode2D(const Node3D node_3d)
+        Eigen::Vector2d ConvertIndexToEigenVector2d(const int &index, const int &map_width)
         {
-            Node2D out;
-            out.setX(node_3d.getX());
-            out.setY(node_3d.getY());
+            Eigen::Vector2d out;
+            out.x() = (index % map_width);
+            out.y() = (index / map_width);
             return out;
         }
 
-        Node2D ConvertIndexToNode2D(const int &index, const int &map_width)
-        {
-            Node2D node_2d;
-            node_2d.setX(index % map_width);
-            node_2d.setY(index / map_width);
-            return node_2d;
-        }
-
-        float GetDistanceFromNode2DToNode3D(const Node2D &obstacle_2d, const Node3D &node_3d)
+        float GetDistanceFromVector2dToVector3d(const Eigen::Vector3d &vector_3d, const Eigen::Vector2d &vector_2d)
         {
             float distance;
-            float delta_x = node_3d.getX() - obstacle_2d.getX();
-            float delta_y = node_3d.getY() - obstacle_2d.getY();
+            float delta_x = vector_2d.x() - vector_3d.x();
+            float delta_y = vector_2d.y() - vector_3d.y();
             distance = sqrt(delta_x * delta_x + delta_y * delta_y);
             return distance;
         }
-
-        // INTPOINT ConvertVector2DToIntPoint(const Vector2D &xi)
-        // {
-        //     INTPOINT out;
-        //     out.x = (int)xi.getX();
-        //     out.y = (int)xi.getY();
-        //     return out;
-        // }
     }
-}

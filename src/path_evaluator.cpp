@@ -13,11 +13,10 @@
 #include "matplotlibcpp.h"
 #include "utility.h"
 #include <algorithm>
-namespace HybridAStar
-{
+
     namespace PathEvaluator
     {
-        int PathEvaluator::CalculateCurvature(const std::vector<HybridAStar::Node3D> &path, const std::string &topic_name)
+        int PathEvaluator::CalculateCurvature(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name)
         {
             if (path.size() < 3)
             {
@@ -33,22 +32,22 @@ namespace HybridAStar
             for (uint i = 0; i < path.size() - 2; ++i)
             {
                 //get three points from path
-                Eigen::Vector2d xp(path[i].getX(), path[i].getY());
-                // DLOG(INFO) << "xp x is :" << xp(0,0) << "y is: " << xp.getY();
-                Eigen::Vector2d xi(path[i + 1].getX(), path[i + 1].getY());
-                // DLOG(INFO) << "xi x is :" << xi(0,0) << "y is: " << xi.getY();
-                Eigen::Vector2d xs(path[i + 2].getX(), path[i + 2].getY());
+                Eigen::Vector2d xp(path[i].x(), path[i].y());
+                // DLOG(INFO) << "xp x is :" << xp(0,0) << "y is: " << xp.y();
+                Eigen::Vector2d xi(path[i + 1].x(), path[i + 1].y());
+                // DLOG(INFO) << "xi x is :" << xi(0,0) << "y is: " << xi.y();
+                Eigen::Vector2d xs(path[i + 2].x(), path[i + 2].y());
                 if (xp == xi || xi == xs)
                 {
                     DLOG(WARNING) << "In CalculateCurvature: some points are equal, skip these points for curvature calculation!!";
                     continue;
                 }
-                // DLOG(INFO) << "xs x is :" << xs(0,0) << "y is: " << xs.getY();
+                // DLOG(INFO) << "xs x is :" << xs(0,0) << "y is: " << xs.y();
                 //get two vector between these three nodes
                 Eigen::Vector2d pre_vector = xi - xp;
-                // DLOG(INFO) << "pre_vector x is :" << pre_vector(0,0) << "y is: " << pre_vector.getY();
+                // DLOG(INFO) << "pre_vector x is :" << pre_vector(0,0) << "y is: " << pre_vector.y();
                 Eigen::Vector2d succ_vector = xs - xi;
-                // DLOG(INFO) << "succ_vector x is :" << succ_vector(0,0) << "y is: " << succ_vector.getY();
+                // DLOG(INFO) << "succ_vector x is :" << succ_vector(0,0) << "y is: " << succ_vector.y();
                 //calculate delta distance and delta angle
                 double delta_distance = succ_vector.norm();
                 double pre_vector_length = pre_vector.norm();
@@ -100,7 +99,7 @@ namespace HybridAStar
             return 1;
         }
 
-        int PathEvaluator::CalculateSmoothness(const std::vector<HybridAStar::Node3D> &path, const std::string &topic_name)
+        int PathEvaluator::CalculateSmoothness(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name)
         {
             if (path.size() < 3)
             {
@@ -114,9 +113,9 @@ namespace HybridAStar
             for (uint i = 0; i < path.size() - 2; ++i)
             {
                 //get three points from path
-                Eigen::Vector2d xp(path[i].getX(), path[i].getY());
-                Eigen::Vector2d xi(path[i + 1].getX(), path[i + 1].getY());
-                Eigen::Vector2d xs(path[i + 2].getX(), path[i + 2].getY());
+                Eigen::Vector2d xp(path[i].x(), path[i].y());
+                Eigen::Vector2d xi(path[i + 1].x(), path[i + 1].y());
+                Eigen::Vector2d xs(path[i + 2].x(), path[i + 2].y());
                 if (xp == xi || xi == xs)
                 {
                     DLOG(WARNING) << "In CalculateSmoothness: some points are equal, skip these points for curvature calculation!!";
@@ -142,7 +141,7 @@ namespace HybridAStar
             }
             return 1;
         }
-        int PathEvaluator::CalculateClearance(const std::vector<HybridAStar::Node3D> &path, const std::string &topic_name)
+        int PathEvaluator::CalculateClearance(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name)
         {
             if (path.size() < 1)
             {
@@ -155,24 +154,24 @@ namespace HybridAStar
             float clearance = INFINITY;
             int map_width = map_->info.width;
             int map_height = map_->info.height;
-            for (const auto &node_3d : path)
+            for (const auto &vector_3d : path)
             {
                 //naive algorithm, time complexity is n^2.
                 for (int index = 0; index < map_height * map_width; ++index)
                 {
                     if (map_->data[index])
                     {
-                        HybridAStar::Node2D obstacle_2d = HybridAStar::Utility::ConvertIndexToNode2D(index, map_width);
-                        float distance = HybridAStar::Utility::GetDistanceFromNode2DToNode3D(obstacle_2d, node_3d);
+                        Eigen::Vector2d obstacle_2d = Utility::ConvertIndexToEigenVector2d(index, map_width);
+                        float distance = Utility::GetDistanceFromVector2dToVector3d(vector_3d, obstacle_2d);
                         if (distance < clearance)
                         {
                             clearance = distance;
                         }
-                        // DLOG(INFO) << "In CalculateClearance: current index: " << index << " converted x: " << obstacle_2d(0,0) << " converted y: " << obstacle_2d.getY() << " current path location x is: " << node_3d(0,0) << " y:" << node_3d.getY() << " distance is: " << distance << " clearance is: " << clearance;
+                        // DLOG(INFO) << "In CalculateClearance: current index: " << index << " converted x: " << obstacle_2d(0,0) << " converted y: " << obstacle_2d.y() << " current path location x is: " << vector_3d(0,0) << " y:" << vector_3d.y() << " distance is: " << distance << " clearance is: " << clearance;
                     }
                 }
                 // //find its nearest obstacle
-                // HybridAStar::Node2D node_2d = HybridAStar::Helper::ConvertNode3DToNode2D(node_3d);
+
                 // node_2d.setIdx(map_width);
                 // //find its neighbor in a defined range;
 
@@ -200,13 +199,13 @@ namespace HybridAStar
 
         void PathEvaluator::CallbackPath(const nav_msgs::Path::ConstPtr &path, const std::string &topic_name)
         {
-            std::vector<HybridAStar::Node3D> node_3d_vec;
-            HybridAStar::Utility::ConvertRosPathToVectorNode3D(path, node_3d_vec);
+            std::vector<Eigen::Vector3d> vector_3d_vec;
+            Utility::ConvertRosPathToVectorVector3D(path, vector_3d_vec);
             //reverse path since path is from goal to start.
-            std::reverse(node_3d_vec.begin(), node_3d_vec.end());
-            CalculateCurvature(node_3d_vec, topic_name);
-            CalculateSmoothness(node_3d_vec, topic_name);
-            CalculateClearance(node_3d_vec, topic_name);
+            std::reverse(vector_3d_vec.begin(), vector_3d_vec.end());
+            CalculateCurvature(vector_3d_vec, topic_name);
+            CalculateSmoothness(vector_3d_vec, topic_name);
+            CalculateClearance(vector_3d_vec, topic_name);
         }
 
         void PathEvaluator::Plot()
@@ -274,4 +273,3 @@ namespace HybridAStar
             matplotlibcpp::pause(0.1);
         }
     }
-}

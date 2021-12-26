@@ -14,7 +14,7 @@
 #include <ros/ros.h>
 
 #include "path_evaluator.h"
-using namespace HybridAStar;
+
 int main(int argc, char **argv)
 {
     google::InitGoogleLogging(argv[0]);

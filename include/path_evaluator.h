@@ -1,5 +1,5 @@
 /**
- * @file path_evaluator.cpp
+ * @file path_evaluator.h
  * @author Jialiang Han
  * @brief this file is to evaluate path from planner, using metrics: curvature, smoothness,....maybe more.
  * @version 0.1
@@ -8,19 +8,16 @@
  * @copyright Copyright (c) 2021
  * 
 **/
-#ifndef PATH_EVALUATOR_H
-#define PATH_EVALUATOR_H
+#pragma once
 #include <nav_msgs/Path.h>
 #include <vector>
-#include "node3d.h"
-#include "node2d.h"
+#include <eigen3/Eigen/Dense>
 #include "ros/ros.h"
 #include <unordered_map>
 #include "glog/logging.h"
 #include "gflags/gflags.h"
 #include <nav_msgs/OccupancyGrid.h>
-namespace HybridAStar
-{
+
     namespace PathEvaluator
     {
         class PathEvaluator
@@ -42,18 +39,18 @@ namespace HybridAStar
          */
 
             void CallbackSetMap(const nav_msgs::OccupancyGridConstPtr &map);
-            void ConvertRosPathToVectorNode3D(const nav_msgs::Path::ConstPtr &path, std::vector<HybridAStar::Node3D> &node_3d_vec);
+            void ConvertRosPathToVectorEigenVector3d(const nav_msgs::Path::ConstPtr &path, std::vector<Eigen::Vector3d> &node_3d_vec);
             /**
          * @brief calculate curvature for the path 
          * 
          * @param path got from planner
          * @return std::vector<float> 
          */
-            int CalculateCurvature(const std::vector<HybridAStar::Node3D> &path, const std::string &topic_name);
+            int CalculateCurvature(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name);
 
-            int CalculateClearance(const std::vector<HybridAStar::Node3D> &path, const std::string &topic_name);
+            int CalculateClearance(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name);
 
-            int CalculateSmoothness(const std::vector<HybridAStar::Node3D> &path, const std::string &topic_name);
+            int CalculateSmoothness(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name);
             /**
          * @brief plot all the metrics for the path.
          * 
@@ -84,5 +81,3 @@ namespace HybridAStar
             // /some kind of map is need for the clearacne
         };
     }
-}
-#endif

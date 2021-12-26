@@ -1,8 +1,13 @@
-/*!
-   \file
-   \brief This is a collection of utility functions that are used throughout the project.
-    include some type conversion function
-*/
+/**
+ * @file utility.h
+ * @author Jialiang Han (hanjiali@umich.edu)
+ * @brief include some type conversion function
+ * @version 0.1
+ * @date 2021-12-26
+ * 
+ * @copyright Copyright (c) 2021
+ * 
+ */
 #ifndef UTILITY
 #define UTILITY
 #include <eigen3/Eigen/Dense>
@@ -11,33 +16,18 @@
 #include "node2d.h"
 #include "node3d.h"
 #include "point.h"
+#include <Eigen/Dense>
 // #include "vector2d.h"
-namespace HybridAStar
+
+namespace Utility
 {
-    /*!
-    \brief The namespace that wraps helper.h
-    \namespace Helper
-*/
-    namespace Utility
-    {
-        /**
-         * @brief convert a ros path msg to vector of node_3d
-         * 
-         * @param path a ros path
-         * @param node_3d_vec 
-         */
-        void ConvertRosPathToVectorNode3D(const nav_msgs::Path::ConstPtr &path, std::vector<Node3D> &node_3d_vec);
 
-        Node2D ConvertNode3DToNode2D(const Node3D &node_3d);
+    void ConvertRosPathToVectorVector3D(const nav_msgs::Path::ConstPtr &path, std::vector<Eigen::Vector3d> &vector_3d_vec);
 
-        Node2D ConvertIndexToNode2D(const int &index, const int &map_width);
+    Eigen::Vector2d ConvertIndexToEigenVector2d(const int &index, const int &map_width);
 
-        float GetDistanceFromNode2DToNode3D(const Node2D &obstacle_2d, const Node3D &node_3d);
+    float GetDistanceFromVector2dToVector3d(const Eigen::Vector3d &vector_3d, const Eigen::Vector2d &vector_2d);
 
-        // INTPOINT ConvertVector2DToIntPoint(const Vector2D &xi);
-
-        // Eigen::Vector2d ConvertVector2DToEigenVecter2d(const Vector2D &x);
-    }
 }
 
 #endif // UTILITY
