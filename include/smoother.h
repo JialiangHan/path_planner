@@ -40,9 +40,8 @@ namespace HybridAStar
       /*!
      \brief Given a node pointer the path to the root node will be traced recursively, output path is from goal to start.
      \param node a 3D node, usually the goal node
-     \param i a parameter for counting the number of nodes
   */
-      void TracePath(const Node3D *node, int i = 0, std::vector<Node3D> path = std::vector<Node3D>());
+      void TracePath(const Node3D *node);
 
       /// returns the path of the smoother object
       const std::vector<Node3D> &GetPath() { return path_; }

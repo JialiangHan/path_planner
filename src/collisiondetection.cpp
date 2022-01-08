@@ -11,6 +11,7 @@ bool CollisionDetection::configurationTest(float x, float y, float t) const {
   int iY = (int)((y - (long)y) * params_.position_resolution);
   iY = iY > 0 ? iY : 0;
   int iT = (int)(t / delta_heading_in_rad);
+  iT = iT > 0 ? iT : 0;
   int idx = iY * params_.position_resolution * params_.headings + iX * params_.headings + iT;
   int cX;
   int cY;

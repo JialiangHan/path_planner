@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-#include "helper.h"
+// #include "utility.h"
 namespace HybridAStar {
 /*!
    \brief A three dimensional node class that is at the heart of the algorithm.
@@ -31,27 +31,27 @@ class Node3D {
 
    // GETTER METHODS
    /// get the x position
-   float getX() const { return x; }
+   float GetX() const { return x; }
    /// get the y position
-   float getY() const { return y; }
+   float GetY() const { return y; }
    /// get the heading theta
-   float getT() const { return t; }
+   float GetT() const { return t; }
    /// get the cost-so-far (real value)
-   float getG() const { return g; }
+   float GetG() const { return g; }
    /// get the cost-to-come (heuristic value)
-   float getH() const { return h; }
+   float GetH() const { return h; }
    /// get the total estimated cost
-   float getC() const { return g + h; }
+   float GetC() const { return g + h; }
    /// get the index of the node in the 3D array
-   int getIdx() const { return idx; }
+   int GetIdx() const { return idx; }
    /// get the number associated with the motion primitive of the node
-   int getPrim() const { return prim; }
+   int GetPrim() const { return prim; }
    /// determine whether the node is open
    bool isOpen() const { return o; }
    /// determine whether the node is closed
    bool isClosed() const { return c; }
    /// determine whether the node is open
-   const Node3D *getPred() const { return pred; }
+   const Node3D *GetPred() const { return pred; }
 
    // SETTER METHODS
    /// set the x position
@@ -84,7 +84,7 @@ class Node3D {
    }
    /// set a pointer to the predecessor of the node
 
-   void setPred(const Node3D *pred) { this->pred = pred; }
+   void SetPred(const Node3D *pred) { this->pred = pred; }
 
    // UPDATE METHODS
    /// Updates the cost-so-far for the node x' coming from its predecessor. It also discovers the node.
@@ -114,7 +114,7 @@ class Node3D {
 
    // SUCCESSOR CREATION
    /// Creates a successor in the continuous space.
-   Node3D *createSuccessor(const int i);
+   //  Node3D *createSuccessor(const int i);
 
    // CONSTANT VALUES
    /// Number of possible directions
@@ -146,7 +146,7 @@ class Node3D {
   /// the motion primitive of the node
   int prim;
   /// the predecessor pointer
-  const Node3D* pred;
+  const Node3D *pred;
 };
 }
 #endif // NODE3D_H

@@ -40,8 +40,7 @@ namespace HybridAStar
     bool visualization = false;
     // max iterations for smoother
     int max_iterations = 10000;
-    /// [m] --- The distance to the goal when the analytical solution (Dubin's shot) first triggers
-    float dubins_shot_distance = 100;
+
     // the small number which will terminate loop if path difference smaller than this number.
     float epsilon = 1e-3;
     /*!

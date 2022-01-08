@@ -195,7 +195,7 @@ void Planner::MakePlan()
     float t = tf::getYaw(goal_.pose.orientation);
     // set theta to a value (0,2PI]
     t = Utility::RadToZeroTo2P(t);
-    const Node3D nGoal(x, y, t, 0, 0, nullptr);
+    Node3D nGoal(x, y, t, 0, 0, nullptr);
     // _________________________
     // retrieving start position
     x = start_.pose.pose.position.x / params_.cell_size;
@@ -210,15 +210,22 @@ void Planner::MakePlan()
     Clear();
     // FIND THE PATH
     Node3D *nSolution = algorithm_ptr_->HybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_ptr_, dubins_lookup_table, visualization_ptr_);
+    const Node3D *node = nSolution;
+    while (node->GetPred() != nullptr)
+    {
+      DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " "
+                 << "its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
+      node = node->GetPred();
+    }
     // TRACE THE PATH
     smoother_ptr_->TracePath(nSolution);
     // CREATE THE UPDATED PATH
     path_ptr_->UpdatePath(smoother_ptr_->GetPath());
-    // DLOG(INFO) << "path before smooth size is " << smoother_ptr_->GetPath().size();
+    DLOG(INFO) << "path before smooth size is " << smoother_ptr_->GetPath().size();
     // SMOOTH THE PATH
     smoother_ptr_->SmoothPath(voronoi_diagram_);
     // CREATE THE UPDATED PATH
-    // DLOG(INFO) << "smoothed path size is " << smoother_ptr_->GetPath().size();
+    DLOG(INFO) << "smoothed path size is " << smoother_ptr_->GetPath().size();
     smoothed_path_ptr_->UpdatePath(smoother_ptr_->GetPath());
     ros::Time t1 = ros::Time::now();
     ros::Duration d(t1 - t0);

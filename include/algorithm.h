@@ -13,6 +13,7 @@ typedef ompl::base::SE2StateSpace::StateType State;
 #include "visualize.h"
 #include "collisiondetection.h"
 #include "parameter_manager.h"
+#include "cubic_bezier.h"
 namespace HybridAStar
 {
 
@@ -45,7 +46,7 @@ namespace HybridAStar
      \return the pointer to the node satisfying the goal condition
   */
       Node3D *HybridAStar(Node3D &start,
-                          const Node3D &goal,
+                          Node3D &goal,
                           Node3D *nodes3D,
                           Node2D *nodes2D,
                           int width,
@@ -89,8 +90,9 @@ namespace HybridAStar
        * @param configurationSpace 
        * @return Node3D* 
        */
-      //TODO need to rewrite this function: add a param for curve type: dubins, RS curves or CC curve
-      Node3D *AnalyticExpansions(Node3D &start, const Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace);
+      Node3D *AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace);
+
+      Node3D *CreateSuccessor(const Node3D *pred, const int &i);
 
    private:
       ParameterAlgorithm params_;

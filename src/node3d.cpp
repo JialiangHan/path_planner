@@ -72,27 +72,24 @@ bool Node3D::IsCloseEnough(const Node3D &goal, const float &distance_range, cons
 //###################################################
 //                                   CREATE SUCCESSOR
 //###################################################
-Node3D* Node3D::createSuccessor(const int i) {
-  float xSucc;
-  float ySucc;
-  float tSucc;
+// Node3D* Node3D::createSuccessor(const int i) {
+//   float xSucc, ySucc, tSucc;
 
-  // calculate successor positions forward
-  if (i < 3) {
-    xSucc = x + dx[i] * cos(t) - dy[i] * sin(t);
-    ySucc = y + dx[i] * sin(t) + dy[i] * cos(t);
-    tSucc = Helper::normalizeHeadingRad(t + dt[i]);
-  }
-  // backwards
-  else {
-    xSucc = x - dx[i - 3] * cos(t) - dy[i - 3] * sin(t);
-    ySucc = y - dx[i - 3] * sin(t) + dy[i - 3] * cos(t);
-    tSucc = Helper::normalizeHeadingRad(t - dt[i - 3]);
-  }
+//   // calculate successor positions forward
+//   if (i < 3) {
+//     xSucc = x + dx[i] * cos(t) - dy[i] * sin(t);
+//     ySucc = y + dx[i] * sin(t) + dy[i] * cos(t);
+//     tSucc = Utility::RadToZeroTo2P(t + dt[i]);
+//   }
+//   // backwards
+//   else {
+//     xSucc = x - dx[i - 3] * cos(t) - dy[i - 3] * sin(t);
+//     ySucc = y - dx[i - 3] * sin(t) + dy[i - 3] * cos(t);
+//     tSucc = Utility::RadToZeroTo2P(t - dt[i - 3]);
+//   }
 
-  return new Node3D(xSucc, ySucc, tSucc, g, 0, this, i);
-}
-
+//   return new Node3D(xSucc, ySucc, tSucc, g, 0, this, i);
+// }
 
 //###################################################
 //                                      MOVEMENT COST

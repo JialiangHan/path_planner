@@ -15,12 +15,12 @@ struct CompareNodes
   /// Sorting 3D nodes by increasing C value - the total estimated cost
   bool operator()(const Node3D *lhs, const Node3D *rhs) const
   {
-    return lhs->getC() > rhs->getC();
+    return lhs->GetC() > rhs->GetC();
   }
   /// Sorting 2D nodes by increasing C value - the total estimated cost
   bool operator()(const Node2D *lhs, const Node2D *rhs) const
   {
-    return lhs->getC() > rhs->getC();
+    return lhs->GetC() > rhs->GetC();
   }
 };
 
@@ -28,7 +28,7 @@ struct CompareNodes
 //                                        3D A*
 //###################################################
 Node3D *Algorithm::HybridAStar(Node3D &start,
-                               const Node3D &goal,
+                               Node3D &goal,
                                Node3D *nodes3D,
                                Node2D *nodes2D,
                                int width,
@@ -56,7 +56,7 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
   // update h value
   UpdateHeuristic(start, goal, nodes2D, dubinsLookup, width, height, configurationSpace, visualization);
   //this N is for analytic expansion
-  int N = start.getH() / 2;
+  int N = start.GetH() / 2;
   // mark start as open
   start.open();
   // push on priority queue aka open list
@@ -125,37 +125,35 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
       {
         // _______________________
         // SEARCH WITH DUBINS SHOT
+
         if (iterations == N)
         {
-          DLOG(INFO) << "Start Analytic Expansion!!";
-          N = N + nPred->getH() / 2;
+          DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
+          N = N + nPred->GetH() / 2;
           nSucc = AnalyticExpansions(*nPred, goal, configurationSpace);
 
-          if (nSucc != nullptr && (nSucc->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings)))
+          if (nSucc != nullptr)
           {
             //DEBUG
-            // DLOG(INFO) << "max diff " << max ;
+            DLOG(INFO) << "Found path through anallytical expansion";
+            const Node3D *node = nSucc;
+            while (node->GetPred() != nullptr)
+            {
+              DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " "
+                         << "its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
+              node = node->GetPred();
+            }
             return nSucc;
           }
         }
-        // if (nPred->IsInRange(goal, params_.dubins_shot_distance) && nPred->getPrim() < 3)
-        // {
-        //   nSucc = AnalyticExpansions(*nPred, goal, configurationSpace);
-
-        //   if (nSucc != nullptr && (*nSucc == goal || nSucc->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings)))
-        //   {
-        //     //DEBUG
-        //     // DLOG(INFO) << "max diff " << max ;
-        //     return nSucc;
-        //   }
-        // }
 
         // ______________________________
         // SEARCH WITH FORWARD SIMULATION
         for (int i = 0; i < dir; i++)
         {
           // create possible successor
-          nSucc = nPred->createSuccessor(i);
+          // nSucc = nPred->createSuccessor(i);
+          nSucc = CreateSuccessor(nPred, i);
           // set index of the successor
           iSucc = nSucc->setIdx(width, height, (float)2 * M_PI / params_.headings);
 
@@ -169,28 +167,28 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
 
               // calculate new G value
               nSucc->updateG(params_.penalty_turning, params_.penalty_change_of_direction, params_.penalty_reverse);
-              newG = nSucc->getG();
+              newG = nSucc->GetG();
 
               // if successor not on open list or found a shorter way to the cell
-              if (!nodes3D[iSucc].isOpen() || newG < nodes3D[iSucc].getG() || iPred == iSucc)
+              if (!nodes3D[iSucc].isOpen() || newG < nodes3D[iSucc].GetG() || iPred == iSucc)
               {
 
                 // calculate H value
                 UpdateHeuristic(*nSucc, goal, nodes2D, dubinsLookup, width, height, configurationSpace, visualization);
 
                 // if the successor is in the same cell but the C value is larger
-                if (iPred == iSucc && nSucc->getC() > nPred->getC() + params_.tie_breaker)
+                if (iPred == iSucc && nSucc->GetC() > nPred->GetC() + params_.tie_breaker)
                 {
                   delete nSucc;
                   continue;
                 }
                 // if successor is in the same cell and the C value is lower, set predecessor to predecessor of predecessor
-                else if (iPred == iSucc && nSucc->getC() <= nPred->getC() + params_.tie_breaker)
+                else if (iPred == iSucc && nSucc->GetC() <= nPred->GetC() + params_.tie_breaker)
                 {
-                  nSucc->setPred(nPred->getPred());
+                  nSucc->SetPred(nPred->GetPred());
                 }
 
-                if (nSucc->getPred() == nSucc)
+                if (nSucc->GetPred() == nSucc)
                 {
                   DLOG(INFO) << "looping";
                 }
@@ -301,7 +299,7 @@ float Algorithm::AStar(Node2D &start,
       // _________
       // GOAL TEST
       if (*nPred == goal) {
-        return nPred->getG();
+        return nPred->GetG();
       }
       // ____________________
       // CONTINUE WITH SEARCH
@@ -323,10 +321,10 @@ float Algorithm::AStar(Node2D &start,
           {
             // calculate new G value
             nSucc->updateG();
-            newG = nSucc->getG();
+            newG = nSucc->GetG();
 
             // if successor not on open list or g value lower than before put it on open list
-            if (!nodes2D[iSucc].isOpen() || newG < nodes2D[iSucc].getG())
+            if (!nodes2D[iSucc].isOpen() || newG < nodes2D[iSucc].GetG())
             {
               // calculate the H value
               nSucc->updateH(goal);
@@ -366,38 +364,38 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
 
   // if dubins heuristic is activated calculate the shortest path
   // constrained without obstacles
-  if (params_.dubins)
+  if (params_.dubins_flag)
   {
 
     // ONLY FOR dubinsLookup
-    //    int uX = std::abs((int)goal.getX() - (int)start.getX());
-    //    int uY = std::abs((int)goal.getY() - (int)start.getY());
+    //    int uX = std::abs((int)goal.GetX() - (int)start.GetX());
+    //    int uY = std::abs((int)goal.GetY() - (int)start.GetY());
     //    // if the lookup table flag is set and the vehicle is in the lookup area
     //    if (params_.dubinsLookup && uX < params_.dubinsWidth - 1 && uY < params_.dubinsWidth - 1) {
-    //      int X = (int)goal.getX() - (int)start.getX();
-    //      int Y = (int)goal.getY() - (int)start.getY();
+    //      int X = (int)goal.GetX() - (int)start.GetX();
+    //      int Y = (int)goal.GetY() - (int)start.GetY();
     //      int h0;
     //      int h1;
 
     //      // mirror on x axis
     //      if (X >= 0 && Y <= 0) {
-    //        h0 = (int)(helper::normalizeHeadingRad(M_PI_2 - t) / params_.deltaHeadingRad);
-    //        h1 = (int)(helper::normalizeHeadingRad(M_PI_2 - goal.getT()) / params_.deltaHeadingRad);
+    //        h0 = (int)(Utility::RadToZeroTo2P(M_PI_2 - t) / params_.deltaHeadingRad);
+    //        h1 = (int)(Utility::RadToZeroTo2P(M_PI_2 - goal.GetT()) / params_.deltaHeadingRad);
     //      }
     //      // mirror on y axis
     //      else if (X <= 0 && Y >= 0) {
-    //        h0 = (int)(helper::normalizeHeadingRad(M_PI_2 - t) / params_.deltaHeadingRad);
-    //        h1 = (int)(helper::normalizeHeadingRad(M_PI_2 - goal.getT()) / params_.deltaHeadingRad);
+    //        h0 = (int)(Utility::RadToZeroTo2P(M_PI_2 - t) / params_.deltaHeadingRad);
+    //        h1 = (int)(Utility::RadToZeroTo2P(M_PI_2 - goal.GetT()) / params_.deltaHeadingRad);
 
     //      }
     //      // mirror on xy axis
     //      else if (X <= 0 && Y <= 0) {
-    //        h0 = (int)(helper::normalizeHeadingRad(M_PI - t) / params_.deltaHeadingRad);
-    //        h1 = (int)(helper::normalizeHeadingRad(M_PI - goal.getT()) / params_.deltaHeadingRad);
+    //        h0 = (int)(Utility::RadToZeroTo2P(M_PI - t) / params_.deltaHeadingRad);
+    //        h1 = (int)(Utility::RadToZeroTo2P(M_PI - goal.GetT()) / params_.deltaHeadingRad);
 
     //      } else {
     //        h0 = (int)(t / params_.deltaHeadingRad);
-    //        h1 = (int)(goal.getT() / params_.deltaHeadingRad);
+    //        h1 = (int)(goal.GetT() / params_.deltaHeadingRad);
     //      }
 
     //      dubinsCost = dubinsLookup[uX * params_.dubinsWidth * params_.headings * params_.headings
@@ -406,11 +404,11 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
     //                                + h1];
     //    } else {
 
-    /*if ( std::abs(start.getX() - goal.getX()) >= 10 && std::abs(start.getY() - goal.getY()) >= 10)*/
+    /*if ( std::abs(start.GetX() - goal.GetX()) >= 10 && std::abs(start.GetY() - goal.GetY()) >= 10)*/
     //      // start
-    //      double q0[] = { start.getX(), start.getY(), start.getT()};
+    //      double q0[] = { start.GetX(), start.GetY(), start.GetT()};
     //      // goal
-    //      double q1[] = { goal.getX(), goal.getY(), goal.getT()};
+    //      double q1[] = { goal.GetX(), goal.GetY(), goal.GetT()};
     //      DubinsPath dubinsPath;
     //      dubins_init(q0, q1, params_.min_turning_radius, &dubinsPath);
     //      dubinsCost = dubins_path_length(&dubinsPath);
@@ -418,24 +416,24 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
     ompl::base::DubinsStateSpace dubinsPath(params_.min_turning_radius);
     State* dbStart = (State*)dubinsPath.allocState();
     State* dbEnd = (State*)dubinsPath.allocState();
-    dbStart->setXY(start.getX(), start.getY());
-    dbStart->setYaw(start.getT());
-    dbEnd->setXY(goal.getX(), goal.getY());
-    dbEnd->setYaw(goal.getT());
+    dbStart->setXY(start.GetX(), start.GetY());
+    dbStart->setYaw(start.GetT());
+    dbEnd->setXY(goal.GetX(), goal.GetY());
+    dbEnd->setYaw(goal.GetT());
     dubinsCost = dubinsPath.distance(dbStart, dbEnd);
   }
 
   // if reversing is active use a
-  if (params_.reverse && !params_.dubins)
+  if (params_.reverse && !params_.dubins_flag)
   {
     //    ros::Time t0 = ros::Time::now();
     ompl::base::ReedsSheppStateSpace reedsSheppPath(params_.min_turning_radius);
     State* rsStart = (State*)reedsSheppPath.allocState();
     State* rsEnd = (State*)reedsSheppPath.allocState();
-    rsStart->setXY(start.getX(), start.getY());
-    rsStart->setYaw(start.getT());
-    rsEnd->setXY(goal.getX(), goal.getY());
-    rsEnd->setYaw(goal.getT());
+    rsStart->setXY(start.GetX(), start.GetY());
+    rsStart->setYaw(start.GetT());
+    rsEnd->setXY(goal.GetX(), goal.GetY());
+    rsEnd->setYaw(goal.GetT());
     reedsSheppCost = reedsSheppPath.distance(rsStart, rsEnd);
     //    ros::Time t1 = ros::Time::now();
     //    ros::Duration d(t1 - t0);
@@ -444,15 +442,15 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
 
   // if two_D heuristic is activated determine shortest path
   // unconstrained with obstacles
-  if (params_.two_D && !nodes2D[(int)start.getY() * width + (int)start.getX()].isDiscovered())
+  if (params_.two_D && !nodes2D[(int)start.GetY() * width + (int)start.GetX()].isDiscovered())
   {
     //    ros::Time t0 = ros::Time::now();
     // create a 2d start node
-    Node2D start2d(start.getX(), start.getY(), 0, 0, nullptr);
+    Node2D start2d(start.GetX(), start.GetY(), 0, 0, nullptr);
     // create a 2d goal node
-    Node2D goal2d(goal.getX(), goal.getY(), 0, 0, nullptr);
+    Node2D goal2d(goal.GetX(), goal.GetY(), 0, 0, nullptr);
     // run 2d AStar and return the cost of the cheapest path for that node
-    nodes2D[(int)start.getY() * width + (int)start.getX()].setG(AStar(goal2d, start2d, nodes2D, width, height, configurationSpace, visualization));
+    nodes2D[(int)start.GetY() * width + (int)start.GetX()].setG(AStar(goal2d, start2d, nodes2D, width, height, configurationSpace, visualization));
     //    ros::Time t1 = ros::Time::now();
     //    ros::Duration d(t1 - t0);
     //    DLOG(INFO) << "calculated 2D Heuristic in ms: " << d * 1000 ;
@@ -461,9 +459,9 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
   if (params_.two_D)
   {
     // offset for same node in cell
-    twoDoffset = sqrt(((start.getX() - (long)start.getX()) - (goal.getX() - (long)goal.getX())) * ((start.getX() - (long)start.getX()) - (goal.getX() - (long)goal.getX())) +
-                      ((start.getY() - (long)start.getY()) - (goal.getY() - (long)goal.getY())) * ((start.getY() - (long)start.getY()) - (goal.getY() - (long)goal.getY())));
-    twoDCost = nodes2D[(int)start.getY() * width + (int)start.getX()].getG() - twoDoffset;
+    twoDoffset = sqrt(((start.GetX() - (long)start.GetX()) - (goal.GetX() - (long)goal.GetX())) * ((start.GetX() - (long)start.GetX()) - (goal.GetX() - (long)goal.GetX())) +
+                      ((start.GetY() - (long)start.GetY()) - (goal.GetY() - (long)goal.GetY())) * ((start.GetY() - (long)start.GetY()) - (goal.GetY() - (long)goal.GetY())));
+    twoDCost = nodes2D[(int)start.GetY() * width + (int)start.GetX()].GetG() - twoDoffset;
   }
 
   // return the maximum of the heuristics, making the heuristic admissable
@@ -471,59 +469,149 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
 }
 
 //###################################################
-//                                        DUBINS SHOT
+//                                    ANALYTICAL EXPANSION
 //###################################################
-Node3D *Algorithm::AnalyticExpansions(Node3D &start, const Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace)
+Node3D *Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace)
 {
-  // start
-  double q0[] = { start.getX(), start.getY(), start.getT() };
-  // goal
-  double q1[] = { goal.getX(), goal.getY(), goal.getT() };
-  // initialize the path
-  DubinsPath path;
-  // calculate the path
-  dubins_init(q0, q1, params_.min_turning_radius, &path);
-
+  std::vector<Node3D> path_vec;
   int i = 0;
   float x = 0.f;
-  float length = dubins_path_length(&path);
+  if (params_.curve_type == CurveType::dubins)
+  {
 
-  Node3D *dubinsNodes = new Node3D[(int)(length / params_.dubins_step_size) + 1];
+    // start
+    double q0[] = {start.GetX(), start.GetY(), start.GetT()};
+    // goal
+    double q1[] = {goal.GetX(), goal.GetY(), goal.GetT()};
+    // initialize the path
+    DubinsPath path;
+    // calculate the path
+    dubins_init(q0, q1, params_.min_turning_radius, &path);
 
-  while (x <  length) {
-    double q[3];
-    dubins_path_sample(&path, x, q);
-    dubinsNodes[i].setX(q[0]);
-    dubinsNodes[i].setY(q[1]);
-    dubinsNodes[i].setT(Helper::normalizeHeadingRad(q[2]));
+    float length = dubins_path_length(&path);
 
-    // collision check
-    if (configurationSpace->isTraversable(&dubinsNodes[i]))
+    while (x < length)
     {
+      double q[3];
+      dubins_path_sample(&path, x, q);
+      Node3D *node3d;
+      node3d->setX(q[0]);
+      node3d->setY(q[1]);
+      node3d->setT(Utility::RadToZeroTo2P(q[2]));
 
-      // set the predecessor to the previous step
-      if (i > 0) {
-        dubinsNodes[i].setPred(&dubinsNodes[i - 1]);
-      } else {
-        dubinsNodes[i].setPred(&start);
+      // collision check
+      if (configurationSpace->isTraversable(node3d))
+      {
+
+        // set the predecessor to the previous step
+        if (i > 0)
+        {
+          node3d->SetPred(&path_vec[i - 1]);
+        }
+        else
+        {
+          node3d->SetPred(&start);
+        }
+
+        if (node3d == node3d->GetPred())
+        {
+          DLOG(INFO) << "looping shot";
+        }
+        path_vec.emplace_back(*node3d);
+        x += params_.curve_step_size;
+        i++;
       }
-
-      if (&dubinsNodes[i] == dubinsNodes[i].getPred()) {
-        DLOG(INFO) << "looping shot";
+      else
+      {
+        DLOG(INFO) << "Dubins shot collided, discarding the path";
+        return nullptr;
       }
-
-      x += params_.dubins_step_size;
-      i++;
-    }
-    else
-    {
-      DLOG(INFO) << "Dubins shot collided, discarding the path";
-      // delete all nodes
-      delete [] dubinsNodes;
-      return nullptr;
     }
   }
+  else if (params_.curve_type == CurveType::cubic_bezier)
+  {
+    Eigen::Vector3d vector3d_start = Utility::ConvertNode3DToVector3d(start);
+    // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
+    Eigen::Vector3d vector3d_goal = Utility::ConvertNode3DToVector3d(goal);
+    int map_width, map_height;
+    map_width = configurationSpace->grid->info.width;
+    map_height = configurationSpace->grid->info.height;
+    CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width, map_height);
+    float length = cubic_bezier.GetLength();
+    i = 0;
+    x = 0;
+    path_vec.clear();
+    while (x < length)
+    {
+      // DLOG(INFO) << i << "th iteration";
+      Node3D *node3d;
+      Node3D current = Utility::ConvertVector3dToNode3D(cubic_bezier.GetValueAt(x / length));
+      node3d = &current;
+      node3d->setT(cubic_bezier.GetAngleAt(x / length));
 
-  DLOG(INFO) << "Dubins shot connected, returning the path";
-  return &dubinsNodes[i - 1];
+      // collision check
+      if (configurationSpace->isTraversable(node3d))
+      {
+        // set the predecessor to the previous step
+        if (i > 0)
+        {
+          node3d->SetPred(&path_vec[i - 1]);
+        }
+        else
+        {
+          node3d->SetPred(nullptr);
+        }
+        if (node3d->GetPred() != nullptr)
+        {
+          DLOG(INFO) << "current node is " << node3d->GetX() << " " << node3d->GetY() << " "
+                     << "its pred is " << node3d->GetPred()->GetX() << " " << node3d->GetPred()->GetY();
+        }
+
+        if (node3d == node3d->GetPred())
+        {
+          DLOG(INFO) << "looping shot";
+        }
+        path_vec.emplace_back(*node3d);
+        x += params_.curve_step_size;
+        i++;
+      }
+      else
+      {
+        DLOG(INFO) << "cubic bezier collided, discarding the path";
+        return nullptr;
+      }
+    }
+    goal.SetPred(&path_vec.back());
+    // DLOG(INFO) << "goal point is " << vector3d_goal.x() << " " << vector3d_goal.y();
+  }
+
+  //Some kind of collision detection for all curves
+
+  DLOG(INFO) << "Analytical expansion connected, returning the path";
+  return &goal;
+}
+
+Node3D *Algorithm::CreateSuccessor(const Node3D *pred, const int &i)
+{
+
+  const float dy[] = {0, -0.0415893, 0.0415893};
+  const float dx[] = {0.7068582, 0.705224, 0.705224};
+  const float dt[] = {0, 0.1178097, -0.1178097};
+  float xSucc, ySucc, tSucc;
+
+  // calculate successor positions forward
+  if (i < 3)
+  {
+    xSucc = pred->GetX() + dx[i] * cos(pred->GetT()) - dy[i] * sin(pred->GetT());
+    ySucc = pred->GetY() + dx[i] * sin(pred->GetT()) + dy[i] * cos(pred->GetT());
+    tSucc = Utility::RadToZeroTo2P(pred->GetT() + dt[i]);
+  }
+  // backwards
+  else
+  {
+    xSucc = pred->GetX() - dx[i - 3] * cos(pred->GetT()) - dy[i - 3] * sin(pred->GetT());
+    ySucc = pred->GetY() - dx[i - 3] * sin(pred->GetT()) + dy[i - 3] * cos(pred->GetT());
+    tSucc = Utility::RadToZeroTo2P(pred->GetT() - dt[i - 3]);
+  }
+  return new Node3D(xSucc, ySucc, tSucc, pred->GetG(), 0, pred, i);
 }

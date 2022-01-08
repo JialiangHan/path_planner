@@ -47,7 +47,7 @@ class Node2D {
   /// determine whether the node is discovered
   bool  isDiscovered() const { return d; }
   /// get a pointer to the predecessor
-  Node2D* getPred() const { return pred; }
+  Node2D *GetPred() const { return pred; }
 
   // SETTER METHODS
   /// set the x position
@@ -69,7 +69,7 @@ class Node2D {
   /// discover the node
   void discover() { d = true; }
   /// set a pointer to the predecessor of the node
-  void setPred(Node2D* pred) { this->pred = pred; }
+  void SetPred(Node2D *pred) { this->pred = pred; }
 
   // UPDATE METHODS
   /// Updates the cost-so-far for the node x' coming from its predecessor. It also discovers the node.

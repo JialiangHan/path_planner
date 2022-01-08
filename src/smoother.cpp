@@ -156,17 +156,19 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
   // }
 }
 
-void Smoother::TracePath(const Node3D *node, int i, std::vector<Node3D> path)
+void Smoother::TracePath(const Node3D *node)
 {
-  if (node == nullptr)
+  // if (node == nullptr)
+  // {
+  //   this->path_ = path;
+  //   return;
+  // }
+  while (node != nullptr)
   {
-    this->path_ = path;
-    return;
+    path_.emplace_back(*node);
+    DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
+    node = node->GetPred();
   }
-
-  i++;
-  path.push_back(*node);
-  TracePath(node->getPred(), i, path);
 }
 
 //###################################################

@@ -142,8 +142,7 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.visualization);
     ros_param_name = "max_iterations";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.max_iterations);
-    ros_param_name = "dubins_shot_distance";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.dubins_shot_distance);
+
     ros_param_name = "tie_breaker";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.tie_breaker);
     ros_param_name = "visualization2D";
