@@ -121,7 +121,7 @@ void Planner::SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr 
   startN.header.frame_id = "map";
   startN.header.stamp = ros::Time::now();
 
-  DLOG(INFO) << "I am seeing a new start x:" << x << " y:" << y << " t:" << Helper::toDeg(t);
+  DLOG(INFO) << "I am seeing a new start x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t);
 
   if (grid_->info.height >= y && y >= 0 && grid_->info.width >= x && x >= 0)
   {
@@ -138,7 +138,7 @@ void Planner::SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr 
   }
   else
   {
-    DLOG(INFO) << "invalid start x:" << x << " y:" << y << " t:" << Helper::toDeg(t);
+    DLOG(INFO) << "invalid start x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t);
   }
 }
 
@@ -152,7 +152,7 @@ void Planner::SetGoal(const geometry_msgs::PoseStamped::ConstPtr &end)
   float y = end->pose.position.y / params_.cell_size;
   float t = tf::getYaw(end->pose.orientation);
 
-  DLOG(INFO) << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Helper::toDeg(t);
+  DLOG(INFO) << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t);
 
   if (grid_->info.height >= y && y >= 0 && grid_->info.width >= x && x >= 0)
   {
@@ -166,7 +166,7 @@ void Planner::SetGoal(const geometry_msgs::PoseStamped::ConstPtr &end)
   }
   else
   {
-    DLOG(INFO) << "invalid goal x:" << x << " y:" << y << " t:" << Helper::toDeg(t);
+    DLOG(INFO) << "invalid goal x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t);
   }
 }
 
@@ -179,7 +179,6 @@ void Planner::MakePlan()
   if (valid_start_ && valid_goal_)
   {
     DLOG(INFO) << "valid start and valid goal, start to make plan!";
-
     // ___________________________
     // LISTS ALLOCATED ROW MAJOR ORDER
     int width = grid_->info.width;
@@ -189,64 +188,42 @@ void Planner::MakePlan()
     // define list pointers and initialize lists
     Node3D *nodes3D = new Node3D[length]();
     Node2D *nodes2D = new Node2D[width * height]();
-
     // ________________________
     // retrieving goal position
     float x = goal_.pose.position.x / params_.cell_size;
     float y = goal_.pose.position.y / params_.cell_size;
     float t = tf::getYaw(goal_.pose.orientation);
     // set theta to a value (0,2PI]
-    t = Helper::normalizeHeadingRad(t);
+    t = Utility::RadToZeroTo2P(t);
     const Node3D nGoal(x, y, t, 0, 0, nullptr);
-    // __________
-    // DEBUG GOAL
-    //    const Node3D nGoal(155.349, 36.1969, 0.7615936, 0, 0, nullptr);
-
     // _________________________
     // retrieving start position
     x = start_.pose.pose.position.x / params_.cell_size;
     y = start_.pose.pose.position.y / params_.cell_size;
     t = tf::getYaw(start_.pose.pose.orientation);
     // set theta to a value (0,2PI]
-    t = Helper::normalizeHeadingRad(t);
+    t = Utility::RadToZeroTo2P(t);
     Node3D nStart(x, y, t, 0, 0, nullptr);
-    // ___________
-    // DEBUG START
-    //    Node3D nStart(108.291, 30.1081, 0, 0, 0, nullptr);
-
     // ___________________________
     // START AND TIME THE PLANNING
     ros::Time t0 = ros::Time::now();
-
-    // CLEAR THE VISUALIZATION
-    visualization_ptr_->clear();
-    // CLEAR THE PATH
-    path_ptr_->Clear();
-    smoothed_path_ptr_->Clear();
+    Clear();
     // FIND THE PATH
     Node3D *nSolution = algorithm_ptr_->HybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_ptr_, dubins_lookup_table, visualization_ptr_);
     // TRACE THE PATH
     smoother_ptr_->TracePath(nSolution);
     // CREATE THE UPDATED PATH
     path_ptr_->UpdatePath(smoother_ptr_->GetPath());
+    // DLOG(INFO) << "path before smooth size is " << smoother_ptr_->GetPath().size();
     // SMOOTH THE PATH
     smoother_ptr_->SmoothPath(voronoi_diagram_);
     // CREATE THE UPDATED PATH
+    // DLOG(INFO) << "smoothed path size is " << smoother_ptr_->GetPath().size();
     smoothed_path_ptr_->UpdatePath(smoother_ptr_->GetPath());
     ros::Time t1 = ros::Time::now();
     ros::Duration d(t1 - t0);
     DLOG(INFO) << "TIME in ms: " << d * 1000;
-
-    // _________________________________
-    // PUBLISH THE RESULTS OF THE SEARCH
-    path_ptr_->PublishPath();
-    path_ptr_->PublishPathNodes();
-    path_ptr_->PublishPathVehicles();
-    smoothed_path_ptr_->PublishPath();
-    smoothed_path_ptr_->PublishPathNodes();
-    smoothed_path_ptr_->PublishPathVehicles();
-    visualization_ptr_->publishNode3DCosts(nodes3D, width, height, depth);
-    visualization_ptr_->publishNode2DCosts(nodes2D, width, height);
+    Publish(nodes3D, nodes2D, width, height, depth);
 
     delete[] nodes3D;
     delete[] nodes2D;
@@ -258,4 +235,28 @@ void Planner::MakePlan()
   {
     DLOG(INFO) << "missing goal or start";
   }
+}
+
+void Planner::Clear()
+{
+  // CLEAR THE VISUALIZATION
+  visualization_ptr_->clear();
+  // CLEAR THE PATH
+  path_ptr_->Clear();
+  smoothed_path_ptr_->Clear();
+  smoother_ptr_->Clear();
+}
+
+void Planner::Publish(Node3D *nodes3D, Node2D *nodes2D, const int &width, const int &height, const int &depth)
+{
+  // _________________________________
+  // PUBLISH THE RESULTS OF THE SEARCH
+  path_ptr_->PublishPath();
+  path_ptr_->PublishPathNodes();
+  path_ptr_->PublishPathVehicles();
+  smoothed_path_ptr_->PublishPath();
+  smoothed_path_ptr_->PublishPathNodes();
+  smoothed_path_ptr_->PublishPathVehicles();
+  visualization_ptr_->publishNode3DCosts(nodes3D, width, height, depth);
+  visualization_ptr_->publishNode2DCosts(nodes2D, width, height);
 }

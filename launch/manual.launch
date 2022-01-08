@@ -13,6 +13,6 @@
 
 	<node name="rviz" pkg="rviz" type="rviz" args="-d $(find hybrid_astar)/rviz/config.rviz" />
 
-	<include file="$(find hybrid_astar)/launch/node_path_evaluator.launch" />
+	<!-- <include file="$(find hybrid_astar)/launch/node_path_evaluator.launch" /> -->
 
 </launch>

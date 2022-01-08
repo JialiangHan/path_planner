@@ -44,7 +44,7 @@ penalty_change_of_direction : 2.0
 # [m] --- The distance to the goal when the analytical solution (Dubin's shot) first triggers
 dubins_shot_distance : 100
 # [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
-dubins_step_size : 1
+curve_step_size : 1
 #  DUBINS LOOKUP SPECIFIC
 # [m] --- The width of the dubinsArea / 2 for the analytical solution (Dubin's shot)
 dubins_width : 15

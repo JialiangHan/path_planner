@@ -150,10 +150,10 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.visualization2D);
     ros_param_name = "epsilon";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.epsilon);
-    ros_param_name = "dubins";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.dubins);
-    ros_param_name = "dubins_step_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.dubins_step_size);
+    ros_param_name = "dubins_flag";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.dubins_flag);
+    ros_param_name = "curve_step_size";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.curve_step_size);
     ros_param_name = "min_turning_radius";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.min_turning_radius);
     ros_param_name = "two_D";

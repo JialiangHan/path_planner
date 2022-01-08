@@ -32,15 +32,15 @@ bool CollisionDetection::configurationTest(float x, float y, float t) const {
 
 void CollisionDetection::getConfiguration(const Node2D *node, float &x, float &y, float &t) const
 {
-  x = node->getX();
-  y = node->getY();
+  x = node->GetX();
+  y = node->GetY();
   // avoid 2D collision checking
   t = 99;
 }
 
 void CollisionDetection::getConfiguration(const Node3D *node, float &x, float &y, float &t) const
 {
-  x = node->getX();
-  y = node->getY();
-  t = node->getT();
+  x = node->GetX();
+  y = node->GetY();
+  t = node->GetT();
 }

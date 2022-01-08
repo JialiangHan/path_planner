@@ -2,6 +2,23 @@
 
     namespace Utility
     {
+        HybridAStar::Node3D ConvertVector3dToNode3D(const Eigen::Vector3d &vector3d)
+        {
+            float x = vector3d.x();
+            float y = vector3d.y();
+            float t = vector3d.z();
+            HybridAStar::Node3D node3d(x, y, t, 0, 0, nullptr);
+            return node3d;
+        }
+
+        Eigen::Vector3d ConvertNode3DToVector3d(const HybridAStar::Node3D &node3d)
+        {
+            Eigen::Vector3d out;
+            out.x() = node3d.GetX();
+            out.y() = node3d.GetY();
+            out.z() = node3d.GetT();
+            return out;
+        }
         nav_msgs::Path ConvertVectorVector3DToRosPath(const std::vector<Eigen::Vector3d> &vector_3d_vec)
         {
             nav_msgs::Path out;
@@ -99,6 +116,31 @@
             }
             return out;
         }
+
+        double DegToZeroTo2P(const double &deg)
+        {
+            double out;
+            out = fmod(deg, 360);
+            if (out < 0)
+            {
+                out += 360;
+            }
+
+            return out;
+        }
+
+        double RadToZeroTo2P(const double &rad)
+        {
+            double out;
+            out = fmod(rad, 2.f * M_PI);
+            if (out < 0)
+            {
+                out += 2.f * M_PI;
+            }
+
+            return out;
+        }
+
         bool OnSegment(const Eigen::Vector2d &p1, const Eigen::Vector2d &p3, const Eigen::Vector2d &p2)
         {
             if (p2.x() <= std::max(p1.x(), p3.x()) && p2.x() >= std::min(p1.x(), p3.x()) && p2.y() <= std::max(p1.y(), p3.y()) && p2.y() >= std::min(p1.y(), p3.y()))
@@ -286,5 +328,10 @@
             float delta_y = vector_2d.y() - vector_3d.y();
             distance = sqrt(delta_x * delta_x + delta_y * delta_y);
             return distance;
+        }
+
+        float Clamp(const float &number, const float &upper_bound, const float &lower_bound)
+        {
+            return std::max(lower_bound, std::min(number, upper_bound));
         }
     }

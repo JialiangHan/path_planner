@@ -1,9 +1,9 @@
 /**
  * @file utility.h
  * @author Jialiang Han (hanjiali@umich.edu)
- * @brief include some type conversion function
- * @version 0.1
- * @date 2021-12-26
+ * @brief include some type conversion function, some function can`t be in a class
+ * @version 0.2
+ * @date 2022-01-08
  * 
  * @copyright Copyright (c) 2021
  * 
@@ -14,17 +14,29 @@
 #include <cmath>
 #include <nav_msgs/Path.h>
 #include <Eigen/Dense>
+#include "node3d.h"
 
 namespace Utility
 {
-
+    //*******************type conversion*******************
     void ConvertRosPathToVectorVector3D(const nav_msgs::Path::ConstPtr &path, std::vector<Eigen::Vector3d> &vector_3d_vec);
 
     Eigen::Vector2d ConvertIndexToEigenVector2d(const int &index, const int &map_width);
 
-    float GetDistanceFromVector2dToVector3d(const Eigen::Vector3d &vector_3d, const Eigen::Vector2d &vector_2d);
-
     nav_msgs::Path ConvertVectorVector3DToRosPath(const std::vector<Eigen::Vector3d> &vector_3d_vec);
+
+    Eigen::Vector2d ConvertVector3dToVector2d(const Eigen::Vector3d &vector_3d);
+
+    Eigen::Vector3d ConvertVector2dToVector3d(const Eigen::Vector2d &vector_2d);
+
+    double ConvertDegToRad(const double &deg);
+
+    double ConvertRadToDeg(const double &rad);
+
+    Eigen::Vector3d ConvertNode3DToVector3d(const HybridAStar::Node3D &node3d);
+
+    HybridAStar::Node3D ConvertVector3dToNode3D(const Eigen::Vector3d &vector3d);
+    //**********************computational geometry****************
 
     /**
      * @brief convert angle in deg into [-PI,Pi)
@@ -36,13 +48,10 @@ namespace Utility
 
     double RadNormalization(const double &rad);
 
-    Eigen::Vector2d ConvertVector3dToVector2d(const Eigen::Vector3d &vector_3d);
+    double DegToZeroTo2P(const double &deg);
 
-    Eigen::Vector3d ConvertVector2dToVector3d(const Eigen::Vector2d &vector_2d);
+    double RadToZeroTo2P(const double &rad);
 
-    double ConvertDegToRad(const double &deg);
-
-    double ConvertRadToDeg(const double &rad);
     /**
      * @brief check if p3 lines on p1-p2
      * 
@@ -107,6 +116,12 @@ namespace Utility
      * @return std::vector<Eigen::Vector2d> 
      */
     std::vector<Eigen::Vector2d> CreatePolygon(const double &width, const double &height);
+
+    float GetDistanceFromVector2dToVector3d(const Eigen::Vector3d &vector_3d, const Eigen::Vector2d &vector_2d);
+
+    //*************************other ***********************
+
+    float Clamp(const float &number, const float &upper_bound, const float &lower_bound);
 }
 
 #endif // UTILITY

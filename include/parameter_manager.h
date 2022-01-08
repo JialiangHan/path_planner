@@ -4,6 +4,12 @@
 #include <ros/ros.h>
 namespace HybridAStar
 {
+
+  enum CurveType
+  {
+    dubins,
+    cubic_bezier,
+  };
   //this struct contains some used parameters in collisiondetection class
   struct ParameterCollisionDetection
   {
@@ -49,9 +55,9 @@ namespace HybridAStar
     /// A flag for the visualization of 2D nodes (true = on; false = off)
     bool visualization2D = true;
     /// A flag to toggle the Dubin's heuristic, this should be false, if reversing is enabled (true = on; false = off)
-    bool dubins = true;
+    bool dubins_flag = true;
     /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
-    float dubins_step_size = 1;
+    float curve_step_size = 1;
     /// maximum possible curvature of the non-holonomic vehicle
     float min_turning_radius = 6;
     /// A flag to toggle the 2D heuristic (true = on; false = off)
@@ -62,6 +68,8 @@ namespace HybridAStar
     int dubins_width = 15;
     // nubmer of direction to create successor for A-star algorithm
     int possible_direction = 8;
+
+    CurveType curve_type = CurveType::cubic_bezier;
   };
   //this struct contains some used parameters in path class
   struct ParameterPath

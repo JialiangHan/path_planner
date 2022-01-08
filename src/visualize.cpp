@@ -39,16 +39,17 @@ void Visualize::publishNode3DPose(Node3D& node) {
   pose.header.frame_id = "path";
   pose.header.stamp = ros::Time::now();
   pose.header.seq = 0;
-  pose.pose.position.x = node.getX() * params_.cell_size;
-  pose.pose.position.y = node.getY() * params_.cell_size;
+  pose.pose.position.x = node.GetX() * params_.cell_size;
+  pose.pose.position.y = node.GetY() * params_.cell_size;
 
   //FORWARD
-  if (node.getPrim() < 3) {
-    pose.pose.orientation = tf::createQuaternionMsgFromYaw(node.getT());
+  if (node.GetPrim() < 3)
+  {
+    pose.pose.orientation = tf::createQuaternionMsgFromYaw(node.GetT());
   }
   //REVERSE
   else {
-    pose.pose.orientation = tf::createQuaternionMsgFromYaw(node.getT() + M_PI);
+    pose.pose.orientation = tf::createQuaternionMsgFromYaw(node.GetT() + M_PI);
   }
 
   // PUBLISH THE POSE
@@ -60,12 +61,13 @@ void Visualize::publishNode3DPose(Node3D& node) {
 //###################################################
 void Visualize::publishNode3DPoses(Node3D& node) {
   geometry_msgs::Pose pose;
-  pose.position.x = node.getX() * params_.cell_size;
-  pose.position.y = node.getY() * params_.cell_size;
+  pose.position.x = node.GetX() * params_.cell_size;
+  pose.position.y = node.GetY() * params_.cell_size;
 
   //FORWARD
-  if (node.getPrim() < 3) {
-    pose.orientation = tf::createQuaternionMsgFromYaw(node.getT());
+  if (node.GetPrim() < 3)
+  {
+    pose.orientation = tf::createQuaternionMsgFromYaw(node.GetT());
     poses3D.poses.push_back(pose);
     poses3D.header.stamp = ros::Time::now();
     // PUBLISH THE POSEARRAY
@@ -73,7 +75,7 @@ void Visualize::publishNode3DPoses(Node3D& node) {
   }
   //REVERSE
   else {
-    pose.orientation = tf::createQuaternionMsgFromYaw(node.getT() + M_PI);
+    pose.orientation = tf::createQuaternionMsgFromYaw(node.GetT() + M_PI);
     poses3Dreverse.poses.push_back(pose);
     poses3Dreverse.header.stamp = ros::Time::now();
     // PUBLISH THE POSEARRAY
@@ -90,8 +92,8 @@ void Visualize::publishNode2DPose(Node2D& node) {
   pose.header.frame_id = "path";
   pose.header.stamp = ros::Time::now();
   pose.header.seq = 0;
-  pose.pose.position.x = (node.getX() + 0.5) * params_.cell_size;
-  pose.pose.position.y = (node.getY() + 0.5) * params_.cell_size;
+  pose.pose.position.x = (node.GetX() + 0.5) * params_.cell_size;
+  pose.pose.position.y = (node.GetY() + 0.5) * params_.cell_size;
   pose.pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
   // PUBLISH THE POSE
@@ -104,8 +106,8 @@ void Visualize::publishNode2DPose(Node2D& node) {
 void Visualize::publishNode2DPoses(Node2D& node) {
   if (node.isDiscovered()) {
     geometry_msgs::Pose pose;
-    pose.position.x = (node.getX() + 0.5) * params_.cell_size;
-    pose.position.y = (node.getY() + 0.5) * params_.cell_size;
+    pose.position.x = (node.GetX() + 0.5) * params_.cell_size;
+    pose.position.y = (node.GetY() + 0.5) * params_.cell_size;
     pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
     poses2D.poses.push_back(pose);
@@ -148,7 +150,7 @@ void Visualize::publishNode3DCosts(Node3D* nodes, int width, int height, int dep
 
       // set the minimum for the cell
       if (nodes[idx].isClosed() || nodes[idx].isOpen()) {
-        values[i] = nodes[idx].getC();
+        values[i] = nodes[idx].GetC();
       }
     }
 
@@ -233,7 +235,7 @@ void Visualize::publishNode2DCosts(Node2D *nodes, int width, int height)
     // set the minimum for the cell
     if (nodes[i].isDiscovered())
     {
-      values[i] = nodes[i].getG();
+      values[i] = nodes[i].GetG();
 
       // set a new minimum
       if (values[i] > 0 && values[i] < min)

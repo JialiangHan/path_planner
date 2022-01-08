@@ -51,7 +51,7 @@ namespace HybridAStar {
       // 2D collision test
       if (t == 99)
       {
-        return !grid->data[node->getIdx()];
+        return !grid->data[node->GetIdx()];
       }
 
       if (true)
@@ -92,10 +92,10 @@ namespace HybridAStar {
     void getConfiguration(const Node2D *node, float &x, float &y, float &t) const;
 
     void getConfiguration(const Node3D *node, float &x, float &y, float &t) const;
-
-  private:
     /// The occupancy grid
     nav_msgs::OccupancyGrid::Ptr grid;
+
+  private:
     /// The collision lookup table
     Constants::config collisionLookup[Constants::headings * Constants::positions];
     ParameterCollisionDetection params_;

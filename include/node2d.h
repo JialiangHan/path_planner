@@ -29,17 +29,17 @@ class Node2D {
   }
   // GETTER METHODS
   /// get the x position
-  int getX() const { return x; }
+  int GetX() const { return x; }
   /// get the y position
-  int getY() const { return y; }
+  int GetY() const { return y; }
   /// get the cost-so-far (real value)
-  float getG() const { return g; }
+  float GetG() const { return g; }
   /// get the cost-to-come (heuristic value)
-  float getH() const { return h; }
+  float GetH() const { return h; }
   /// get the total estimated cost
-  float getC() const { return g + h; }
+  float GetC() const { return g + h; }
   /// get the index of the node in the 2D array
-  int getIdx() const { return idx; }
+  int GetIdx() const { return idx; }
   /// determine whether the node is open
   bool  isOpen() const { return o; }
   /// determine whether the node is closed

@@ -6,7 +6,7 @@
 #include <eigen3/Eigen/Dense>
 #include "dynamicvoronoi.h"
 #include "node3d.h"
-#include "helper.h"
+
 #include "utility.h"
 #include "parameter_manager.h"
 namespace HybridAStar
@@ -23,6 +23,8 @@ namespace HybridAStar
       {
          params_ = smoother_params;
       }
+
+      void Clear();
 
       /*!
      \brief This function takes a path consisting of nodes and attempts to iteratively smooth the same using gradient descent.

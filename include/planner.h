@@ -10,7 +10,7 @@
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 
 #include "constants.h"
-#include "helper.h"
+
 #include "collisiondetection.h"
 #include "dynamicvoronoi.h"
 #include "algorithm.h"
@@ -62,6 +62,9 @@ class Planner {
      \brief The central function entry point making the necessary preparations to start the planning.
   */
   void MakePlan();
+
+  void Clear();
+  void Publish(Node3D *nodes3D, Node2D *nodes2D, const int &width, const int &height, const int &depth);
 
   void SetPlannerParams(const ParameterPlanner &params);
 
