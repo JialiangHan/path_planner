@@ -93,7 +93,7 @@ class Planner {
      /// The voronoi diagram
      DynamicVoronoi voronoi_diagram_;
      /// A pointer to the grid_ the planner runs on
-     nav_msgs::OccupancyGrid::Ptr grid_;
+     nav_msgs::OccupancyGrid::ConstPtr grid_;
      /// The start pose set through RViz
      geometry_msgs::PoseWithCovarianceStamped start_;
      /// The goal pose set through RViz

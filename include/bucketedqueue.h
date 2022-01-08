@@ -21,16 +21,16 @@ class BucketPrioQueue {
 
  public:
   //! Standard constructor
-  /** Standard constructor. When called for the first time it creates a look up table
-      that maps square distanes to bucket numbers, which might take some time...
+     /** Standard constructor. When called for the first time it creates a look up table
+      that maps square distances to bucket numbers, which might take some time...
   */
-  BucketPrioQueue();
-  //! Checks whether the Queue is empty
-  bool empty() const;
-  //! push an element
-  void push(int prio, INTPOINT t);
-  //! return and pop the element with the lowest squared distance */
-  INTPOINT pop();
+     BucketPrioQueue();
+     //! Checks whether the Queue is empty
+     bool empty() const;
+     //! push an element
+     void push(int prio, INTPOINT t);
+     //! return and pop the element with the lowest squared distance */
+     INTPOINT pop();
 
  private:
 

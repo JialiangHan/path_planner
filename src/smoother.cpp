@@ -49,6 +49,11 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
   else
   {
     DLOG(INFO) << "preprocessed path size is: " << preprocessed_path_.size();
+    if (path_before_smooth.size() < 5)
+    {
+      DLOG(INFO) << "no enough points!!";
+      return;
+    }
     while (iterations < params_.max_iterations)
     {
       DLOG(INFO) << iterations << " starts!";

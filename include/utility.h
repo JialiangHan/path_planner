@@ -13,11 +13,7 @@
 #include <eigen3/Eigen/Dense>
 #include <cmath>
 #include <nav_msgs/Path.h>
-#include "node2d.h"
-#include "node3d.h"
-#include "point.h"
 #include <Eigen/Dense>
-// #include "vector2d.h"
 
 namespace Utility
 {
@@ -28,6 +24,89 @@ namespace Utility
 
     float GetDistanceFromVector2dToVector3d(const Eigen::Vector3d &vector_3d, const Eigen::Vector2d &vector_2d);
 
+    nav_msgs::Path ConvertVectorVector3DToRosPath(const std::vector<Eigen::Vector3d> &vector_3d_vec);
+
+    /**
+     * @brief convert angle in deg into [-PI,Pi)
+     * 
+     * @param deg 
+     * @return double 
+     */
+    double DegNormalization(const double &deg);
+
+    double RadNormalization(const double &rad);
+
+    Eigen::Vector2d ConvertVector3dToVector2d(const Eigen::Vector3d &vector_3d);
+
+    Eigen::Vector3d ConvertVector2dToVector3d(const Eigen::Vector2d &vector_2d);
+
+    double ConvertDegToRad(const double &deg);
+
+    double ConvertRadToDeg(const double &rad);
+    /**
+     * @brief check if p3 lines on p1-p2
+     * 
+     * @param p1 
+     * @param p2 
+     * @param p3 
+     * @return true 
+     * @return false 
+     */
+    bool OnSegment(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3);
+    /**
+     * @brief determine p3 is above or below segment p1-p2
+     * 
+     * @param p1 
+     * @param p2 
+     * @param p3 
+     * @return int 1 above and on segment, 0 below, 
+     */
+    int IsAboveSegment(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3);
+    /**
+     * @brief determine if two segment(p1-p2, p3-p4) are intersected? 
+     * 
+     * @param p1 
+     * @param p2 
+     * @param p3 
+     * @param p4 
+     * @return int 
+     */
+    int IsIntersect(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3, const Eigen::Vector2d &p4);
+    /**
+     * @brief find intersection point between segment p1-p2 and segment p3-p4
+     * 
+     * @param p1 
+     * @param p2 
+     * @param p3 
+     * @param p4 
+     * @return Eigen::Vector2d 
+     */
+    Eigen::Vector2d FindIntersectionPoint(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3, const Eigen::Vector2d &p4);
+    /**
+     * @brief this is only work for vector2d, for 3d please cross in eigen
+     * 
+     * @param p1 
+     * @param p2 
+     * @return double 
+     */
+    double CrossProduct(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2);
+    /**
+     * @brief determine if a point is inside a polygon
+     * 
+     * @param polygon p0->p1->p2->p3->p0
+     * @param point 
+     * @return int 1 inside, 0 outside
+     */
+    int IsInsidePolygon(const std::vector<Eigen::Vector2d> &polygon, const Eigen::Vector2d &point);
+    int IsInsidePolygon(const std::vector<Eigen::Vector2d> &polygon, const Eigen::Vector3d &point);
+    /**
+     * @brief Create a Polygon object, current is only for rectangle
+     * 
+     * @param width 
+     * @param height 
+     * @return std::vector<Eigen::Vector2d> 
+     */
+    std::vector<Eigen::Vector2d> CreatePolygon(const double &width, const double &height);
 }
 
 #endif // UTILITY

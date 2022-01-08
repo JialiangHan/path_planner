@@ -75,19 +75,6 @@ void Path::AddNode(const Node3D &node, int i)
   pathNode.scale.z = 0.1;
   pathNode.color.a = 1.0;
 
-  if (smoothed_)
-  {
-    pathNode.color.r = params_.pink.red;
-    pathNode.color.g = params_.pink.green;
-    pathNode.color.b = params_.pink.blue;
-  }
-  else
-  {
-    pathNode.color.r = params_.purple.red;
-    pathNode.color.g = params_.purple.green;
-    pathNode.color.b = params_.purple.blue;
-  }
-
   pathNode.pose.position.x = node.getX() * params_.cell_size;
   pathNode.pose.position.y = node.getY() * params_.cell_size;
   path_nodes_.markers.push_back(pathNode);
@@ -113,15 +100,15 @@ void Path::AddVehicle(const Node3D &node, int i)
 
   if (smoothed_)
   {
-    pathVehicle.color.r = params_.orange.red;
-    pathVehicle.color.g = params_.orange.green;
-    pathVehicle.color.b = params_.orange.blue;
+    pathVehicle.color.r = 0;
+    pathVehicle.color.g = 1;
+    pathVehicle.color.b = 0;
   }
   else
   {
-    pathVehicle.color.r = params_.teal.red;
-    pathVehicle.color.g = params_.teal.green;
-    pathVehicle.color.b = params_.teal.blue;
+    pathVehicle.color.r = 1;
+    pathVehicle.color.g = 0;
+    pathVehicle.color.b = 0;
   }
 
   pathVehicle.pose.position.x = node.getX() * params_.cell_size;

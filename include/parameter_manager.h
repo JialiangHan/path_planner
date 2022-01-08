@@ -76,25 +76,6 @@ namespace HybridAStar
     double vehicle_width = 1.75;
     /// [m] --- The length of the vehicle
     double vehicle_length = 2.65;
-    struct color
-    {
-      /// the red portion of the color
-      float red;
-      /// the green portion of the color
-      float green;
-      /// the blue portion of the color
-      float blue;
-    };
-    /// A definition for a color used for visualization
-    color teal = {102.f / 255.f, 217.f / 255.f, 239.f / 255.f};
-    /// A definition for a color used for visualization
-    color green = {166.f / 255.f, 226.f / 255.f, 46.f / 255.f};
-    /// A definition for a color used for visualization
-    color orange = {253.f / 255.f, 151.f / 255.f, 31.f / 255.f};
-    /// A definition for a color used for visualization
-    color pink = {249.f / 255.f, 38.f / 255.f, 114.f / 255.f};
-    /// A definition for a color used for visualization
-    color purple = {174.f / 255.f, 129.f / 255.f, 255.f / 255.f};
   };
   //this struct contains some used parameter in planner.cpp
   struct ParameterPlanner
