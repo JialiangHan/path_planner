@@ -71,7 +71,7 @@ namespace HybridAStar
     CurveType curve_type = CurveType::cubic_bezier;
   };
   //this struct contains some used parameters in path class
-  struct ParameterPath
+  struct ParameterPathPublisher
   {
     /// [m] --- The cell size of the 2D grid of the world,used in planner.cpp
     float cell_size = 1;
@@ -130,7 +130,7 @@ namespace HybridAStar
   struct ParameterContainer
   {
     ParameterAlgorithm algorithm_params;
-    ParameterPath path_params;
+    ParameterPathPublisher path_publisher_params;
     ParameterSmoother smoother_params;
     ParameterPlanner planner_params;
     ParameterVisualize visualize_params;
@@ -168,7 +168,7 @@ namespace HybridAStar
     std::shared_ptr<ParameterContainer> GetAllParams();
 
     ParameterSmoother GetSmootherParams();
-    ParameterPath GetPathParams();
+    ParameterPathPublisher GetPathPublisherParams();
     ParameterPlanner GetPlannerParams();
     ParameterAlgorithm GetAlgorithmParams();
     ParameterVisualize GetVisualizeParams();

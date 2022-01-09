@@ -10,8 +10,8 @@ Planner::Planner() {
   param_manager_->LoadParams();
   params_ = param_manager_->GetPlannerParams();
   smoother_ptr_.reset(new Smoother(param_manager_->GetSmootherParams()));
-  path_ptr_.reset(new PathPublisher(param_manager_->GetPathParams()));
-  smoothed_path_ptr_.reset(new PathPublisher(param_manager_->GetPathParams(), true));
+  path_publisher_ptr_.reset(new PathPublisher(param_manager_->GetPathPublisherParams()));
+  smoothed_path_publisher_ptr_.reset(new PathPublisher(param_manager_->GetPathPublisherParams(), true));
   algorithm_ptr_.reset(new Algorithm(param_manager_->GetAlgorithmParams()));
   visualization_ptr_.reset(new Visualize(param_manager_->GetVisualizeParams()));
   configuration_space_ptr_.reset(new CollisionDetection(param_manager_->GetCollisionDetectionParams()));
@@ -217,13 +217,13 @@ void Planner::MakePlan()
     // set path
     smoother_ptr_->SetPath(path);
     // CREATE THE UPDATED PATH
-    path_ptr_->UpdatePath(smoother_ptr_->GetPath());
+    path_publisher_ptr_->UpdatePath(smoother_ptr_->GetPath());
     DLOG(INFO) << "path before smooth size is " << smoother_ptr_->GetPath().size();
     // SMOOTH THE PATH
     smoother_ptr_->SmoothPath(voronoi_diagram_);
     // CREATE THE UPDATED PATH
     // DLOG(INFO) << "smoothed path size is " << smoother_ptr_->GetPath().size();
-    smoothed_path_ptr_->UpdatePath(smoother_ptr_->GetPath());
+    smoothed_path_publisher_ptr_->UpdatePath(smoother_ptr_->GetPath());
     ros::Time t1 = ros::Time::now();
     ros::Duration d(t1 - t0);
     DLOG(INFO) << "TIME in ms: " << d * 1000;
@@ -246,8 +246,8 @@ void Planner::Clear()
   // CLEAR THE VISUALIZATION
   visualization_ptr_->clear();
   // CLEAR THE PATH
-  path_ptr_->Clear();
-  smoothed_path_ptr_->Clear();
+  path_publisher_ptr_->Clear();
+  smoothed_path_publisher_ptr_->Clear();
   smoother_ptr_->Clear();
 }
 
@@ -255,12 +255,12 @@ void Planner::Publish(Node3D *nodes3D, Node2D *nodes2D, const int &width, const 
 {
   // _________________________________
   // PUBLISH THE RESULTS OF THE SEARCH
-  path_ptr_->PublishPath();
-  path_ptr_->PublishPathNodes();
-  path_ptr_->PublishPathVehicles();
-  smoothed_path_ptr_->PublishPath();
-  smoothed_path_ptr_->PublishPathNodes();
-  smoothed_path_ptr_->PublishPathVehicles();
+  path_publisher_ptr_->PublishPath();
+  path_publisher_ptr_->PublishPathNodes();
+  path_publisher_ptr_->PublishPathVehicles();
+  smoothed_path_publisher_ptr_->PublishPath();
+  smoothed_path_publisher_ptr_->PublishPathNodes();
+  smoothed_path_publisher_ptr_->PublishPathVehicles();
   visualization_ptr_->publishNode3DCosts(nodes3D, width, height, depth);
   visualization_ptr_->publishNode2DCosts(nodes2D, width, height);
 }

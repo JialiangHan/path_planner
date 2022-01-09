@@ -18,6 +18,8 @@ dubins_Lookup : false
 two_D : true
     # number of direction to create successor for A-star algorithm
 possible_direction : 8
+# 0: dubins curve, 1: cubic bezier
+curve_type : 0
 # **********************vehicle parameters*****************
 # [m] --- Uniformly adds a padding around the vehicle
 bloating : 0
@@ -43,7 +45,7 @@ penalty_reverse : 2.0
 penalty_change_of_direction : 2.0
 
 # [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
-curve_step_size : 1
+curve_step_size : 0.5
 #  DUBINS LOOKUP SPECIFIC
 # [m] --- The width of the dubinsArea / 2 for the analytical solution (Dubin's shot)
 dubins_width : 15

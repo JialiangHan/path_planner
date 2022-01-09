@@ -1,6 +1,6 @@
 /**
  * @file node_path_evaluator.cpp
- * @author your name (you@domain.com)
+ * @author Jialiang Han
  * @brief just plot path evaluator
  * @version 0.1
  * @date 2021-12-08

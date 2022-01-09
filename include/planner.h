@@ -84,11 +84,11 @@ class Planner {
      /// A transform for moving start positions
      tf::StampedTransform transform_;
      /// The path produced by the hybrid A* algorithm
-     std::shared_ptr<PathPublisher> path_ptr_;
+     std::shared_ptr<PathPublisher> path_publisher_ptr_;
      /// The smoother used for optimizing the path
      std::shared_ptr<Smoother> smoother_ptr_;
      /// The path smoothed and ready for the controller
-     std::shared_ptr<PathPublisher> smoothed_path_ptr_;
+     std::shared_ptr<PathPublisher> smoothed_path_publisher_ptr_;
      /// The visualization used for search visualization
      std::shared_ptr<Visualize> visualization_ptr_;
      /// The collission detection for testing specific configurations

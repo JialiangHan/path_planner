@@ -82,9 +82,9 @@ namespace HybridAStar
     return param_container_ptr_->planner_params;
   }
 
-  ParameterPath ParameterManager::GetPathParams()
+  ParameterPathPublisher ParameterManager::GetPathPublisherParams()
   {
-    return param_container_ptr_->path_params;
+    return param_container_ptr_->path_publisher_params;
   }
 
   ParameterVisualize ParameterManager::GetVisualizeParams()
@@ -168,16 +168,16 @@ namespace HybridAStar
     std::string node_prefix = "/hybrid_astar/";
 
     ros_param_name = "cell_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_params.cell_size);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_publisher_params.cell_size);
 
     ros_param_name = "bloating";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_params.bloating);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_publisher_params.bloating);
 
     ros_param_name = "vehicle_width";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_params.vehicle_width);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_publisher_params.vehicle_width);
 
     ros_param_name = "vehicle_length";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_params.vehicle_length);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_publisher_params.vehicle_length);
   }
 
   void ParameterManager::LoadVisualizeParams()

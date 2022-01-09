@@ -21,7 +21,7 @@ namespace HybridAStar
    {
    public:
       /// The default constructor initializing the path object and setting publishers for the same.
-      PathPublisher(const ParameterPath &params, bool smoothed = false)
+      PathPublisher(const ParameterPathPublisher &params, bool smoothed = false)
       {
          params_ = params;
          std::string pathTopic = "/path";
@@ -105,7 +105,7 @@ namespace HybridAStar
       visualization_msgs::MarkerArray path_vehicles_;
       /// Value that indicates that the path is smoothed/post processed
       bool smoothed_ = false;
-      ParameterPath params_;
+      ParameterPathPublisher params_;
    };
 }
 #endif // PATH_H
