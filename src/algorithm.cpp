@@ -540,34 +540,44 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
       // DLOG(INFO) << i << "th iteration";
       Node3D *node3d;
       Node3D current = Utility::ConvertVector3dToNode3D(cubic_bezier.GetValueAt(x / length));
+      float curvature = cubic_bezier.GetCurvatureAt(x / length);
       node3d = &current;
       node3d->setT(cubic_bezier.GetAngleAt(x / length));
 
       // collision check
       if (configurationSpace->isTraversable(node3d))
       {
-        // set the predecessor to the previous step
-        if (i > 0)
-        {
-          node3d->SetPred(&path_vec[i - 1]);
-        }
-        else
-        {
-          node3d->SetPred(nullptr);
-        }
+        // // set the predecessor to the previous step
+        // if (i > 0)
+        // {
+        //   node3d->SetPred(&path_vec[i - 1]);
+        // }
+        // else
+        // {
+        //   node3d->SetPred(nullptr);
+        // }
         // if (node3d->GetPred() != nullptr)
         // {
         //   DLOG(INFO) << "current node is " << node3d->GetX() << " " << node3d->GetY() << " "
         //              << "its pred is " << node3d->GetPred()->GetX() << " " << node3d->GetPred()->GetY();
         // }
 
-        if (node3d == node3d->GetPred())
+        // if (node3d == node3d->GetPred())
+        // {
+        //   DLOG(INFO) << "looping shot";
+        // }
+        if (curvature <= 1 / params_.min_turning_radius)
         {
-          DLOG(INFO) << "looping shot";
+          path_vec.emplace_back(*node3d);
+          x += params_.curve_step_size;
+          i++;
         }
-        path_vec.emplace_back(*node3d);
-        x += params_.curve_step_size;
-        i++;
+        else
+        {
+          DLOG(INFO) << "cubic bezier curvature greater than 1/min_turning_radius, discarding the path";
+          path_vec.clear();
+          break;
+        }
       }
       else
       {
@@ -582,8 +592,11 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
   }
 
   //Some kind of collision detection for all curves
-  path_vec.emplace_back(goal);
-  DLOG(INFO) << "Analytical expansion connected, returning the path";
+  if (path_vec.size() != 0)
+  {
+    path_vec.emplace_back(goal);
+    DLOG(INFO) << "Analytical expansion connected, returning the path";
+  }
   return path_vec;
 }
 
