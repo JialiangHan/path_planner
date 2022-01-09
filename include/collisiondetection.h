@@ -8,11 +8,9 @@
 #include "node2d.h"
 #include "node3d.h"
 #include "parameter_manager.h"
-namespace HybridAStar {
-  namespace
-  {
+namespace HybridAStar
+{
 
-  }
   /*!
    \brief The CollisionDetection class determines whether a given configuration q of the robot will result in a collision with the environment.
 
@@ -27,7 +25,7 @@ namespace HybridAStar {
     CollisionDetection(const ParameterCollisionDetection &params)
     {
       params_ = params;
-      this->grid = nullptr;
+      this->grid_ptr_ = nullptr;
       Lookup::collisionLookup(collisionLookup);
     };
     /*!
@@ -35,7 +33,7 @@ namespace HybridAStar {
      \return true if it is traversable, else false
   */
     template <typename T>
-    bool isTraversable(const T *node) const
+    bool IsTraversable(const T *node) const
     {
       /* Depending on the used collision checking mechanism this needs to be adjusted
        standard: collision checking using the spatial occupancy enumeration
@@ -51,7 +49,7 @@ namespace HybridAStar {
       // 2D collision test
       if (t == 99)
       {
-        return !grid->data[node->GetIdx()];
+        return !grid_ptr_->data[node->GetIdx()];
       }
 
       if (true)
@@ -67,6 +65,23 @@ namespace HybridAStar {
     };
 
     /*!
+     \brief updates the grid with the world map
+  */
+    void UpdateGrid(nav_msgs::OccupancyGrid::Ptr map) { grid_ptr_ = map; }
+
+    bool IsOnGrid(const Node3D &node3d);
+
+    bool IsOnGrid(const Node3D *node3d_ptr);
+
+    bool IsOnGrid(const Node2D &node2d);
+
+    bool IsOnGrid(const Node2D *node2d_ptr);
+
+    /// The occupancy grid
+    nav_msgs::OccupancyGrid::Ptr grid_ptr_;
+
+  private:
+    /*!
      \brief Calculates the cost of the robot taking a specific configuration q int the World W
      \param x the x position
      \param y the y position
@@ -75,7 +90,6 @@ namespace HybridAStar {
      \todo needs to be implemented correctly
   */
     float configurationCost(float x, float y, float t) const { return 0; }
-
     /*!
      \brief Tests whether the configuration q of the robot is in C_free
      \param x the x position
@@ -84,16 +98,9 @@ namespace HybridAStar {
      \return true if it is in C_free, else false
   */
     bool configurationTest(float x, float y, float t) const;
-
-    /*!
-     \brief updates the grid with the world map
-  */
-    void updateGrid(nav_msgs::OccupancyGrid::Ptr map) { grid = map; }
     void getConfiguration(const Node2D *node, float &x, float &y, float &t) const;
 
     void getConfiguration(const Node3D *node, float &x, float &y, float &t) const;
-    /// The occupancy grid
-    nav_msgs::OccupancyGrid::Ptr grid;
 
   private:
     /// The collision lookup table

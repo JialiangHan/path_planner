@@ -28,11 +28,10 @@ const float Node3D::dt[] = { 0,         0.1178097,   -0.1178097};
 //###################################################
 //                                         IS ON GRID
 //###################################################
-bool Node3D::isOnGrid(const int width, const int height) const {
-  return x >= 0 && x < width &&
-         y >= 0 && y < height;
-}
-
+// bool Node3D::isOnGrid(const int width, const int height) const {
+//   return x >= 0 && x < width &&
+//          y >= 0 && y < height;
+// }
 
 //###################################################
 //                                        IS IN RANGE
@@ -51,21 +50,24 @@ bool Node3D::IsCloseEnough(const Node3D &goal, const float &distance_range, cons
 {
   float dx = std::abs(x - goal.x);
   float dy = std::abs(y - goal.y);
-  if ((dx * dx) + (dy * dy) < distance_range)
+  float distance = (dx * dx) + (dy * dy);
+  if (distance < distance_range)
   {
-    if (std::abs(t - goal.t) <= angle_range)
+    float angle_diff = std::abs(t - goal.t);
+    if (angle_diff <= angle_range)
     {
       DLOG(INFO) << "two node distance and orientation are close enough, return true";
       return true;
     }
     else
     {
-      DLOG(INFO) << "two node distance is close enough but orientation is too far, return false";
+      DLOG(INFO) << "two node distance is close enough but orientation is too far is " << angle_diff;
       return false;
     }
   }
   else
   {
+    DLOG(INFO) << "too far, distance is " << distance;
     return false;
   }
 }

@@ -75,7 +75,7 @@ class Node2D {
   /// Updates the cost-so-far for the node x' coming from its predecessor. It also discovers the node.
   void updateG() { g += movementCost(*pred); d = true; }
   /// Updates the cost-to-go for the node x' to the goal node.
-  void updateH(const Node2D& goal) { h = movementCost(goal); }
+  void UpdateHeuristic(const Node2D &goal) { h = movementCost(goal); }
   /// The heuristic as well as the cost measure.
   float movementCost(const Node2D& pred) const { return sqrt((x - pred.x) * (x - pred.x) + (y - pred.y) * (y - pred.y)); }
 
@@ -85,7 +85,7 @@ class Node2D {
 
   // GRID CHECKING
   /// Validity check to test, whether the node is in the 2D array.
-  bool isOnGrid(const int width, const int height) const;
+  // bool isOnGrid(const int width, const int height) const;
 
   // SUCCESSOR CREATION
   /// Creates a successor on a eight-connected grid.

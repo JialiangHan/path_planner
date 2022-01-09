@@ -110,7 +110,7 @@ class Node3D {
    // GRID CHECKING
    /// Validity check to test, whether the node is in the 3D array.
 
-   bool isOnGrid(const int width, const int height) const;
+   //  bool isOnGrid(const int width, const int height) const;
 
    // SUCCESSOR CREATION
    /// Creates a successor in the continuous space.

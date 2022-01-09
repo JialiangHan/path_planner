@@ -1,7 +1,28 @@
 #include "collisiondetection.h"
 
 using namespace HybridAStar;
+bool CollisionDetection::IsOnGrid(const Node3D &node3d)
+{
+  return node3d.GetX() >= 0 && node3d.GetX() < grid_ptr_->info.width &&
+         node3d.GetY() >= 0 && node3d.GetY() < grid_ptr_->info.height;
+}
 
+bool CollisionDetection::IsOnGrid(const Node3D *node3d_ptr)
+{
+  return node3d_ptr->GetX() >= 0 && node3d_ptr->GetX() < grid_ptr_->info.width &&
+         node3d_ptr->GetY() >= 0 && node3d_ptr->GetY() < grid_ptr_->info.height;
+}
+bool CollisionDetection::IsOnGrid(const Node2D &node2d)
+{
+  return node2d.GetX() >= 0 && node2d.GetX() < (int)grid_ptr_->info.width &&
+         node2d.GetY() >= 0 && node2d.GetY() < (int)grid_ptr_->info.height;
+}
+
+bool CollisionDetection::IsOnGrid(const Node2D *node2d_ptr)
+{
+  return node2d_ptr->GetX() >= 0 && node2d_ptr->GetX() < (int)grid_ptr_->info.width &&
+         node2d_ptr->GetY() >= 0 && node2d_ptr->GetY() < (int)grid_ptr_->info.height;
+}
 bool CollisionDetection::configurationTest(float x, float y, float t) const {
   const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
   int X = (int)x;
@@ -20,9 +41,11 @@ bool CollisionDetection::configurationTest(float x, float y, float t) const {
     cX = (X + collisionLookup[idx].pos[i].x);
     cY = (Y + collisionLookup[idx].pos[i].y);
 
-    // make sure the configuration coordinates are actually on the grid
-    if (cX >= 0 && (unsigned int)cX < grid->info.width && cY >= 0 && (unsigned int)cY < grid->info.height) {
-      if (grid->data[cY * grid->info.width + cX]) {
+    // make sure the configuration coordinates are actually on the grid_ptr_
+    if (cX >= 0 && (unsigned int)cX < grid_ptr_->info.width && cY >= 0 && (unsigned int)cY < grid_ptr_->info.height)
+    {
+      if (grid_ptr_->data[cY * grid_ptr_->info.width + cX])
+      {
         return false;
       }
     }

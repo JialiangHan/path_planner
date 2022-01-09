@@ -140,7 +140,6 @@ Path Algorithm::HybridAStar(Node3D &start,
 
           if (analytical_path.size() != 0)
           {
-            //DEBUG
             DLOG(INFO) << "Found path through anallytical expansion";
             TracePath(nPred);
             path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
@@ -159,7 +158,7 @@ Path Algorithm::HybridAStar(Node3D &start,
           iSucc = nSucc->setIdx(width, height, (float)2 * M_PI / params_.headings);
 
           // ensure successor is on grid and traversable
-          if (nSucc->isOnGrid(width, height) && configurationSpace->isTraversable(nSucc))
+          if (configurationSpace->IsOnGrid(nSucc) && configurationSpace->IsTraversable(nSucc))
           {
 
             // ensure successor is not on closed list or it has the same index as the predecessor
@@ -218,7 +217,7 @@ Path Algorithm::HybridAStar(Node3D &start,
       }
     }
   }
-
+  DLOG(INFO) << "open list is empty, end hybrid a star.";
   return path_;
 }
 
@@ -242,7 +241,7 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
 
   boost::heap::binomial_heap<Node2D *, boost::heap::compare<CompareNodes>> openlist;
   // update h value
-  start.updateH(goal);
+  start.UpdateHeuristic(goal);
   // mark start as open
   start.open();
   // push on priority queue
@@ -309,7 +308,7 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
           // ensure successor is on grid ROW MAJOR
           // ensure successor is not blocked by obstacle
           // ensure successor is not on closed list
-          if (nSucc->isOnGrid(width, height) && configurationSpace->isTraversable(nSucc) && !nodes2D[iSucc].isClosed())
+          if (configurationSpace->IsOnGrid(nSucc) && configurationSpace->IsTraversable(nSucc) && !nodes2D[iSucc].isClosed())
           {
             // calculate new G value
             nSucc->updateG();
@@ -319,7 +318,7 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
             if (!nodes2D[iSucc].isOpen() || newG < nodes2D[iSucc].GetG())
             {
               // calculate the H value
-              nSucc->updateH(goal);
+              nSucc->UpdateHeuristic(goal);
               // put successor on open list
               nSucc->open();
               nodes2D[iSucc] = *nSucc;
@@ -492,7 +491,7 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
       node3d->setT(Utility::RadToZeroTo2P(q[2]));
 
       // collision check
-      if (configurationSpace->isTraversable(node3d))
+      if (configurationSpace->IsTraversable(node3d))
       {
 
         // set the predecessor to the previous step
@@ -528,8 +527,8 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
     // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
     Eigen::Vector3d vector3d_goal = Utility::ConvertNode3DToVector3d(goal);
     int map_width, map_height;
-    map_width = configurationSpace->grid->info.width;
-    map_height = configurationSpace->grid->info.height;
+    map_width = configurationSpace->grid_ptr_->info.width;
+    map_height = configurationSpace->grid_ptr_->info.height;
     CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width, map_height);
     float length = cubic_bezier.GetLength();
     i = 0;
@@ -545,7 +544,7 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
       node3d->setT(cubic_bezier.GetAngleAt(x / length));
 
       // collision check
-      if (configurationSpace->isTraversable(node3d))
+      if (configurationSpace->IsTraversable(node3d))
       {
         // // set the predecessor to the previous step
         // if (i > 0)

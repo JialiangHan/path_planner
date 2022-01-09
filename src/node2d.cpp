@@ -6,9 +6,9 @@ using namespace HybridAStar;
 //###################################################
 //                                         IS ON GRID
 //###################################################
-bool Node2D::isOnGrid(const int width, const int height) const {
-  return  x >= 0 && x < width && y >= 0 && y < height;
-}
+// bool Node2D::isOnGrid(const int width, const int height) const {
+//   return  x >= 0 && x < width && y >= 0 && y < height;
+// }
 
 //###################################################
 //                                   CREATE SUCCESSOR
