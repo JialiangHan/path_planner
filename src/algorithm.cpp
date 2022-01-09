@@ -27,17 +27,19 @@ struct CompareNodes
 //###################################################
 //                                        3D A*
 //###################################################
-Node3D *Algorithm::HybridAStar(Node3D &start,
-                               Node3D &goal,
-                               Node3D *nodes3D,
-                               Node2D *nodes2D,
-                               int width,
-                               int height,
-                               std::shared_ptr<CollisionDetection> &configurationSpace,
-                               float *dubinsLookup,
-                               std::shared_ptr<Visualize> &visualization)
+Path Algorithm::HybridAStar(Node3D &start,
+                            Node3D &goal,
+                            Node3D *nodes3D,
+                            Node2D *nodes2D,
+                            int width,
+                            int height,
+                            std::shared_ptr<CollisionDetection> &configurationSpace,
+                            float *dubinsLookup,
+                            std::shared_ptr<Visualize> &visualization)
 {
   DLOG(INFO) << "Hybrid A star start!!";
+  start_ = start;
+  goal_ = goal;
   // PREDECESSOR AND SUCCESSOR INDEX
   int iPred, iSucc;
   float newG;
@@ -111,12 +113,16 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
       if (iterations > params_.max_iterations)
       {
         DLOG(INFO) << "max iterations reached!!!, current iterations is :" << iterations;
-        return nPred;
+        // return nPred;
+        TracePath(nPred);
+        return path_;
       }
       else if (nPred->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings))
       {
         DLOG(INFO) << "Goal reached!!!";
-        return nPred;
+        // return nPred;
+        TracePath(nPred);
+        return path_;
       }
 
       // ____________________
@@ -130,20 +136,15 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
         {
           DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
           N = N + nPred->GetH() / 2;
-          nSucc = AnalyticExpansions(*nPred, goal, configurationSpace);
+          Path analytical_path = AnalyticExpansions(*nPred, goal, configurationSpace);
 
-          if (nSucc != nullptr)
+          if (analytical_path.size() != 0)
           {
             //DEBUG
             DLOG(INFO) << "Found path through anallytical expansion";
-            const Node3D *node = nSucc;
-            while (node->GetPred() != nullptr)
-            {
-              DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " "
-                         << "its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
-              node = node->GetPred();
-            }
-            return nSucc;
+            TracePath(nPred);
+            path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
+            return path_;
           }
         }
 
@@ -217,23 +218,14 @@ Node3D *Algorithm::HybridAStar(Node3D &start,
       }
     }
   }
-  if (openlist.empty())
-  {
-    return nullptr;
-  }
-  return nullptr;
+
+  return path_;
 }
 
 //###################################################
 //                                        2D A*
 //###################################################
-float Algorithm::AStar(Node2D &start,
-                       Node2D &goal,
-                       Node2D *nodes2D,
-                       int width,
-                       int height,
-                       std::shared_ptr<CollisionDetection> &configurationSpace,
-                       std::shared_ptr<Visualize> &visualization)
+float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, int height, std::shared_ptr<CollisionDetection> &configurationSpace, std::shared_ptr<Visualize> &visualization)
 {
 
   // PREDECESSOR AND SUCCESSOR INDEX
@@ -471,9 +463,9 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
 //###################################################
 //                                    ANALYTICAL EXPANSION
 //###################################################
-Node3D *Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace)
+Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace)
 {
-  std::vector<Node3D> path_vec;
+  Path path_vec;
   int i = 0;
   float x = 0.f;
   if (params_.curve_type == CurveType::dubins)
@@ -524,7 +516,9 @@ Node3D *Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::sh
       else
       {
         DLOG(INFO) << "Dubins shot collided, discarding the path";
-        return nullptr;
+        path_vec.clear();
+        break;
+        // return nullptr;
       }
     }
   }
@@ -561,11 +555,11 @@ Node3D *Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::sh
         {
           node3d->SetPred(nullptr);
         }
-        if (node3d->GetPred() != nullptr)
-        {
-          DLOG(INFO) << "current node is " << node3d->GetX() << " " << node3d->GetY() << " "
-                     << "its pred is " << node3d->GetPred()->GetX() << " " << node3d->GetPred()->GetY();
-        }
+        // if (node3d->GetPred() != nullptr)
+        // {
+        //   DLOG(INFO) << "current node is " << node3d->GetX() << " " << node3d->GetY() << " "
+        //              << "its pred is " << node3d->GetPred()->GetX() << " " << node3d->GetPred()->GetY();
+        // }
 
         if (node3d == node3d->GetPred())
         {
@@ -578,17 +572,19 @@ Node3D *Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::sh
       else
       {
         DLOG(INFO) << "cubic bezier collided, discarding the path";
-        return nullptr;
+        path_vec.clear();
+        break;
+        // return nullptr;
       }
     }
-    goal.SetPred(&path_vec.back());
+    // goal.SetPred(&path_vec.back());
     // DLOG(INFO) << "goal point is " << vector3d_goal.x() << " " << vector3d_goal.y();
   }
 
   //Some kind of collision detection for all curves
-
+  path_vec.emplace_back(goal);
   DLOG(INFO) << "Analytical expansion connected, returning the path";
-  return &goal;
+  return path_vec;
 }
 
 Node3D *Algorithm::CreateSuccessor(const Node3D *pred, const int &i)
@@ -614,4 +610,21 @@ Node3D *Algorithm::CreateSuccessor(const Node3D *pred, const int &i)
     tSucc = Utility::RadToZeroTo2P(pred->GetT() - dt[i - 3]);
   }
   return new Node3D(xSucc, ySucc, tSucc, pred->GetG(), 0, pred, i);
+}
+
+void Algorithm::TracePath(const Node3D *node)
+{
+  path_.clear();
+  while (node != nullptr)
+  {
+
+    path_.emplace_back(*node);
+    if (*node == start_)
+    {
+      break;
+    }
+    // DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
+    node = node->GetPred();
+  }
+  std::reverse(path_.begin(), path_.end());
 }

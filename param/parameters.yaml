@@ -70,12 +70,12 @@ vor_obs_dmax : 3
 #falloff rate for the voronoi field
 alpha: 0.1
 # weight for the obstacle term
-weight_obstacle : 1.0
+weight_obstacle : 0.0
 # weight for the voronoi term
 weight_voronoi : 0.0
 # weight for the curvature term
 weight_curvature : 0.0
 # weight for the smoothness term
-weight_smoothness : 1.0
+weight_smoothness : 0.0
 #weight for path length
-weight_length : 1.0
+weight_length : 0.0

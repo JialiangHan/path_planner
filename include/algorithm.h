@@ -16,7 +16,8 @@ typedef ompl::base::SE2StateSpace::StateType State;
 #include "cubic_bezier.h"
 namespace HybridAStar
 {
-
+   //path from start to goal
+   typedef std::vector<Node3D> Path;
    /*!
  * \brief A class that encompasses the functions central to the search.
  */
@@ -45,15 +46,12 @@ namespace HybridAStar
      \param visualization the visualization object publishing the search to RViz
      \return the pointer to the node satisfying the goal condition
   */
-      Node3D *HybridAStar(Node3D &start,
-                          Node3D &goal,
-                          Node3D *nodes3D,
-                          Node2D *nodes2D,
-                          int width,
-                          int height,
-                          std::shared_ptr<CollisionDetection> &configurationSpace,
-                          float *dubinsLookup,
-                          std::shared_ptr<Visualize> &visualization);
+      Path HybridAStar(Node3D &start, Node3D &goal,
+                       Node3D *nodes3D, Node2D *nodes2D, int width, int height, std::shared_ptr<CollisionDetection> &configurationSpace, float *dubinsLookup, std::shared_ptr<Visualize> &visualization);
+
+      Path GetPath() const { return path_; };
+
+   private:
       /**
     * 
     * @brief this is traditional A-star algorithm
@@ -67,21 +65,20 @@ namespace HybridAStar
     * @param visualization 
     * @return float 
     */
-      float AStar(Node2D &start,
-                  Node2D &goal,
-                  Node2D *nodes2D,
-                  int width,
-                  int height,
-                  std::shared_ptr<CollisionDetection> &configurationSpace,
-                  std::shared_ptr<Visualize> &visualization);
-      void UpdateHeuristic(Node3D &start,
-                           const Node3D &goal,
-                           Node2D *nodes2D,
-                           float *dubinsLookup,
-                           int width,
-                           int height,
-                           std::shared_ptr<CollisionDetection> &configurationSpace,
-                           std::shared_ptr<Visualize> &visualization);
+      float AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, int height, std::shared_ptr<CollisionDetection> &configurationSpace, std::shared_ptr<Visualize> &visualization);
+      /**
+       * @brief update heuristic for hybrid a star
+       * 
+       * @param start 
+       * @param goal 
+       * @param nodes2D 
+       * @param dubinsLookup 
+       * @param width 
+       * @param height 
+       * @param configurationSpace 
+       * @param visualization 
+       */
+      void UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D, float *dubinsLookup, int width, int height, std::shared_ptr<CollisionDetection> &configurationSpace, std::shared_ptr<Visualize> &visualization);
       /**
        * @brief analytical expansion in paper, here use dubins curve.
        * 
@@ -90,12 +87,17 @@ namespace HybridAStar
        * @param configurationSpace 
        * @return Node3D* 
        */
-      Node3D *AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace);
+      Path AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace);
 
       Node3D *CreateSuccessor(const Node3D *pred, const int &i);
 
+      void TracePath(const Node3D *node);
+
    private:
       ParameterAlgorithm params_;
+      Path path_;
+      Node3D start_;
+      Node3D goal_;
    };
 }
 #endif // ALGORITHM_H

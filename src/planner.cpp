@@ -10,8 +10,8 @@ Planner::Planner() {
   param_manager_->LoadParams();
   params_ = param_manager_->GetPlannerParams();
   smoother_ptr_.reset(new Smoother(param_manager_->GetSmootherParams()));
-  path_ptr_.reset(new Path(param_manager_->GetPathParams()));
-  smoothed_path_ptr_.reset(new Path(param_manager_->GetPathParams(), true));
+  path_ptr_.reset(new PathPublisher(param_manager_->GetPathParams()));
+  smoothed_path_ptr_.reset(new PathPublisher(param_manager_->GetPathParams(), true));
   algorithm_ptr_.reset(new Algorithm(param_manager_->GetAlgorithmParams()));
   visualization_ptr_.reset(new Visualize(param_manager_->GetVisualizeParams()));
   configuration_space_ptr_.reset(new CollisionDetection(param_manager_->GetCollisionDetectionParams()));
@@ -209,23 +209,20 @@ void Planner::MakePlan()
     ros::Time t0 = ros::Time::now();
     Clear();
     // FIND THE PATH
-    Node3D *nSolution = algorithm_ptr_->HybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_ptr_, dubins_lookup_table, visualization_ptr_);
-    const Node3D *node = nSolution;
-    while (node->GetPred() != nullptr)
+    Path path = algorithm_ptr_->HybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_ptr_, dubins_lookup_table, visualization_ptr_);
+    for (const auto &node : path)
     {
-      DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " "
-                 << "its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
-      node = node->GetPred();
+      DLOG(INFO) << "node in path is " << node.GetX() << " " << node.GetY();
     }
-    // TRACE THE PATH
-    smoother_ptr_->TracePath(nSolution);
+    // set path
+    smoother_ptr_->SetPath(path);
     // CREATE THE UPDATED PATH
     path_ptr_->UpdatePath(smoother_ptr_->GetPath());
     DLOG(INFO) << "path before smooth size is " << smoother_ptr_->GetPath().size();
     // SMOOTH THE PATH
     smoother_ptr_->SmoothPath(voronoi_diagram_);
     // CREATE THE UPDATED PATH
-    DLOG(INFO) << "smoothed path size is " << smoother_ptr_->GetPath().size();
+    // DLOG(INFO) << "smoothed path size is " << smoother_ptr_->GetPath().size();
     smoothed_path_ptr_->UpdatePath(smoother_ptr_->GetPath());
     ros::Time t1 = ros::Time::now();
     ros::Duration d(t1 - t0);

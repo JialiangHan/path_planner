@@ -37,12 +37,12 @@ namespace HybridAStar
   */
       void SmoothPath(DynamicVoronoi &voronoi);
 
-      /*!
-     \brief Given a node pointer the path to the root node will be traced recursively, output path is from goal to start.
-     \param node a 3D node, usually the goal node
-  */
-      void TracePath(const Node3D *node);
-
+      //       /*!
+      //      \brief Given a node pointer the path to the root node will be traced recursively, output path is from goal to start.
+      //      \param node a 3D node, usually the goal node
+      //   */
+      //       void TracePath(const Node3D *node);
+      void SetPath(const std::vector<Node3D> &path) { path_ = path; };
       /// returns the path of the smoother object
       const std::vector<Node3D> &GetPath() { return path_; }
 

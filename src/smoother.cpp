@@ -156,20 +156,20 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
   // }
 }
 
-void Smoother::TracePath(const Node3D *node)
-{
-  // if (node == nullptr)
-  // {
-  //   this->path_ = path;
-  //   return;
-  // }
-  while (node != nullptr)
-  {
-    path_.emplace_back(*node);
-    DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
-    node = node->GetPred();
-  }
-}
+// void Smoother::TracePath(const Node3D *node)
+// {
+//   // if (node == nullptr)
+//   // {
+//   //   this->path_ = path;
+//   //   return;
+//   // }
+//   while (node != nullptr)
+//   {
+//     path_.emplace_back(*node);
+//     DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
+//     node = node->GetPred();
+//   }
+// }
 
 //###################################################
 //                                      OBSTACLE TERM

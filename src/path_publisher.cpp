@@ -1,13 +1,12 @@
-#include "path.h"
+#include "path_publisher.h"
 
 using namespace HybridAStar;
-
 
 //###################################################
 //                                         CLEAR PATH
 //###################################################
 
-void Path::Clear()
+void PathPublisher::Clear()
 {
   Node3D node;
   path_.poses.clear();
@@ -25,12 +24,13 @@ void Path::Clear()
 //###################################################
 // __________
 // TRACE PATH
-void Path::UpdatePath(const std::vector<Node3D> &nodePath)
+void PathPublisher::UpdatePath(const std::vector<Node3D> &nodePath)
 {
   path_.header.stamp = ros::Time::now();
   int k = 0;
 
-  for (size_t i = 0; i < nodePath.size(); ++i) {
+  for (size_t i = 0; i < nodePath.size(); ++i)
+  {
     AddSegment(nodePath[i]);
     AddNode(nodePath[i], k);
     k++;
@@ -42,7 +42,7 @@ void Path::UpdatePath(const std::vector<Node3D> &nodePath)
 }
 // ___________
 // ADD SEGMENT
-void Path::AddSegment(const Node3D &node)
+void PathPublisher::AddSegment(const Node3D &node)
 {
   geometry_msgs::PoseStamped vertex;
   vertex.pose.position.x = node.GetX() * params_.cell_size;
@@ -57,12 +57,13 @@ void Path::AddSegment(const Node3D &node)
 
 // ________
 // ADD NODE
-void Path::AddNode(const Node3D &node, int i)
+void PathPublisher::AddNode(const Node3D &node, int i)
 {
   visualization_msgs::Marker pathNode;
 
   // delete all previous markers
-  if (i == 0) {
+  if (i == 0)
+  {
     pathNode.action = 3;
   }
 
@@ -80,12 +81,13 @@ void Path::AddNode(const Node3D &node, int i)
   path_nodes_.markers.push_back(pathNode);
 }
 
-void Path::AddVehicle(const Node3D &node, int i)
+void PathPublisher::AddVehicle(const Node3D &node, int i)
 {
   visualization_msgs::Marker pathVehicle;
 
   // delete all previous markersg
-  if (i == 1) {
+  if (i == 1)
+  {
     pathVehicle.action = 3;
   }
 
