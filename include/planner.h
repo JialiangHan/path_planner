@@ -8,9 +8,7 @@
 #include <tf/transform_listener.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
-
 #include "constants.h"
-
 #include "collisiondetection.h"
 #include "dynamicvoronoi.h"
 #include "algorithm.h"
@@ -22,6 +20,7 @@
 #include "path_evaluator.h"
 #include "glog/logging.h"
 #include "gflags/gflags.h"
+#include "lookup_table.h"
 namespace HybridAStar {
 /*!
    \brief A class that creates the interface for the hybrid A* algorithm.
@@ -114,6 +113,8 @@ class Planner {
      std::shared_ptr<ParameterManager> param_manager_;
      ParameterPlanner params_;
      std::shared_ptr<Algorithm> algorithm_ptr_;
+
+     std::shared_ptr<LookupTable> lookup_table_ptr_;
 };
 }
 #endif // PLANNER_H

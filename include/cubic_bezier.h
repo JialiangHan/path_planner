@@ -78,7 +78,7 @@ namespace CubicBezier
         };
 
         double GetCurvatureAt(const double &t);
-
+        double GetMaxCurvature();
         double GetTotalCurvature();
 
         std::vector<Eigen::Vector3d> ConvertCubicBezierToVector3d(const int &number_of_points);

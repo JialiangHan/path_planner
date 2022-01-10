@@ -199,6 +199,22 @@ namespace CubicBezier
         return total_curvature;
     }
 
+    double CubicBezier::GetMaxCurvature()
+    {
+        double max_curvature = 0;
+        // DLOG(INFO) << "In calculateLength()";
+        for (uint i = 0; i < 100; ++i)
+        {
+            double current_curvature = GetCurvatureAt(i / 100.0);
+            if (max_curvature < current_curvature)
+            {
+                max_curvature = current_curvature;
+            }
+        }
+        // DLOG(INFO) << "total curvature is " << total_curvature;
+        return max_curvature;
+    }
+
     double CubicBezier::GetCurvatureAt(const double &t)
     {
         double curvature = 0;

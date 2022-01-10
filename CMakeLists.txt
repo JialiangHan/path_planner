@@ -42,6 +42,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/cubic_bezier.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dubins.cpp #Andrew Walker
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dynamicvoronoi.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/lookup_table.cpp 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/node2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/node3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/parameter_manager.cpp
@@ -61,6 +62,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/dubins.h #Andrew Walker
     ${CMAKE_CURRENT_SOURCE_DIR}/include/dynamicvoronoi.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/include/gradient.h #Andrew Noske
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/lookup_table.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/lookup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/matplotlibcpp.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/node2d.h

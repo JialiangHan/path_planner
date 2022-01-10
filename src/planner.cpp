@@ -15,6 +15,7 @@ Planner::Planner() {
   algorithm_ptr_.reset(new Algorithm(param_manager_->GetAlgorithmParams()));
   visualization_ptr_.reset(new Visualize(param_manager_->GetVisualizeParams()));
   configuration_space_ptr_.reset(new CollisionDetection(param_manager_->GetCollisionDetectionParams()));
+  lookup_table_ptr_.reset(new LookupTable(param_manager_->GetCollisionDetectionParams()));
 
   // _________________
   // TOPICS TO PUBLISH
@@ -57,7 +58,7 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
 
   grid_ = map;
   //update the configuration space with the current map
-  configuration_space_ptr_->updateGrid(map);
+  configuration_space_ptr_->UpdateGrid(map);
   //create array for Voronoi diagram
 //  ros::Time t0 = ros::Time::now();
   int height = map->info.height;
@@ -179,12 +180,16 @@ void Planner::MakePlan()
   if (valid_start_ && valid_goal_)
   {
     DLOG(INFO) << "valid start and valid goal, start to make plan!";
-    // ___________________________
+
+       // ___________________________
     // LISTS ALLOCATED ROW MAJOR ORDER
     int width = grid_->info.width;
     int height = grid_->info.height;
     int depth = params_.headings;
     int length = width * height * depth;
+
+    lookup_table_ptr_->Initialize(width, height);
+
     // define list pointers and initialize lists
     Node3D *nodes3D = new Node3D[length]();
     Node2D *nodes2D = new Node2D[width * height]();
@@ -209,11 +214,11 @@ void Planner::MakePlan()
     ros::Time t0 = ros::Time::now();
     Clear();
     // FIND THE PATH
-    Path path = algorithm_ptr_->HybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_ptr_, dubins_lookup_table, visualization_ptr_);
-    for (const auto &node : path)
-    {
-      DLOG(INFO) << "node in path is " << node.GetX() << " " << node.GetY();
-    }
+    Path path = algorithm_ptr_->HybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_ptr_, lookup_table_ptr_, visualization_ptr_);
+    // for (const auto &node : path)
+    // {
+    //   DLOG(INFO) << "node in path is " << node.GetX() << " " << node.GetY();
+    // }
     // set path
     smoother_ptr_->SetPath(path);
     // CREATE THE UPDATED PATH

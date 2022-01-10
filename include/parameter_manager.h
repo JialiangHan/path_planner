@@ -5,11 +5,6 @@
 namespace HybridAStar
 {
 
-  enum CurveType
-  {
-    dubins,
-    cubic_bezier,
-  };
   //this struct contains some used parameters in collisiondetection class
   struct ParameterCollisionDetection
   {
@@ -17,7 +12,12 @@ namespace HybridAStar
     int position_resolution = 10;
     /// [m] --- The number of discretizations in heading,used in planner.cpp
     int headings = 72;
+
+    float min_turning_radius = 6;
+
+    int curve_type = 0;
   };
+
   //this struct contains some used parameters in visualize class
   struct ParameterVisualize
   {
@@ -53,22 +53,19 @@ namespace HybridAStar
     float tie_breaker = 0.01;
     /// A flag for the visualization of 2D nodes (true = on; false = off)
     bool visualization2D = true;
-    /// A flag to toggle the Dubin's heuristic, this should be false, if reversing is enabled (true = on; false = off)
-    bool dubins_flag = true;
+
     /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
     float curve_step_size = 1;
     /// maximum possible curvature of the non-holonomic vehicle
     float min_turning_radius = 6;
-    /// A flag to toggle the 2D heuristic (true = on; false = off)
-    bool two_D = true;
+
     /// [m] --- The number of discretizations in heading,used in planner.cpp
     int headings = 72;
-    /// [m] --- The width of the dubinsArea / 2 for the analytical solution (Dubin's shot)
-    int dubins_width = 15;
+
     // nubmer of direction to create successor for A-star algorithm
     int possible_direction = 8;
 
-    CurveType curve_type = CurveType::cubic_bezier;
+    int curve_type = 0;
   };
   //this struct contains some used parameters in path class
   struct ParameterPathPublisher

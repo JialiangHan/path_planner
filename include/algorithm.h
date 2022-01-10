@@ -14,6 +14,7 @@ typedef ompl::base::SE2StateSpace::StateType State;
 #include "collisiondetection.h"
 #include "parameter_manager.h"
 #include "cubic_bezier.h"
+#include "lookup_table.h"
 namespace HybridAStar
 {
    //path from start to goal
@@ -42,12 +43,12 @@ namespace HybridAStar
      \param width the width of the grid in number of cells
      \param height the height of the grid in number of cells
      \param configurationSpace the lookup of configurations and their spatial occupancy enumeration
-     \param dubinsLookup the lookup of analytical solutions (Dubin's paths)
+     \param lookup_table_ptr the lookup of analytical solutions (Dubin's paths)
      \param visualization the visualization object publishing the search to RViz
      \return the pointer to the node satisfying the goal condition
   */
       Path HybridAStar(Node3D &start, Node3D &goal,
-                       Node3D *nodes3D, Node2D *nodes2D, int width, int height, std::shared_ptr<CollisionDetection> &configurationSpace, float *dubinsLookup, std::shared_ptr<Visualize> &visualization);
+                       Node3D *nodes3D, Node2D *nodes2D, int width, int height, std::shared_ptr<CollisionDetection> &configurationSpace, const std::shared_ptr<LookupTable> &lookup_table_ptr, std::shared_ptr<Visualize> &visualization);
 
       Path GetPath() const { return path_; };
 
@@ -72,13 +73,13 @@ namespace HybridAStar
        * @param start 
        * @param goal 
        * @param nodes2D 
-       * @param dubinsLookup 
+       * @param lookup_table_ptr 
        * @param width 
        * @param height 
        * @param configurationSpace 
        * @param visualization 
        */
-      void UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D, float *dubinsLookup, int width, int height, std::shared_ptr<CollisionDetection> &configurationSpace, std::shared_ptr<Visualize> &visualization);
+      void UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D, const std::shared_ptr<LookupTable> &lookup_table_ptr, int width, int height, std::shared_ptr<CollisionDetection> &configurationSpace, std::shared_ptr<Visualize> &visualization);
       /**
        * @brief analytical expansion in paper, here use dubins curve.
        * 

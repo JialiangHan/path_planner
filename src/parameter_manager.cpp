@@ -106,6 +106,12 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.position_resolution);
     ros_param_name = "headings";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.headings);
+
+    ros_param_name = "min_turning_radius";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.min_turning_radius);
+
+    ros_param_name = "curve_type";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.curve_type);
   }
   void ParameterManager::LoadPlannerParams()
   {
@@ -120,9 +126,6 @@ namespace HybridAStar
 
     ros_param_name = "manual";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.manual);
-
-    ros_param_name = "dubins_Lookup";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.dubins_lookup);
   }
   void ParameterManager::LoadAlgorithmParams()
   {
@@ -149,18 +152,17 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.visualization2D);
     ros_param_name = "epsilon";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.epsilon);
-    ros_param_name = "dubins_flag";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.dubins_flag);
+
     ros_param_name = "curve_step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.curve_step_size);
     ros_param_name = "min_turning_radius";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.min_turning_radius);
-    ros_param_name = "two_D";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.two_D);
+
     ros_param_name = "headings";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.headings);
-    ros_param_name = "dubins_width";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.dubins_width);
+
+    ros_param_name = "curve_type";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.curve_type);
   }
   void ParameterManager::LoadPathParams()
   {
