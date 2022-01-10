@@ -1,9 +1,5 @@
 #include "bucketedqueue.h"
 
-#include "limits.h"
-#include <stdio.h>
-#include <stdlib.h>
-
 using namespace HybridAStar;
 
 std::vector<int> BucketPrioQueue::sqrIndices;

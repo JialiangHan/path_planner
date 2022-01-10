@@ -3,8 +3,6 @@
 
 #include <cstring>
 #include <vector>
-
-#include <ros/ros.h>
 #include <tf/transform_datatypes.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>

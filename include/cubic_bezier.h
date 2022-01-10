@@ -10,12 +10,12 @@
  */
 
 #pragma once
-#include <cmath>
+
 #include <vector>
-#include <eigen3/Eigen/Dense>
-#include "glog/logging.h"
-#include "gflags/gflags.h"
 #include "utility.h"
+#include <cstdlib>
+#include <math.h>
+
 namespace CubicBezier
 {
     class CubicBezier

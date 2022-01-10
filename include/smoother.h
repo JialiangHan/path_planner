@@ -1,14 +1,11 @@
 #ifndef SMOOTHER_H
 #define SMOOTHER_H
 
-#include <cmath>
 #include <vector>
-#include <eigen3/Eigen/Dense>
 #include "dynamicvoronoi.h"
-#include "node3d.h"
-
 #include "utility.h"
 #include "parameter_manager.h"
+
 namespace HybridAStar
 {
    /*!

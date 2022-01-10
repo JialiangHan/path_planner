@@ -1,14 +1,12 @@
 #ifndef VISUALIZE_H
 #define VISUALIZE_H
 
-#include <ros/ros.h>
 #include <tf/transform_datatypes.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseArray.h>
 #include <visualization_msgs/MarkerArray.h>
 #include "parameter_manager.h"
 #include "gradient.h"
-
 #include "node3d.h"
 #include "node2d.h"
 namespace HybridAStar {

@@ -10,9 +10,7 @@
  */
 
 #include "cubic_bezier.h"
-#include "utility.h"
-#include <cstdlib>
-#include <math.h>
+
 namespace CubicBezier
 {
     Eigen::Vector4d CubicBezier::CalculateCoefficient(const double &t)

@@ -38,19 +38,6 @@ Planner::Planner() {
 };
 
 //###################################################
-//                                       LOOKUPTABLES
-//###################################################
-void Planner::InitializeLookups()
-{
-  if (params_.dubins_lookup)
-  {
-    Lookup::dubinsLookup(dubins_lookup_table);
-  }
-
-  Lookup::collisionLookup(collision_lookup_table);
-}
-
-//###################################################
 //                                                MAP
 //###################################################
 void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
@@ -209,10 +196,11 @@ void Planner::MakePlan()
     // set theta to a value (0,2PI]
     t = Utility::RadToZeroTo2P(t);
     Node3D nStart(x, y, t, 0, 0, nullptr);
+
+    Clear();
     // ___________________________
     // START AND TIME THE PLANNING
     ros::Time t0 = ros::Time::now();
-    Clear();
     // FIND THE PATH
     Path path = algorithm_ptr_->HybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_ptr_, lookup_table_ptr_, visualization_ptr_);
     // for (const auto &node : path)
@@ -223,7 +211,7 @@ void Planner::MakePlan()
     smoother_ptr_->SetPath(path);
     // CREATE THE UPDATED PATH
     path_publisher_ptr_->UpdatePath(smoother_ptr_->GetPath());
-    DLOG(INFO) << "path before smooth size is " << smoother_ptr_->GetPath().size();
+    // DLOG(INFO) << "path before smooth size is " << smoother_ptr_->GetPath().size();
     // SMOOTH THE PATH
     smoother_ptr_->SmoothPath(voronoi_diagram_);
     // CREATE THE UPDATED PATH
@@ -231,7 +219,7 @@ void Planner::MakePlan()
     smoothed_path_publisher_ptr_->UpdatePath(smoother_ptr_->GetPath());
     ros::Time t1 = ros::Time::now();
     ros::Duration d(t1 - t0);
-    DLOG(INFO) << "TIME in ms: " << d * 1000;
+    LOG(INFO) << "TIME in ms: " << d * 1000;
     Publish(nodes3D, nodes2D, width, height, depth);
 
     delete[] nodes3D;

@@ -1,24 +1,24 @@
 #include "collisiondetection.h"
 
 using namespace HybridAStar;
-bool CollisionDetection::IsOnGrid(const Node3D &node3d)
+bool CollisionDetection::IsOnGrid(const Node3D &node3d) const
 {
   return node3d.GetX() >= 0 && node3d.GetX() < grid_ptr_->info.width &&
          node3d.GetY() >= 0 && node3d.GetY() < grid_ptr_->info.height;
 }
 
-bool CollisionDetection::IsOnGrid(const Node3D *node3d_ptr)
+bool CollisionDetection::IsOnGrid(const Node3D *node3d_ptr) const
 {
   return node3d_ptr->GetX() >= 0 && node3d_ptr->GetX() < grid_ptr_->info.width &&
          node3d_ptr->GetY() >= 0 && node3d_ptr->GetY() < grid_ptr_->info.height;
 }
-bool CollisionDetection::IsOnGrid(const Node2D &node2d)
+bool CollisionDetection::IsOnGrid(const Node2D &node2d) const
 {
   return node2d.GetX() >= 0 && node2d.GetX() < (int)grid_ptr_->info.width &&
          node2d.GetY() >= 0 && node2d.GetY() < (int)grid_ptr_->info.height;
 }
 
-bool CollisionDetection::IsOnGrid(const Node2D *node2d_ptr)
+bool CollisionDetection::IsOnGrid(const Node2D *node2d_ptr) const
 {
   return node2d_ptr->GetX() >= 0 && node2d_ptr->GetX() < (int)grid_ptr_->info.width &&
          node2d_ptr->GetY() >= 0 && node2d_ptr->GetY() < (int)grid_ptr_->info.height;
@@ -41,7 +41,7 @@ bool CollisionDetection::configurationTest(float x, float y, float t) const {
     cX = (X + collisionLookup[idx].pos[i].x);
     cY = (Y + collisionLookup[idx].pos[i].y);
 
-    // make sure the configuration coordinates are actually on the grid_ptr_
+    // make sure the configuration coordinates are actually on the grid
     if (cX >= 0 && (unsigned int)cX < grid_ptr_->info.width && cY >= 0 && (unsigned int)cY < grid_ptr_->info.height)
     {
       if (grid_ptr_->data[cY * grid_ptr_->info.width + cX])

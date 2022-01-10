@@ -5,14 +5,12 @@
 #include <ompl/base/spaces/DubinsStateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/State.h>
-
+#include <boost/heap/binomial_heap.hpp>
 typedef ompl::base::SE2StateSpace::StateType State;
 
-#include "node3d.h"
-#include "node2d.h"
 #include "visualize.h"
 #include "collisiondetection.h"
-#include "parameter_manager.h"
+
 #include "cubic_bezier.h"
 #include "lookup_table.h"
 namespace HybridAStar
@@ -91,6 +89,14 @@ namespace HybridAStar
       Path AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace);
 
       Node3D *CreateSuccessor(const Node3D *pred, const int &i);
+
+      /**
+      * @brief Create possible successors of current node according its possible direction
+      * 
+      * @param possible_dir this value can only be 4 or 8;
+      * @return std::vector<Node2D> 
+      */
+      std::vector<Node2D *> CreateSuccessor(const Node2D &pred, const int &possible_dir);
 
       void TracePath(const Node3D *node);
 

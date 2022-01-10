@@ -2,6 +2,8 @@
 #define PARAMETER_MANAGER_H
 
 #include <ros/ros.h>
+#include "glog/logging.h"
+#include "gflags/gflags.h"
 namespace HybridAStar
 {
 
@@ -15,7 +17,9 @@ namespace HybridAStar
 
     float min_turning_radius = 6;
 
-    int curve_type = 0;
+    // int curve_type = 0;
+
+    bool reverse = true;
   };
 
   //this struct contains some used parameters in visualize class
@@ -65,7 +69,7 @@ namespace HybridAStar
     // nubmer of direction to create successor for A-star algorithm
     int possible_direction = 8;
 
-    int curve_type = 0;
+    // int curve_type = 0;
   };
   //this struct contains some used parameters in path class
   struct ParameterPathPublisher

@@ -10,12 +10,11 @@
  */
 #ifndef UTILITY
 #define UTILITY
-#include <eigen3/Eigen/Dense>
-#include <cmath>
 #include <nav_msgs/Path.h>
 #include <Eigen/Dense>
 #include "node3d.h"
-
+#include "glog/logging.h"
+#include "gflags/gflags.h"
 namespace Utility
 {
     //*******************type conversion*******************
@@ -37,20 +36,6 @@ namespace Utility
 
     HybridAStar::Node3D ConvertVector3dToNode3D(const Eigen::Vector3d &vector3d);
     //**********************computational geometry****************
-
-    /**
-     * @brief convert angle in deg into [-PI,Pi)
-     * 
-     * @param deg 
-     * @return double 
-     */
-    double DegNormalization(const double &deg);
-
-    double RadNormalization(const double &rad);
-
-    double DegToZeroTo2P(const double &deg);
-
-    double RadToZeroTo2P(const double &rad);
 
     /**
      * @brief check if p3 lines on p1-p2
@@ -122,6 +107,22 @@ namespace Utility
     //*************************other ***********************
 
     float Clamp(const float &number, const float &upper_bound, const float &lower_bound);
+
+    /**
+     * @brief convert angle in deg into [-PI,Pi)
+     * 
+     * @param deg 
+     * @return double 
+     */
+    double DegNormalization(const double &deg);
+
+    double RadNormalization(const double &rad);
+
+    double DegToZeroTo2P(const double &deg);
+
+    double RadToZeroTo2P(const double &rad);
+
+    bool IsCloseEnough(const HybridAStar::Node3D &start, const HybridAStar::Node3D &goal, const float &distance_range, const float &angle_range);
 }
 
 #endif // UTILITY

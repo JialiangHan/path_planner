@@ -1,6 +1,5 @@
 #include "smoother.h"
-#include "glog/logging.h"
-#include "gflags/gflags.h"
+
 using namespace HybridAStar;
 //###################################################
 //                                     CUSP DETECTION

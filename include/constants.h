@@ -35,24 +35,14 @@ namespace Constants
   static const double width = 1.75;
   /// [m] --- The length of the vehicle
   static const double length = 2.65;
-  /// [m] --- The minimum turning radius of the vehicle
-  static const float min_turning_radius = 6;
+
   /// [m] --- The number of discretizations in heading
   static const int headings = 72;
-  /// [°] --- The discretization value of the heading (goal condition)
-  static const float deltaHeadingDeg = 360 / (float)headings;
+
   /// [c*M_PI] --- The discretization value of heading (goal condition)
   static const float deltaHeadingRad = 2 * M_PI / (float)headings;
-  /// [c*M_PI] --- The heading part of the goal condition
-  static const float deltaHeadingNegRad = 2 * M_PI - deltaHeadingRad;
   /// [m] --- The cell size of the 2D grid of the world
   static const float cellSize = 1;
-
-  // ______________________
-  // DUBINS LOOKUP SPECIFIC
-
-  /// [m] --- The width of the dubinsArea / 2 for the analytical solution (Dubin's shot)
-  static const int dubinsWidth = 15;
 
   // _________________________
   // COLLISION LOOKUP SPECIFIC

@@ -3,7 +3,6 @@
 
 #include <cmath>
 
-// #include "utility.h"
 namespace HybridAStar {
 /*!
    \brief A three dimensional node class that is at the heart of the algorithm.
@@ -96,7 +95,7 @@ class Node3D {
 
    // RANGE CHECKING
    /// Determines whether it is appropriate to find a analytical solution.
-   bool IsInRange(const Node3D &goal, const float &range) const;
+   //  bool IsInRange(const Node3D &goal, const float &range) const;
    /**
     * @brief determin if two Node3D are close enough to say they are equal
     * 
@@ -118,7 +117,7 @@ class Node3D {
 
    // CONSTANT VALUES
    /// Number of possible directions
-   static const int dir;
+   //  static const int dir;
    /// Possible movements in the x direction
    static const float dx[];
    /// Possible movements in the y direction

@@ -8,71 +8,78 @@
 namespace HybridAStar {
 namespace Lookup {
 
-//###################################################
-//                                      DUBINS LOOKUP
-//###################################################
-inline void dubinsLookup(float* lookup) {
-  bool DEBUG = false;
-  DLOG(INFO) << "I am building the Dubin's lookup table...";
+  // //###################################################
+  // //                                      DUBINS LOOKUP
+  // //###################################################
+  // inline void dubinsLookup(float* lookup) {
+  //   bool DEBUG = false;
+  //   DLOG(INFO) << "I am building the Dubin's lookup table...";
 
-  DubinsPath path;
+  //   DubinsPath path;
 
-  int width = Constants::dubinsWidth / Constants::cellSize;
+  //   int width = Constants::dubinsWidth / Constants::cellSize;
 
-  //  // increase the width by one to make it square
-  //  if (width % 2 != 0) {
-  //    width++;
-  //  }
+  //   //  // increase the width by one to make it square
+  //   //  if (width % 2 != 0) {
+  //   //    width++;
+  //   //  }
 
-  const int headings = Constants::headings;
+  //   const int headings = Constants::headings;
 
-  // start and goal vector
-  double start[3];
-  double goal[] = {0, 0, 0};
+  //   // start and goal vector
+  //   double start[3];
+  //   double goal[] = {0, 0, 0};
 
-  // iterate over the X index of a grid cell
-  for (int X = 0; X < width; ++X) {
-    start[0] = X;
+  //   // iterate over the X index of a grid cell
+  //   for (int X = 0; X < width; ++X) {
+  //     start[0] = X;
 
-    // iterate over the Y index of a grid cell
-    for (int Y = 0; Y < width; ++Y) {
-      start[1] = Y;
+  //     // iterate over the Y index of a grid cell
+  //     for (int Y = 0; Y < width; ++Y) {
+  //       start[1] = Y;
 
-      // iterate over the start headings
-      for (int h0 = 0; h0 < headings; ++h0) {
-        start[2] = Constants::deltaHeadingRad * h0;
+  //       // iterate over the start headings
+  //       for (int h0 = 0; h0 < headings; ++h0) {
+  //         start[2] = Constants::deltaHeadingRad * h0;
 
-        // iterate over the goal headings
-        for (int h1 = 0; h1 < headings; ++h1) {
-          goal[2] = Constants::deltaHeadingRad * h1;
+  //         // iterate over the goal headings
+  //         for (int h1 = 0; h1 < headings; ++h1) {
+  //           goal[2] = Constants::deltaHeadingRad * h1;
 
-          // calculate the actual cost
-          dubins_init(start, goal, Constants::min_turning_radius, &path);
-          lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] = dubins_path_length(&path);
+  //           // calculate the actual cost
+  //           dubins_init(start, goal, Constants::min_turning_radius, &path);
+  //           lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] = dubins_path_length(&path);
 
-          if (DEBUG && lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] < sqrt(X * X + Y * Y) * 1.000001) {
-            DLOG(INFO) << X << " | " << Y << " | "
-                       << Constants::deltaHeadingDeg * h0 << " | "
-                       << Constants::deltaHeadingDeg * h1 << " length: "
-                       << lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] << "\n";
-          }
-        }
-      }
+  //           if (DEBUG && lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] < sqrt(X * X + Y * Y) * 1.000001) {
+  //             DLOG(INFO) << X << " | " << Y << " | "
+  //                        << Constants::deltaHeadingDeg * h0 << " | "
+  //                        << Constants::deltaHeadingDeg * h1 << " length: "
+  //                        << lookup[X * headings * headings * width + Y * headings * headings + h0 * headings + h1] << "\n";
+  //           }
+  //         }
+  //       }
+  //     }
+  //   }
+
+  //   DLOG(INFO) << " done!";
+  // }
+
+  //###################################################
+  //                                   COLLISION LOOKUP
+  //###################################################
+
+  // _____________
+  // SIGN FUNCTION
+  inline int sign(double x)
+  {
+    if (x >= 0)
+    {
+      return 1;
     }
-  }
-
-  DLOG(INFO) << " done!";
-}
-
-//###################################################
-//                                   COLLISION LOOKUP
-//###################################################
-
-// _____________
-// SIGN FUNCTION
-inline int sign(double x) {
-  if (x >= 0) { return 1; }
-  else { return -1; }
+    else
+    {
+      return -1;
+    }
 }
 
 // _________________________

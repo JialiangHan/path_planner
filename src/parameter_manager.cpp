@@ -1,9 +1,6 @@
 
 #include "parameter_manager.h"
 
-#include "glog/logging.h"
-#include "gflags/gflags.h"
-
 namespace HybridAStar
 {
   void ParameterManager::LoadParams()
@@ -55,48 +52,6 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->smoother_params.weight_length);
   }
 
-  template <typename T>
-  void ParameterManager::GetSingleParam(const std::string &param_name, T &param_data)
-  {
-    nh_.getParam(param_name, param_data);
-    // DLOG(INFO) << "Load param: " << param_name << " value is :" << param_data;
-  }
-
-  std::shared_ptr<ParameterContainer> ParameterManager::GetAllParams()
-  {
-    return param_container_ptr_;
-  }
-
-  ParameterAlgorithm ParameterManager::GetAlgorithmParams()
-  {
-    return param_container_ptr_->algorithm_params;
-  }
-
-  ParameterSmoother ParameterManager::GetSmootherParams()
-  {
-    return param_container_ptr_->smoother_params;
-  }
-
-  ParameterPlanner ParameterManager::GetPlannerParams()
-  {
-    return param_container_ptr_->planner_params;
-  }
-
-  ParameterPathPublisher ParameterManager::GetPathPublisherParams()
-  {
-    return param_container_ptr_->path_publisher_params;
-  }
-
-  ParameterVisualize ParameterManager::GetVisualizeParams()
-  {
-    return param_container_ptr_->visualize_params;
-  }
-
-  ParameterCollisionDetection ParameterManager::GetCollisionDetectionParams()
-  {
-    return param_container_ptr_->collision_detection_params;
-  }
-
   void ParameterManager::LoadCollisionDetectionParams()
   {
     std::string ros_param_name;
@@ -110,8 +65,8 @@ namespace HybridAStar
     ros_param_name = "min_turning_radius";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.min_turning_radius);
 
-    ros_param_name = "curve_type";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.curve_type);
+    ros_param_name = "reverse";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.reverse);
   }
   void ParameterManager::LoadPlannerParams()
   {
@@ -160,9 +115,6 @@ namespace HybridAStar
 
     ros_param_name = "headings";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.headings);
-
-    ros_param_name = "curve_type";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.curve_type);
   }
   void ParameterManager::LoadPathParams()
   {
@@ -189,5 +141,47 @@ namespace HybridAStar
 
     ros_param_name = "cell_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->visualize_params.cell_size);
+  }
+
+  template <typename T>
+  void ParameterManager::GetSingleParam(const std::string &param_name, T &param_data)
+  {
+    nh_.getParam(param_name, param_data);
+    // DLOG(INFO) << "Load param: " << param_name << " value is :" << param_data;
+  }
+
+  std::shared_ptr<ParameterContainer> ParameterManager::GetAllParams()
+  {
+    return param_container_ptr_;
+  }
+
+  ParameterAlgorithm ParameterManager::GetAlgorithmParams()
+  {
+    return param_container_ptr_->algorithm_params;
+  }
+
+  ParameterSmoother ParameterManager::GetSmootherParams()
+  {
+    return param_container_ptr_->smoother_params;
+  }
+
+  ParameterPlanner ParameterManager::GetPlannerParams()
+  {
+    return param_container_ptr_->planner_params;
+  }
+
+  ParameterPathPublisher ParameterManager::GetPathPublisherParams()
+  {
+    return param_container_ptr_->path_publisher_params;
+  }
+
+  ParameterVisualize ParameterManager::GetVisualizeParams()
+  {
+    return param_container_ptr_->visualize_params;
+  }
+
+  ParameterCollisionDetection ParameterManager::GetCollisionDetectionParams()
+  {
+    return param_container_ptr_->collision_detection_params;
   }
 }

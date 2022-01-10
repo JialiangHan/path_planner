@@ -10,9 +10,6 @@
  */
 
 #include <cstring>
-
-#include <ros/ros.h>
-
 #include "path_evaluator.h"
 
 int main(int argc, char **argv)

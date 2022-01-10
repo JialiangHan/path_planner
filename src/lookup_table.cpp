@@ -24,13 +24,14 @@ namespace HybridAStar
             Clear();
             map_width_ = width;
             map_height_ = height;
-            if (params_.curve_type == 0)
+            if (params_.reverse == false)
             {
                 CalculateDubinsLookup();
             }
             else
             {
-                CalculateCubicBezierLookup();
+                // CalculateCubicBezierLookup();
+                CalculateReedsSheppLookup();
             }
         }
     }
@@ -133,11 +134,10 @@ namespace HybridAStar
             }
             x += 1.0f / params_.position_resolution;
         }
-        DLOG(INFO) << "CalculateDubinsLookup done.";
+        // DLOG(INFO) << "CalculateDubinsLookup done.";
     }
     void LookupTable::CalculateReedsSheppLookup()
     {
-
         float x = 0, y = 0, theta = 0, cost = 0;
         ompl::base::ReedsSheppStateSpace reedsSheppPath(params_.min_turning_radius);
         State *rsStart = (State *)reedsSheppPath.allocState();
@@ -147,25 +147,27 @@ namespace HybridAStar
         const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
         while (x < map_width_)
         {
-            x += 1.0f / params_.position_resolution;
             y = 0;
             theta = 0;
             while (y < map_height_)
             {
                 theta = 0;
-                y += 1.0f / params_.position_resolution;
                 while (theta < 2 * M_PI)
                 {
-                    theta += delta_heading_in_rad;
+
                     int index = CalculateNode3DIndex(x, y, theta);
                     rsEnd->setXY(x, y);
                     rsEnd->setYaw(theta);
                     cost = reedsSheppPath.distance(rsStart, rsEnd);
                     reeds_shepp_lookup_.emplace(index, cost);
+                    // DLOG(INFO) << "point is " << x << " " << y << " " << theta << " index is " << index << " cost is " << cost;
+                    theta += delta_heading_in_rad;
                 }
+                y += 1.0f / params_.position_resolution;
             }
+            x += 1.0f / params_.position_resolution;
         }
-        DLOG(INFO) << "CalculateRSLookup done.";
+        // DLOG(INFO) << "CalculateRSLookup done.";
     }
     void LookupTable::CalculateCubicBezierLookup()
     {
@@ -180,10 +182,8 @@ namespace HybridAStar
             while (y < map_height_)
             {
                 theta = 0;
-
                 while (theta < 2 * M_PI)
                 {
-
                     int index = CalculateNode3DIndex(x, y, theta);
                     Eigen::Vector3d vector3d_goal(x, y, theta);
                     CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width_, map_height_);

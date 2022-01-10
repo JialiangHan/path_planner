@@ -2,9 +2,7 @@
 #define _DYNAMICVORONOI_H_
 
 #include <eigen3/Eigen/Dense>
-#include <stdlib.h>
-#include <stdio.h>
-#include <limits.h>
+
 #include <queue>
 #include <unordered_map>
 #include "bucketedqueue.h"

@@ -2,25 +2,14 @@
 #define PLANNER_H
 
 #include <ctime>
-
-#include <ros/ros.h>
-#include <tf/transform_datatypes.h>
 #include <tf/transform_listener.h>
-#include <nav_msgs/OccupancyGrid.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include "constants.h"
-#include "collisiondetection.h"
-#include "dynamicvoronoi.h"
 #include "algorithm.h"
-#include "node3d.h"
 #include "path_publisher.h"
 #include "smoother.h"
-#include "visualize.h"
 #include "lookup.h"
 #include "path_evaluator.h"
-#include "glog/logging.h"
-#include "gflags/gflags.h"
-#include "lookup_table.h"
+
 namespace HybridAStar {
 /*!
    \brief A class that creates the interface for the hybrid A* algorithm.
@@ -32,12 +21,6 @@ class Planner {
  public:
   /// The default constructor
   Planner();
-
-  /*!
-     \brief Initializes the collision as well as heuristic lookup table
-     \todo probably removed
-  */
-  void InitializeLookups();
 
   /*!
      \brief Sets the map e.g. through a callback from a subscriber listening to map updates.
@@ -69,52 +52,49 @@ class Planner {
 
   private:
   /// The node handle
-     ros::NodeHandle nh_;
-     /// A publisher publishing the start position for RViz
-     ros::Publisher pub_start_;
-     /// A subscriber for receiving map updates
-     ros::Subscriber sub_map_;
-     /// A subscriber for receiving goal updates
-     ros::Subscriber sub_goal_;
-     /// A subscriber for receiving start updates
-     ros::Subscriber sub_start_;
-     /// A listener that awaits transforms
-     tf::TransformListener listener_;
-     /// A transform for moving start positions
-     tf::StampedTransform transform_;
-     /// The path produced by the hybrid A* algorithm
-     std::shared_ptr<PathPublisher> path_publisher_ptr_;
-     /// The smoother used for optimizing the path
-     std::shared_ptr<Smoother> smoother_ptr_;
-     /// The path smoothed and ready for the controller
-     std::shared_ptr<PathPublisher> smoothed_path_publisher_ptr_;
-     /// The visualization used for search visualization
-     std::shared_ptr<Visualize> visualization_ptr_;
-     /// The collission detection for testing specific configurations
-     std::shared_ptr<CollisionDetection> configuration_space_ptr_;
-     /// The voronoi diagram
-     DynamicVoronoi voronoi_diagram_;
-     /// A pointer to the grid_ the planner runs on
-     nav_msgs::OccupancyGrid::ConstPtr grid_;
-     /// The start pose set through RViz
-     geometry_msgs::PoseWithCovarianceStamped start_;
-     /// The goal pose set through RViz
-     geometry_msgs::PoseStamped goal_;
-     /// Flags for allowing the planner to plan
-     bool valid_start_ = false;
-     /// Flags for allowing the planner to plan
-     bool valid_goal_ = false;
-     /// A lookup table for configurations of the vehicle and their spatial occupancy enumeration
-     Constants::config collision_lookup_table[Constants::headings * Constants::positions];
-     /// A lookup of analytical solutions (Dubin's paths)
-     float *dubins_lookup_table = new float[Constants::headings * Constants::headings * Constants::dubinsWidth * Constants::dubinsWidth];
-     PathEvaluator::PathEvaluator path_evaluator_;
-     //parameter manager, load param from *.yaml file
-     std::shared_ptr<ParameterManager> param_manager_;
-     ParameterPlanner params_;
-     std::shared_ptr<Algorithm> algorithm_ptr_;
+  ros::NodeHandle nh_;
+  /// A publisher publishing the start position for RViz
+  ros::Publisher pub_start_;
+  /// A subscriber for receiving map updates
+  ros::Subscriber sub_map_;
+  /// A subscriber for receiving goal updates
+  ros::Subscriber sub_goal_;
+  /// A subscriber for receiving start updates
+  ros::Subscriber sub_start_;
+  /// A listener that awaits transforms
+  tf::TransformListener listener_;
+  /// A transform for moving start positions
+  tf::StampedTransform transform_;
+  /// The path produced by the hybrid A* algorithm
+  std::shared_ptr<PathPublisher> path_publisher_ptr_;
+  /// The smoother used for optimizing the path
+  std::shared_ptr<Smoother> smoother_ptr_;
+  /// The path smoothed and ready for the controller
+  std::shared_ptr<PathPublisher> smoothed_path_publisher_ptr_;
+  /// The visualization used for search visualization
+  std::shared_ptr<Visualize> visualization_ptr_;
+  /// The collission detection for testing specific configurations
+  std::shared_ptr<CollisionDetection> configuration_space_ptr_;
+  /// The voronoi diagram
+  DynamicVoronoi voronoi_diagram_;
+  /// A pointer to the grid_ the planner runs on
+  nav_msgs::OccupancyGrid::ConstPtr grid_;
+  /// The start pose set through RViz
+  geometry_msgs::PoseWithCovarianceStamped start_;
+  /// The goal pose set through RViz
+  geometry_msgs::PoseStamped goal_;
+  /// Flags for allowing the planner to plan
+  bool valid_start_ = false;
+  /// Flags for allowing the planner to plan
+  bool valid_goal_ = false;
 
-     std::shared_ptr<LookupTable> lookup_table_ptr_;
+  PathEvaluator::PathEvaluator path_evaluator_;
+  //parameter manager, load param from *.yaml file
+  std::shared_ptr<ParameterManager> param_manager_;
+  ParameterPlanner params_;
+  std::shared_ptr<Algorithm> algorithm_ptr_;
+
+  std::shared_ptr<LookupTable> lookup_table_ptr_;
 };
 }
 #endif // PLANNER_H

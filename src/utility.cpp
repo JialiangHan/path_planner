@@ -2,6 +2,31 @@
 
     namespace Utility
     {
+        bool IsCloseEnough(const HybridAStar::Node3D &start, const HybridAStar::Node3D &goal, const float &distance_range, const float &angle_range)
+        {
+            float dx = std::abs(start.GetX() - goal.GetX());
+            float dy = std::abs(start.GetY() - goal.GetY());
+            float distance = std::sqrt((dx * dx) + (dy * dy));
+            if (distance < distance_range)
+            {
+                float angle_diff = RadToZeroTo2P(start.GetT() - goal.GetT());
+                if (angle_diff <= angle_range)
+                {
+                    DLOG(INFO) << "two node distance and orientation are close enough, return true";
+                    return true;
+                }
+                else
+                {
+                    DLOG(INFO) << "two node distance is close enough but orientation is too far is " << angle_diff;
+                    return false;
+                }
+            }
+            else
+            {
+                // DLOG(INFO) << "too far, distance is " << distance;
+                return false;
+            }
+        }
         HybridAStar::Node3D ConvertVector3dToNode3D(const Eigen::Vector3d &vector3d)
         {
             float x = vector3d.x();

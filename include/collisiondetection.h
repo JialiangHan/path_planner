@@ -2,7 +2,6 @@
 #define COLLISIONDETECTION_H
 
 #include <nav_msgs/OccupancyGrid.h>
-
 #include "constants.h"
 #include "lookup.h"
 #include "node2d.h"
@@ -35,6 +34,10 @@ namespace HybridAStar
     template <typename T>
     bool IsTraversable(const T *node) const
     {
+      if (!IsOnGrid(node))
+      {
+        return false;
+      }
       /* Depending on the used collision checking mechanism this needs to be adjusted
        standard: collision checking using the spatial occupancy enumeration
        other: collision checking using the 2d costmap and the navigation stack
@@ -69,13 +72,13 @@ namespace HybridAStar
   */
     void UpdateGrid(nav_msgs::OccupancyGrid::Ptr map) { grid_ptr_ = map; }
 
-    bool IsOnGrid(const Node3D &node3d);
+    bool IsOnGrid(const Node3D &node3d) const;
 
-    bool IsOnGrid(const Node3D *node3d_ptr);
+    bool IsOnGrid(const Node3D *node3d_ptr) const;
 
-    bool IsOnGrid(const Node2D &node2d);
+    bool IsOnGrid(const Node2D &node2d) const;
 
-    bool IsOnGrid(const Node2D *node2d_ptr);
+    bool IsOnGrid(const Node2D *node2d_ptr) const;
 
     /// The occupancy grid
     nav_msgs::OccupancyGrid::Ptr grid_ptr_;

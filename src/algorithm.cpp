@@ -1,7 +1,5 @@
 #include "algorithm.h"
 
-#include <boost/heap/binomial_heap.hpp>
-
 using namespace HybridAStar;
 
 //###################################################
@@ -120,7 +118,7 @@ Path Algorithm::HybridAStar(Node3D &start,
         TracePath(nPred);
         return path_;
       }
-      else if (nPred->IsCloseEnough(goal, params_.epsilon, 2 * M_PI / params_.headings))
+      else if (Utility::IsCloseEnough(*nPred, goal, params_.epsilon, 2 * M_PI / params_.headings))
       {
         DLOG(INFO) << "Goal reached!!!";
         // return nPred;
@@ -134,10 +132,10 @@ Path Algorithm::HybridAStar(Node3D &start,
       {
         // _______________________
         //analytical expansion
-        DLOG(INFO) << "analytical_expansion_counter is " << analytical_expansion_counter << " N is " << N;
+        // DLOG(INFO) << "analytical_expansion_counter is " << analytical_expansion_counter << " N is " << N;
         if (analytical_expansion_counter == N)
         {
-          DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
+          // DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
           N = nPred->GetH();
           analytical_expansion_counter = 0;
           Path analytical_path = AnalyticExpansions(*nPred, goal, configurationSpace);
@@ -305,7 +303,7 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
       else {
         // _______________________________
         // CREATE POSSIBLE SUCCESSOR NODES
-        std::vector<Node2D *> successor_vec = nPred->CreateSuccessor(params_.possible_direction);
+        std::vector<Node2D *> successor_vec = CreateSuccessor(*nPred, params_.possible_direction);
         for (uint i = 0; i < successor_vec.size(); ++i)
         {
           // create possible successor
@@ -367,16 +365,16 @@ void Algorithm::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes
 
   // if dubins heuristic is activated calculate the shortest path
   // constrained without obstacles
-  if (params_.curve_type == 0)
+  if (params_.reverse == false)
   {
     curve_cost = lookup_table_ptr->GetDubinsCost(goal_rotated_translated);
     // DLOG(INFO) << "dubins cost is " << curve_cost;
   }
 
   // if reversing is active use a
-  if (params_.curve_type == 1)
+  if (params_.reverse == true)
   {
-    curve_cost = lookup_table_ptr->GetCubicBezierCost(goal_rotated_translated);
+    curve_cost = lookup_table_ptr->GetReedsSheppCost(goal_rotated_translated);
     // DLOG(INFO) << "cubic bezier cost is " << curve_cost;
   }
 
@@ -412,125 +410,125 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
   Path path_vec;
   int i = 0;
   float x = 0.f;
-  if (params_.curve_type == 0)
+  // if (params_.curve_type == 0)
+  // {
+
+  //   // start
+  //   double q0[] = {start.GetX(), start.GetY(), start.GetT()};
+  //   // goal
+  //   double q1[] = {goal.GetX(), goal.GetY(), goal.GetT()};
+  //   // initialize the path
+  //   DubinsPath path;
+  //   // calculate the path
+  //   dubins_init(q0, q1, params_.min_turning_radius, &path);
+
+  //   float length = dubins_path_length(&path);
+
+  //   while (x < length)
+  //   {
+  //     double q[3];
+  //     dubins_path_sample(&path, x, q);
+  //     Node3D *node3d;
+  //     node3d->setX(q[0]);
+  //     node3d->setY(q[1]);
+  //     node3d->setT(Utility::RadToZeroTo2P(q[2]));
+
+  //     // collision check
+  //     if (configurationSpace->IsTraversable(node3d))
+  //     {
+
+  //       // // set the predecessor to the previous step
+  //       // if (i > 0)
+  //       // {
+  //       //   node3d->SetPred(&path_vec[i - 1]);
+  //       // }
+  //       // else
+  //       // {
+  //       //   node3d->SetPred(&start);
+  //       // }
+
+  //       // if (node3d == node3d->GetPred())
+  //       // {
+  //       //   DLOG(INFO) << "looping shot";
+  //       // }
+  //       path_vec.emplace_back(*node3d);
+  //       x += params_.curve_step_size;
+  //       i++;
+  //     }
+  //     else
+  //     {
+  //       DLOG(INFO) << "Dubins shot collided, discarding the path";
+  //       path_vec.clear();
+  //       break;
+  //       // return nullptr;
+  //     }
+  //   }
+  // }
+  // else if (params_.curve_type == 1)
+  // {
+  Eigen::Vector3d vector3d_start = Utility::ConvertNode3DToVector3d(start);
+  // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
+  Eigen::Vector3d vector3d_goal = Utility::ConvertNode3DToVector3d(goal);
+  int map_width, map_height;
+  map_width = configurationSpace->grid_ptr_->info.width;
+  map_height = configurationSpace->grid_ptr_->info.height;
+  CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width, map_height);
+  float length = cubic_bezier.GetLength();
+  i = 0;
+  x = 0;
+  path_vec.clear();
+  while (x < length)
   {
+    // DLOG(INFO) << i << "th iteration";
+    Node3D *node3d;
+    Node3D current = Utility::ConvertVector3dToNode3D(cubic_bezier.GetValueAt(x / length));
+    float curvature = cubic_bezier.GetCurvatureAt(x / length);
+    node3d = &current;
+    node3d->setT(cubic_bezier.GetAngleAt(x / length));
 
-    // start
-    double q0[] = {start.GetX(), start.GetY(), start.GetT()};
-    // goal
-    double q1[] = {goal.GetX(), goal.GetY(), goal.GetT()};
-    // initialize the path
-    DubinsPath path;
-    // calculate the path
-    dubins_init(q0, q1, params_.min_turning_radius, &path);
-
-    float length = dubins_path_length(&path);
-
-    while (x < length)
+    // collision check
+    if (configurationSpace->IsTraversable(node3d))
     {
-      double q[3];
-      dubins_path_sample(&path, x, q);
-      Node3D *node3d;
-      node3d->setX(q[0]);
-      node3d->setY(q[1]);
-      node3d->setT(Utility::RadToZeroTo2P(q[2]));
+      // // set the predecessor to the previous step
+      // if (i > 0)
+      // {
+      //   node3d->SetPred(&path_vec[i - 1]);
+      // }
+      // else
+      // {
+      //   node3d->SetPred(nullptr);
+      // }
+      // if (node3d->GetPred() != nullptr)
+      // {
+      //   DLOG(INFO) << "current node is " << node3d->GetX() << " " << node3d->GetY() << " "
+      //              << "its pred is " << node3d->GetPred()->GetX() << " " << node3d->GetPred()->GetY();
+      // }
 
-      // collision check
-      if (configurationSpace->IsTraversable(node3d))
+      // if (node3d == node3d->GetPred())
+      // {
+      //   DLOG(INFO) << "looping shot";
+      // }
+      if (curvature <= 1 / params_.min_turning_radius)
       {
-
-        // // set the predecessor to the previous step
-        // if (i > 0)
-        // {
-        //   node3d->SetPred(&path_vec[i - 1]);
-        // }
-        // else
-        // {
-        //   node3d->SetPred(&start);
-        // }
-
-        // if (node3d == node3d->GetPred())
-        // {
-        //   DLOG(INFO) << "looping shot";
-        // }
         path_vec.emplace_back(*node3d);
         x += params_.curve_step_size;
         i++;
       }
       else
       {
-        DLOG(INFO) << "Dubins shot collided, discarding the path";
+        // DLOG(INFO) << "cubic bezier curvature greater than 1/min_turning_radius, discarding the path";
         path_vec.clear();
         break;
-        // return nullptr;
       }
     }
-  }
-  else if (params_.curve_type == 1)
-  {
-    Eigen::Vector3d vector3d_start = Utility::ConvertNode3DToVector3d(start);
-    // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
-    Eigen::Vector3d vector3d_goal = Utility::ConvertNode3DToVector3d(goal);
-    int map_width, map_height;
-    map_width = configurationSpace->grid_ptr_->info.width;
-    map_height = configurationSpace->grid_ptr_->info.height;
-    CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width, map_height);
-    float length = cubic_bezier.GetLength();
-    i = 0;
-    x = 0;
-    path_vec.clear();
-    while (x < length)
+    else
     {
-      // DLOG(INFO) << i << "th iteration";
-      Node3D *node3d;
-      Node3D current = Utility::ConvertVector3dToNode3D(cubic_bezier.GetValueAt(x / length));
-      float curvature = cubic_bezier.GetCurvatureAt(x / length);
-      node3d = &current;
-      node3d->setT(cubic_bezier.GetAngleAt(x / length));
-
-      // collision check
-      if (configurationSpace->IsTraversable(node3d))
-      {
-        // // set the predecessor to the previous step
-        // if (i > 0)
-        // {
-        //   node3d->SetPred(&path_vec[i - 1]);
-        // }
-        // else
-        // {
-        //   node3d->SetPred(nullptr);
-        // }
-        // if (node3d->GetPred() != nullptr)
-        // {
-        //   DLOG(INFO) << "current node is " << node3d->GetX() << " " << node3d->GetY() << " "
-        //              << "its pred is " << node3d->GetPred()->GetX() << " " << node3d->GetPred()->GetY();
-        // }
-
-        // if (node3d == node3d->GetPred())
-        // {
-        //   DLOG(INFO) << "looping shot";
-        // }
-        if (curvature <= 1 / params_.min_turning_radius)
-        {
-          path_vec.emplace_back(*node3d);
-          x += params_.curve_step_size;
-          i++;
-        }
-        else
-        {
-          DLOG(INFO) << "cubic bezier curvature greater than 1/min_turning_radius, discarding the path";
-          path_vec.clear();
-          break;
-        }
-      }
-      else
-      {
-        DLOG(INFO) << "cubic bezier collided, discarding the path";
-        path_vec.clear();
-        break;
-        // return nullptr;
-      }
+      // DLOG(INFO) << "cubic bezier collided, discarding the path";
+      path_vec.clear();
+      break;
+      // return nullptr;
     }
+    // }
     // goal.SetPred(&path_vec.back());
     // DLOG(INFO) << "goal point is " << vector3d_goal.x() << " " << vector3d_goal.y();
   }
@@ -539,8 +537,8 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
   if (path_vec.size() != 0)
   {
     path_vec.emplace_back(goal);
-    std::string out = params_.curve_type == 1 ? "cubic bezier" : "dubins";
-    DLOG(INFO) << "Analytical expansion connected, returning" << out << " path";
+    // std::string out = params_.reverse == true ? "cubic bezier" : "dubins";
+    // DLOG(INFO) << "Analytical expansion connected, returning " << out << " path";
   }
   return path_vec;
 }
@@ -569,7 +567,47 @@ Node3D *Algorithm::CreateSuccessor(const Node3D *pred, const int &i)
   }
   return new Node3D(xSucc, ySucc, tSucc, pred->GetG(), 0, pred, i);
 }
-
+std::vector<Node2D *> Algorithm::CreateSuccessor(const Node2D &pred, const int &possible_dir)
+{
+  std::vector<Node2D *> successor_vec;
+  if (possible_dir == 4)
+  {
+    std::vector<int> delta = {-1, 1};
+    for (uint i = 0; i < delta.size(); ++i)
+    {
+      int x_successor = pred.GetX() + delta[i];
+      successor_vec.emplace_back(new Node2D(x_successor, pred.GetY(), pred.GetG(), 0, &pred));
+    }
+    for (uint i = 0; i < delta.size(); ++i)
+    {
+      int y_successor = pred.GetY() + delta[i];
+      successor_vec.emplace_back(new Node2D(pred.GetX(), y_successor, pred.GetG(), 0, &pred));
+    }
+  }
+  else if (possible_dir == 8)
+  {
+    std::vector<int> delta_x = {-1, 0, 1};
+    std::vector<int> delta_y = {-1, 0, 1};
+    for (uint i = 0; i < delta_x.size(); ++i)
+    {
+      for (uint j = 0; j < delta_y.size(); ++j)
+      {
+        if (delta_x[i] == 0 && delta_y[j] == 0)
+        {
+          continue;
+        }
+        int x_successor = pred.GetX() + delta_x[i];
+        int y_successor = pred.GetY() + delta_y[j];
+        successor_vec.emplace_back(new Node2D(x_successor, y_successor, pred.GetG(), 0, &pred));
+      }
+    }
+  }
+  else
+  {
+    DLOG(WARNING) << "Wrong possible_dir!!!";
+  }
+  return successor_vec;
+}
 void Algorithm::TracePath(const Node3D *node)
 {
   path_.clear();

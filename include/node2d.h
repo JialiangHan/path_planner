@@ -16,7 +16,8 @@ class Node2D {
   /// The default constructor for 2D array initialization.
   Node2D(): Node2D(0, 0, 0, 0, nullptr) {}
   /// Constructor for a node with the given arguments
-  Node2D(int x, int y, float g, float h, Node2D* pred) {
+  Node2D(int x, int y, float g, float h, const Node2D *pred)
+  {
     this->x = x;
     this->y = y;
     this->g = g;
@@ -47,7 +48,7 @@ class Node2D {
   /// determine whether the node is discovered
   bool  isDiscovered() const { return d; }
   /// get a pointer to the predecessor
-  Node2D *GetPred() const { return pred; }
+  const Node2D *GetPred() const { return pred; }
 
   // SETTER METHODS
   /// set the x position
@@ -81,7 +82,10 @@ class Node2D {
 
   // CUSTOM OPERATORS
   /// Custom operator to compare nodes. Nodes are equal if their x and y position is the same.
-  bool operator == (const Node2D& rhs) const;
+  bool operator==(const Node2D &rhs) const
+  {
+    return x == rhs.x && y == rhs.y;
+  };
 
   // GRID CHECKING
   /// Validity check to test, whether the node is in the 2D array.
@@ -95,7 +99,7 @@ class Node2D {
    * @param possible_dir this value can only be 4 or 8;
    * @return std::vector<Node2D> 
    */
-  std::vector<Node2D *> CreateSuccessor(const int &possible_dir);
+  // std::vector<Node2D *> CreateSuccessor(const int &possible_dir);
 
 private:
   /// the x position
@@ -115,7 +119,7 @@ private:
   /// the discovered value
   bool d;
   /// the predecessor pointer
-  Node2D* pred;
+  const Node2D *pred;
 };
 }
 #endif // NODE2D_H

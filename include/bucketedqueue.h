@@ -9,7 +9,9 @@
 #include <queue>
 #include <assert.h>
 #include "point.h"
-
+#include "limits.h"
+#include <stdio.h>
+#include <stdlib.h>
 namespace HybridAStar {
 //! Priority queue for integer coordinates with squared distances as priority.
 /** A priority queue that uses buckets to group elements with the same priority.
