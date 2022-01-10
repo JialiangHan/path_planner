@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 project(hybrid_astar)
 
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 ## C++11
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
@@ -25,6 +27,7 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(PythonLibs REQUIRED)
 FIND_PACKAGE(Glog REQUIRED)
 FIND_PACKAGE(Gflags)
+find_package(GTest REQUIRED)
 find_package(Python COMPONENTS Interpreter Development NumPy)
 if (${Python_FOUND})
   include_directories(${Python_INCLUDE_DIRS})
@@ -94,6 +97,7 @@ include_directories(
     ${OMPL_INCLUDE_DIRS}
     ${GLOG_INCLUDE_DIRS}
     ${GFLAGS_INCLUDE_DIRS}
+    ${GTEST_INCLUDE_DIRS}
     ) 
 
 
@@ -124,7 +128,25 @@ target_link_libraries(node_path_evaluator
                         glog::glog 
                         ${GFLAGS_LIBRARY} 
 )
-
+add_executable(hybrid_a_star_test 
+            test/test.cpp 
+            ${SOURCES}
+            ${HEADERS}
+            )
+target_link_libraries(hybrid_a_star_test 
+                        ${PYTHON_LIBRARIES}
+                        ${catkin_LIBRARIES} 
+                        ${OMPL_LIBRARIES}
+                        glog::glog 
+                        ${GFLAGS_LIBRARY} 
+                       ${GTEST_BOTH_LIBRARIES}
+                       pthread)
+gtest_add_tests(hybrid_a_star_test
+                .noArgs
+                 AUTO)
+add_test(hybrid_a_star_test hybrid_a_star_test)
+add_custom_target(check_hybrid_a COMMAND ${CMAKE_CTEST_COMMAND}
+                  DEPENDS hybrid_a_star_test)
 install(TARGETS ${PROJECT_NAME} tf_broadcaster
     ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
     LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

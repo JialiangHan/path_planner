@@ -3,5 +3,5 @@
 .vscode/*
 build/*
 log/*
-launch/config.rviz
-maps/map.yaml
+launch/*
+maps/*
