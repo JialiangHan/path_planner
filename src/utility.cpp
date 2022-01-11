@@ -2,11 +2,23 @@
 
     namespace Utility
     {
-        bool IsCloseEnough(const HybridAStar::Node3D &start, const HybridAStar::Node3D &goal, const float &distance_range, const float &angle_range)
+        float GetDistance(const HybridAStar::Node2D &start, const HybridAStar::Node2D &goal)
         {
             float dx = std::abs(start.GetX() - goal.GetX());
             float dy = std::abs(start.GetY() - goal.GetY());
             float distance = std::sqrt((dx * dx) + (dy * dy));
+            return distance;
+        }
+        float GetDistance(const HybridAStar::Node3D &start, const HybridAStar::Node3D &goal)
+        {
+            float dx = std::abs(start.GetX() - goal.GetX());
+            float dy = std::abs(start.GetY() - goal.GetY());
+            float distance = std::sqrt((dx * dx) + (dy * dy));
+            return distance;
+        }
+        bool IsCloseEnough(const HybridAStar::Node3D &start, const HybridAStar::Node3D &goal, const float &distance_range, const float &angle_range)
+        {
+            float distance = GetDistance(start, goal);
             if (distance < distance_range)
             {
                 float angle_diff = RadToZeroTo2P(start.GetT() - goal.GetT());
@@ -88,30 +100,14 @@
         {
             double rad;
             rad = deg / 360 * 2 * M_PI;
-            return rad;
+            return RadToZeroTo2P(rad);
         }
         double ConvertRadToDeg(const double &rad)
         {
             double deg;
             deg = rad / 2 / M_PI * 360;
-            return deg;
+            return DegToZeroTo2P(deg);
         }
-        Eigen::Vector2d ConvertVector3dToVector2d(const Eigen::Vector3d &vector_3d)
-        {
-            Eigen::Vector2d out;
-            out.x() = vector_3d.x();
-            out.y() = vector_3d.y();
-            return out;
-        }
-
-        Eigen::Vector2d ConvertIndexToEigenVector2d(const int &index, const int &map_width)
-        {
-            Eigen::Vector2d out;
-            out.x() = (index % map_width);
-            out.y() = (index / map_width);
-            return out;
-        }
-
         double DegNormalization(const double &t)
         {
             double out;
@@ -163,6 +159,21 @@
                 out += 2.f * M_PI;
             }
 
+            return out;
+        }
+        Eigen::Vector2d ConvertVector3dToVector2d(const Eigen::Vector3d &vector_3d)
+        {
+            Eigen::Vector2d out;
+            out.x() = vector_3d.x();
+            out.y() = vector_3d.y();
+            return out;
+        }
+
+        Eigen::Vector2d ConvertIndexToEigenVector2d(const int &index, const int &map_width)
+        {
+            Eigen::Vector2d out;
+            out.x() = (index % map_width);
+            out.y() = (index / map_width);
             return out;
         }
 

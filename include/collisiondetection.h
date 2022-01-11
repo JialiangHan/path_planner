@@ -68,11 +68,8 @@ namespace HybridAStar
      \return true if it is in C_free, else false
   */
     bool configurationTest(float x, float y, float t) const;
-    void getConfiguration(const Node2D *node, float &x, float &y, float &t) const;
 
     void getConfiguration(const std::shared_ptr<Node2D> &node2d_ptr, float &x, float &y, float &t) const;
-
-    void getConfiguration(const Node3D *node, float &x, float &y, float &t) const;
 
     void getConfiguration(const std::shared_ptr<Node3D> &node3d_ptr, float &x, float &y, float &t) const;
 

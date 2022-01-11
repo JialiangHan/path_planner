@@ -12,6 +12,7 @@
 #define UTILITY
 #include <nav_msgs/Path.h>
 #include <Eigen/Dense>
+#include "node2d.h"
 #include "node3d.h"
 #include "glog/logging.h"
 #include "gflags/gflags.h"
@@ -27,10 +28,6 @@ namespace Utility
     Eigen::Vector2d ConvertVector3dToVector2d(const Eigen::Vector3d &vector_3d);
 
     Eigen::Vector3d ConvertVector2dToVector3d(const Eigen::Vector2d &vector_2d);
-
-    double ConvertDegToRad(const double &deg);
-
-    double ConvertRadToDeg(const double &rad);
 
     Eigen::Vector3d ConvertNode3DToVector3d(const HybridAStar::Node3D &node3d);
 
@@ -122,7 +119,14 @@ namespace Utility
 
     double RadToZeroTo2P(const double &rad);
 
+    double ConvertDegToRad(const double &deg);
+
+    double ConvertRadToDeg(const double &rad);
+
     bool IsCloseEnough(const HybridAStar::Node3D &start, const HybridAStar::Node3D &goal, const float &distance_range, const float &angle_range);
+
+    float GetDistance(const HybridAStar::Node3D &start, const HybridAStar::Node3D &goal);
+    float GetDistance(const HybridAStar::Node2D &start, const HybridAStar::Node2D &goal);
 }
 
 #endif // UTILITY

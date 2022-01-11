@@ -18,13 +18,11 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr
   float t;
   // assign values to the configuration
   getConfiguration(node2d_ptr, x, y, t);
-
   // 2D collision test
   if (t == 99)
   {
     return !grid_ptr_->data[node2d_ptr->GetIdx()];
   }
-
   if (true)
   {
     cost = configurationTest(x, y, t) ? 0 : 1;
@@ -33,7 +31,6 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr
   {
     cost = configurationCost(x, y, t);
   }
-
   return cost <= 0;
 };
 bool CollisionDetection::IsTraversable(const std::shared_ptr<Node3D> &node3d_ptr) const
@@ -52,13 +49,11 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node3D> &node3d_ptr
   float t;
   // assign values to the configuration
   getConfiguration(node3d_ptr, x, y, t);
-
   // 2D collision test
   if (t == 99)
   {
     return !grid_ptr_->data[node3d_ptr->GetIdx()];
   }
-
   if (true)
   {
     cost = configurationTest(x, y, t) ? 0 : 1;
@@ -67,7 +62,6 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node3D> &node3d_ptr
   {
     cost = configurationCost(x, y, t);
   }
-
   return cost <= 0;
 };
 
@@ -87,13 +81,11 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d) const
   float t;
   // assign values to the configuration
   getConfiguration(node3d, x, y, t);
-
   // 2D collision test
   if (t == 99)
   {
     return !grid_ptr_->data[node3d.GetIdx()];
   }
-
   if (true)
   {
     cost = configurationTest(x, y, t) ? 0 : 1;
@@ -110,19 +102,10 @@ bool CollisionDetection::IsOnGrid(const Node3D &node3d) const
   return IsOnGrid(node3d.GetX(), node3d.GetY());
 }
 
-// bool CollisionDetection::IsOnGrid(const Node3D *node3d_ptr) const
-// {
-//   return IsOnGrid(node3d_ptr->GetX(), node3d_ptr->GetY());
-// }
 bool CollisionDetection::IsOnGrid(const Node2D &node2d) const
 {
   return IsOnGrid(node2d.GetX(), node2d.GetY());
 }
-
-// bool CollisionDetection::IsOnGrid(const Node2D *node2d_ptr) const
-// {
-//   return IsOnGrid(node2d_ptr->GetX(), node2d_ptr->GetY());
-// }
 
 bool CollisionDetection::IsOnGrid(const std::shared_ptr<Node2D> node2d_ptr) const
 {
@@ -140,7 +123,8 @@ bool CollisionDetection::IsOnGrid(const float &x, const float &y) const
          y >= 0 && y < (int)grid_ptr_->info.height;
 }
 
-bool CollisionDetection::configurationTest(float x, float y, float t) const {
+bool CollisionDetection::configurationTest(float x, float y, float t) const
+{
   const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
   int X = (int)x;
   int Y = (int)y;
@@ -154,7 +138,8 @@ bool CollisionDetection::configurationTest(float x, float y, float t) const {
   int cX;
   int cY;
 
-  for (int i = 0; i < collisionLookup[idx].length; ++i) {
+  for (int i = 0; i < collisionLookup[idx].length; ++i)
+  {
     cX = (X + collisionLookup[idx].pos[i].x);
     cY = (Y + collisionLookup[idx].pos[i].y);
 
@@ -171,20 +156,6 @@ bool CollisionDetection::configurationTest(float x, float y, float t) const {
   return true;
 }
 
-void CollisionDetection::getConfiguration(const Node2D *node, float &x, float &y, float &t) const
-{
-  x = node->GetX();
-  y = node->GetY();
-  // avoid 2D collision checking
-  t = 99;
-}
-
-void CollisionDetection::getConfiguration(const Node3D *node, float &x, float &y, float &t) const
-{
-  x = node->GetX();
-  y = node->GetY();
-  t = node->GetT();
-}
 void CollisionDetection::getConfiguration(const Node3D &node, float &x, float &y, float &t) const
 {
   x = node.GetX();

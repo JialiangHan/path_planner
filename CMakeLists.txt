@@ -46,7 +46,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dubins.cpp #Andrew Walker
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dynamicvoronoi.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lookup_table.cpp 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/node2d.cpp
+    # ${CMAKE_CURRENT_SOURCE_DIR}/src/node2d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/node3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/parameter_manager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/path_evaluator.cpp
