@@ -11,7 +11,7 @@ using namespace HybridAStar;
 struct CompareNodes
 {
   /// Sorting 3D nodes by increasing C value - the total estimated cost
-  bool operator()(const Node3D *lhs, const Node3D *rhs) const
+  bool operator()(const std::shared_ptr<Node3D> lhs, const std::shared_ptr<Node3D> rhs) const
   {
     return lhs->GetC() > rhs->GetC();
   }
@@ -42,15 +42,13 @@ Path Algorithm::HybridAStar(Node3D &start,
   // PREDECESSOR AND SUCCESSOR INDEX
   int iPred, iSucc;
   float newG;
-  // Number of possible directions, 3 for forward driving and an additional 3 for reversing
-  // int dir = params_.reverse ? 6 : 3;
   // Number of iterations the algorithm has run for stopping based on params_.max_iterations
   int iterations = 0;
   int analytical_expansion_counter = 0;
   // VISUALIZATION DELAY
   ros::Duration d(0.003);
   // OPEN LIST AS BOOST IMPLEMENTATION
-  typedef boost::heap::binomial_heap<Node3D *, boost::heap::compare<CompareNodes>> priorityQueue;
+  typedef boost::heap::binomial_heap<std::shared_ptr<Node3D>, boost::heap::compare<CompareNodes>> priorityQueue;
   priorityQueue openlist;
   // update h value
   UpdateHeuristic(start, goal, nodes2D, lookup_table_ptr, width, height, configurationSpace, visualization);
@@ -59,12 +57,13 @@ Path Algorithm::HybridAStar(Node3D &start,
   // mark start as open
   start.open();
   // push on priority queue aka open list
-  openlist.push(&start);
+  std::shared_ptr<Node3D> start_ptr = std::make_shared<Node3D>(start);
+  openlist.push(start_ptr);
   iPred = start.setIdx(width, height, (float)2 * M_PI / params_.headings);
   nodes3D[iPred] = start;
   // NODE POINTER
-  Node3D *nPred;
-  Node3D *nSucc;
+  std::shared_ptr<Node3D> nPred;
+  std::shared_ptr<Node3D> nSucc;
   // float max = 0.f;
   // continue until O empty
   while (!openlist.empty())
@@ -141,7 +140,7 @@ Path Algorithm::HybridAStar(Node3D &start,
         {
           analytical_expansion_counter++;
         }
-        std::vector<Node3D *> successor_vec = CreateSuccessor(*nPred, params_.possible_direction);
+        std::vector<std::shared_ptr<Node3D>> successor_vec = CreateSuccessor(*nPred, params_.possible_direction);
         // ______________________________
         // SEARCH WITH FORWARD SIMULATION
         for (const auto &node : successor_vec)
@@ -168,7 +167,6 @@ Path Algorithm::HybridAStar(Node3D &start,
                 // if the successor is in the same cell but the C value is larger
                 if (iPred == iSucc && nSucc->GetC() > nPred->GetC() + params_.tie_breaker)
                 {
-                  delete nSucc;
                   continue;
                 }
                 // if successor is in the same cell and the C value is lower, set predecessor to predecessor of predecessor
@@ -183,81 +181,12 @@ Path Algorithm::HybridAStar(Node3D &start,
                 // put successor on open list
                 nSucc->open();
                 nodes3D[iSucc] = *nSucc;
-                openlist.push(&nodes3D[iSucc]);
-                delete nSucc;
-              }
-              else
-              {
-                delete nSucc;
+                std::shared_ptr<Node3D> nSucc_ptr = std::make_shared<Node3D>(nodes3D[iSucc]);
+                openlist.push(nSucc_ptr);
               }
             }
-            else
-            {
-              delete nSucc;
-            }
-          }
-          else
-          {
-            delete nSucc;
           }
         }
-        // for (int i = 0; i < dir; i++)
-        // {
-        //   // create possible successor
-        //   // nSucc = nPred->createSuccessor(i);
-        //   nSucc = CreateSuccessor(nPred, i);
-        //   // set index of the successor
-        //   iSucc = nSucc->setIdx(width, height, (float)2 * M_PI / params_.headings);
-        //   // ensure successor is on grid and traversable
-        //   if (configurationSpace->IsTraversable(nSucc))
-        //   {
-        //     // ensure successor is not on closed list or it has the same index as the predecessor
-        //     if (!nodes3D[iSucc].isClosed() || iPred == iSucc)
-        //     {
-        //       // calculate new G value
-        //       nSucc->updateG(params_.penalty_turning, params_.penalty_change_of_direction, params_.penalty_reverse);
-        //       newG = nSucc->GetG();
-        //       // if successor not on open list or found a shorter way to the cell
-        //       if (!nodes3D[iSucc].isOpen() || newG < nodes3D[iSucc].GetG() || iPred == iSucc)
-        //       {
-        //         // calculate H value
-        //         UpdateHeuristic(*nSucc, goal, nodes2D, lookup_table_ptr, width, height, configurationSpace, visualization);
-        //         // if the successor is in the same cell but the C value is larger
-        //         if (iPred == iSucc && nSucc->GetC() > nPred->GetC() + params_.tie_breaker)
-        //         {
-        //           delete nSucc;
-        //           continue;
-        //         }
-        //         // if successor is in the same cell and the C value is lower, set predecessor to predecessor of predecessor
-        //         else if (iPred == iSucc && nSucc->GetC() <= nPred->GetC() + params_.tie_breaker)
-        //         {
-        //           nSucc->SetPred(nPred->GetPred());
-        //         }
-        //         if (nSucc->GetPred() == nSucc)
-        //         {
-        //           DLOG(INFO) << "looping";
-        //         }
-        //         // put successor on open list
-        //         nSucc->open();
-        //         nodes3D[iSucc] = *nSucc;
-        //         openlist.push(&nodes3D[iSucc]);
-        //         delete nSucc;
-        //       }
-        //       else
-        //       {
-        //         delete nSucc;
-        //       }
-        //     }
-        //     else
-        //     {
-        //       delete nSucc;
-        //     }
-        //   }
-        //   else
-        //   {
-        //     delete nSucc;
-        //   }
-        // }
       }
     }
   }
@@ -274,15 +203,12 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
   // PREDECESSOR AND SUCCESSOR INDEX
   int iPred, iSucc;
   float newG;
-
   // reset the open and closed list
   for (int i = 0; i < width * height; ++i) {
     nodes2D[i].reset();
   }
-
   // VISUALIZATION DELAY
   ros::Duration d(0.001);
-
   boost::heap::binomial_heap<std::shared_ptr<Node2D>, boost::heap::compare<CompareNodes>> openlist;
   // update h value
   start.UpdateHeuristic(goal);
@@ -293,7 +219,6 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
   openlist.push(start_ptr);
   iPred = start.setIdx(width);
   nodes2D[iPred] = start;
-
   // NODE POINTER
   std::shared_ptr<Node2D> nPred;
   std::shared_ptr<Node2D> nSucc;
@@ -305,7 +230,6 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
     nPred = openlist.top();
     // set index
     iPred = nPred->setIdx(width);
-
     // _____________________________
     // LAZY DELETION of rewired node
     // if there exists a pointer this node has already been expanded
@@ -328,7 +252,6 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
         visualization->publishNode2DPose(*nPred);
         //        d.sleep();
       }
-
       // remove node from open list
       openlist.pop();
 
@@ -373,7 +296,6 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
       }
     }
   }
-
   // return large number to guide search away
   return 1000;
 }
@@ -466,20 +388,6 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
   //     if (configurationSpace->IsTraversable(node3d))
   //     {
 
-  //       // // set the predecessor to the previous step
-  //       // if (i > 0)
-  //       // {
-  //       //   node3d->SetPred(&path_vec[i - 1]);
-  //       // }
-  //       // else
-  //       // {
-  //       //   node3d->SetPred(&start);
-  //       // }
-
-  //       // if (node3d == node3d->GetPred())
-  //       // {
-  //       //   DLOG(INFO) << "looping shot";
-  //       // }
   //       path_vec.emplace_back(*node3d);
   //       x += params_.curve_step_size;
   //       i++;
@@ -509,37 +417,16 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
   while (x < length)
   {
     // DLOG(INFO) << i << "th iteration";
-    Node3D *node3d;
-    Node3D current = Utility::ConvertVector3dToNode3D(cubic_bezier.GetValueAt(x / length));
+    Node3D node3d = Utility::ConvertVector3dToNode3D(cubic_bezier.GetValueAt(x / length));
     float curvature = cubic_bezier.GetCurvatureAt(x / length);
-    node3d = &current;
-    node3d->setT(cubic_bezier.GetAngleAt(x / length));
+    node3d.setT(cubic_bezier.GetAngleAt(x / length));
 
     // collision check
     if (configurationSpace->IsTraversable(node3d))
     {
-      // // set the predecessor to the previous step
-      // if (i > 0)
-      // {
-      //   node3d->SetPred(&path_vec[i - 1]);
-      // }
-      // else
-      // {
-      //   node3d->SetPred(nullptr);
-      // }
-      // if (node3d->GetPred() != nullptr)
-      // {
-      //   DLOG(INFO) << "current node is " << node3d->GetX() << " " << node3d->GetY() << " "
-      //              << "its pred is " << node3d->GetPred()->GetX() << " " << node3d->GetPred()->GetY();
-      // }
-
-      // if (node3d == node3d->GetPred())
-      // {
-      //   DLOG(INFO) << "looping shot";
-      // }
       if (curvature <= 1 / params_.min_turning_radius)
       {
-        path_vec.emplace_back(*node3d);
+        path_vec.emplace_back(node3d);
         x += params_.curve_step_size;
         i++;
       }
@@ -557,8 +444,6 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
       break;
       // return nullptr;
     }
-    // }
-    // goal.SetPred(&path_vec.back());
     // DLOG(INFO) << "goal point is " << vector3d_goal.x() << " " << vector3d_goal.y();
   }
 
@@ -572,34 +457,11 @@ Path Algorithm::AnalyticExpansions(const Node3D &start, Node3D &goal, std::share
   return path_vec;
 }
 //TODO change to a vector and add one more successor similar to RRT
-Node3D *Algorithm::CreateSuccessor(const Node3D *pred, const int &i)
+
+std::vector<std::shared_ptr<Node3D>> Algorithm::CreateSuccessor(const Node3D &pred, const int &possible_dir)
 {
-
-  const float dy[] = {0, -0.0415893, 0.0415893};
-  const float dx[] = {0.7068582, 0.705224, 0.705224};
-  const float dt[] = {0, 0.1178097, -0.1178097};
-  float xSucc, ySucc, tSucc;
-
-  // calculate successor positions forward
-  if (i < 3)
-  {
-    xSucc = pred->GetX() + dx[i] * cos(pred->GetT()) - dy[i] * sin(pred->GetT());
-    ySucc = pred->GetY() + dx[i] * sin(pred->GetT()) + dy[i] * cos(pred->GetT());
-    tSucc = Utility::RadToZeroTo2P(pred->GetT() + dt[i]);
-  }
-  // backwards
-  else
-  {
-    xSucc = pred->GetX() - dx[i - 3] * cos(pred->GetT()) - dy[i - 3] * sin(pred->GetT());
-    ySucc = pred->GetY() - dx[i - 3] * sin(pred->GetT()) + dy[i - 3] * cos(pred->GetT());
-    tSucc = Utility::RadToZeroTo2P(pred->GetT() - dt[i - 3]);
-  }
-  return new Node3D(xSucc, ySucc, tSucc, pred->GetG(), 0, pred, i);
-}
-
-std::vector<Node3D *> Algorithm::CreateSuccessor(const Node3D &pred, const int &possible_dir)
-{
-  std::vector<Node3D *> out;
+  std::vector<std::shared_ptr<Node3D>> out;
+  std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
   const float dy[] = {0, -0.0415893, 0.0415893};
   const float dx[] = {0.7068582, 0.705224, 0.705224};
   const float dt[] = {0, 0.1178097, -0.1178097};
@@ -620,7 +482,8 @@ std::vector<Node3D *> Algorithm::CreateSuccessor(const Node3D &pred, const int &
       ySucc = pred.GetY() - dx[i - 3] * sin(pred.GetT()) + dy[i - 3] * cos(pred.GetT());
       tSucc = Utility::RadToZeroTo2P(pred.GetT() - dt[i - 3]);
     }
-    out.emplace_back(new Node3D(xSucc, ySucc, tSucc, pred.GetG(), 0, &pred, i));
+    std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetG(), 0, pred_ptr, i));
+    out.emplace_back(temp);
   }
   return out;
 }
@@ -670,19 +533,20 @@ std::vector<std::shared_ptr<Node2D>> Algorithm::CreateSuccessor(const Node2D &pr
   }
   return successor_vec;
 }
-void Algorithm::TracePath(const Node3D *node)
+
+void Algorithm::TracePath(std::shared_ptr<Node3D> node3d_ptr)
 {
   path_.clear();
-  while (node != nullptr)
+  while (node3d_ptr != nullptr)
   {
 
-    path_.emplace_back(*node);
-    if (*node == start_)
+    path_.emplace_back(*node3d_ptr);
+    if (*node3d_ptr == start_)
     {
       break;
     }
     // DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
-    node = node->GetPred();
+    node3d_ptr = node3d_ptr->GetPred();
   }
   std::reverse(path_.begin(), path_.end());
 }

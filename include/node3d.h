@@ -2,7 +2,7 @@
 #define NODE3D_H
 
 #include <cmath>
-
+#include <memory>
 namespace HybridAStar {
 /*!
    \brief A three dimensional node class that is at the heart of the algorithm.
@@ -14,14 +14,14 @@ class Node3D {
    /// The default constructor for 3D array initialization
    Node3D() : Node3D(0, 0, 0, 0, 0, nullptr) {}
    /// Constructor for a node with the given arguments
-   Node3D(float x, float y, float t, float g, float h, const Node3D *pred, int prim = 0)
+   Node3D(float x, float y, float t, float g, float h, const std::shared_ptr<Node3D> &pred_ptr, int prim = 0)
    {
      this->x = x;
      this->y = y;
      this->t = t;
      this->g = g;
      this->h = h;
-     this->pred = pred;
+     this->pred_ptr_ = pred_ptr;
      this->o = false;
      this->c = false;
      this->idx = -1;
@@ -50,7 +50,7 @@ class Node3D {
    /// determine whether the node is closed
    bool isClosed() const { return c; }
    /// determine whether the node is open
-   const Node3D *GetPred() const { return pred; }
+   std::shared_ptr<Node3D> GetPred() const { return pred_ptr_; }
 
    // SETTER METHODS
    /// set the x position
@@ -83,7 +83,7 @@ class Node3D {
    }
    /// set a pointer to the predecessor of the node
 
-   void SetPred(const Node3D *pred) { this->pred = pred; }
+   void SetPred(const std::shared_ptr<Node3D> &pred_ptr) { this->pred_ptr_ = pred_ptr; }
 
    // UPDATE METHODS
    /// Updates the cost-so-far for the node x' coming from its predecessor. It also discovers the node.
@@ -105,7 +105,7 @@ class Node3D {
     * @return true 
     * @return false 
     */
-   bool IsCloseEnough(const Node3D &goal, const float &distance_range, const float &angle_range) const;
+   //  bool IsCloseEnough(const Node3D &goal, const float &distance_range, const float &angle_range) const;
    // GRID CHECKING
    /// Validity check to test, whether the node is in the 3D array.
 
@@ -145,7 +145,7 @@ class Node3D {
   /// the motion primitive of the node
   int prim;
   /// the predecessor pointer
-  const Node3D *pred;
+  std::shared_ptr<Node3D> pred_ptr_;
 };
 }
 #endif // NODE3D_H

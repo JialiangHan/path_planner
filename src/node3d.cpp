@@ -22,28 +22,40 @@ void Node3D::updateG(const float &weight_turning, const float &weight_change_of_
   // forward driving
   if (prim < 3) {
     // penalize turning
-    if (pred->prim != prim) {
+    if (pred_ptr_->prim != prim)
+    {
       // penalize change of direction
-      if (pred->prim > 2) {
+      if (pred_ptr_->prim > 2)
+      {
         g += dx[0] * weight_turning * weight_change_of_direction;
-      } else {
+      }
+      else
+      {
         g += dx[0] * weight_turning;
       }
-    } else {
+    }
+    else
+    {
       g += dx[0];
     }
   }
   // reverse driving
   else {
     // penalize turning and reversing
-    if (pred->prim != prim) {
+    if (pred_ptr_->prim != prim)
+    {
       // penalize change of direction
-      if (pred->prim < 3) {
+      if (pred_ptr_->prim < 3)
+      {
         g += dx[0] * weight_turning * weight_reverse * weight_change_of_direction;
-      } else {
+      }
+      else
+      {
         g += dx[0] * weight_turning * weight_reverse;
       }
-    } else {
+    }
+    else
+    {
       g += dx[0] * weight_reverse;
     }
   }

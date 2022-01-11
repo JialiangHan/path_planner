@@ -91,20 +91,6 @@ class Node2D {
     return x == rhs.x && y == rhs.y;
   };
 
-  // GRID CHECKING
-  /// Validity check to test, whether the node is in the 2D array.
-  // bool isOnGrid(const int width, const int height) const;
-
-  // SUCCESSOR CREATION
-  /// Creates a successor on a eight-connected grid.
-  /**
-   * @brief Create possible successors of current node according its possible direction
-   * 
-   * @param possible_dir this value can only be 4 or 8;
-   * @return std::vector<Node2D> 
-   */
-  // std::vector<Node2D *> CreateSuccessor(const int &possible_dir);
-
 private:
   /// the x position
   int x;

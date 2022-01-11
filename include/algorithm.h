@@ -88,20 +88,20 @@ namespace HybridAStar
        */
       Path AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace);
 
-      Node3D *CreateSuccessor(const Node3D *pred, const int &i);
-      std::vector<Node3D *> CreateSuccessor(const Node3D &pred, const int &possible_dir);
+      std::vector<std::shared_ptr<Node3D>> CreateSuccessor(const Node3D &pred, const int &possible_dir);
 
       /**
-      * @brief Create possible successors of current node according its possible direction
-      * 
-      * @param possible_dir this value can only be 4 or 8;
-      * @return std::vector<Node2D> 
-      */
-      // std::vector<Node2D *> CreateSuccessor(const Node2D &pred, const int &possible_dir);
-
+       * @brief Create possible successors of current node according its possible direction
+       * 
+       * @param pred 
+       * @param possible_dir 
+       * @return std::vector<std::shared_ptr<Node2D>> 
+       */
       std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const int &possible_dir);
 
-      void TracePath(const Node3D *node);
+      // void TracePath(const Node3D *node);
+
+      void TracePath(std::shared_ptr<Node3D> node3d_ptr);
 
    private:
       ParameterAlgorithm params_;

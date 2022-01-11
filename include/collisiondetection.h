@@ -29,45 +29,8 @@ namespace HybridAStar
     };
 
     bool IsTraversable(const std::shared_ptr<Node2D> &nod2d_ptr) const;
-    /*!
-     \brief evaluates whether the configuration is safe
-     \return true if it is traversable, else false
-  */
-    template <typename T>
-    bool IsTraversable(const T *node) const
-    {
-      if (!IsOnGrid(node))
-      {
-        return false;
-      }
-      /* Depending on the used collision checking mechanism this needs to be adjusted
-       standard: collision checking using the spatial occupancy enumeration
-       other: collision checking using the 2d costmap and the navigation stack
-    */
-      float cost = 0;
-      float x;
-      float y;
-      float t;
-      // assign values to the configuration
-      getConfiguration(node, x, y, t);
-
-      // 2D collision test
-      if (t == 99)
-      {
-        return !grid_ptr_->data[node->GetIdx()];
-      }
-
-      if (true)
-      {
-        cost = configurationTest(x, y, t) ? 0 : 1;
-      }
-      else
-      {
-        cost = configurationCost(x, y, t);
-      }
-
-      return cost <= 0;
-    };
+    bool IsTraversable(const std::shared_ptr<Node3D> &nod3d_ptr) const;
+    bool IsTraversable(const Node3D &nod3d_ptr) const;
 
     /*!
      \brief updates the grid with the world map
@@ -76,12 +39,14 @@ namespace HybridAStar
 
     bool IsOnGrid(const Node3D &node3d) const;
 
-    bool IsOnGrid(const Node3D *node3d_ptr) const;
+    // bool IsOnGrid(const Node3D *node3d_ptr) const;
 
     bool IsOnGrid(const Node2D &node2d) const;
 
-    bool IsOnGrid(const Node2D *node2d_ptr) const;
+    // bool IsOnGrid(const Node2D *node2d_ptr) const;
     bool IsOnGrid(const std::shared_ptr<Node2D> node2d_ptr) const;
+    bool IsOnGrid(const std::shared_ptr<Node3D> node3d_ptr) const;
+    bool IsOnGrid(const float &x, const float &y) const;
     /// The occupancy grid
     nav_msgs::OccupancyGrid::Ptr grid_ptr_;
 
@@ -108,6 +73,10 @@ namespace HybridAStar
     void getConfiguration(const std::shared_ptr<Node2D> &node2d_ptr, float &x, float &y, float &t) const;
 
     void getConfiguration(const Node3D *node, float &x, float &y, float &t) const;
+
+    void getConfiguration(const std::shared_ptr<Node3D> &node3d_ptr, float &x, float &y, float &t) const;
+
+    void getConfiguration(const Node3D &node, float &x, float &y, float &t) const;
 
   private:
     /// The collision lookup table
