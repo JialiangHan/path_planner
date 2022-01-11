@@ -27,6 +27,8 @@ namespace HybridAStar
       this->grid_ptr_ = nullptr;
       Lookup::collisionLookup(collisionLookup);
     };
+
+    bool IsTraversable(const std::shared_ptr<Node2D> &nod2d_ptr) const;
     /*!
      \brief evaluates whether the configuration is safe
      \return true if it is traversable, else false
@@ -79,7 +81,7 @@ namespace HybridAStar
     bool IsOnGrid(const Node2D &node2d) const;
 
     bool IsOnGrid(const Node2D *node2d_ptr) const;
-
+    bool IsOnGrid(const std::shared_ptr<Node2D> node2d_ptr) const;
     /// The occupancy grid
     nav_msgs::OccupancyGrid::Ptr grid_ptr_;
 
@@ -102,6 +104,8 @@ namespace HybridAStar
   */
     bool configurationTest(float x, float y, float t) const;
     void getConfiguration(const Node2D *node, float &x, float &y, float &t) const;
+
+    void getConfiguration(const std::shared_ptr<Node2D> &node2d_ptr, float &x, float &y, float &t) const;
 
     void getConfiguration(const Node3D *node, float &x, float &y, float &t) const;
 

@@ -16,13 +16,13 @@ class Node2D {
   /// The default constructor for 2D array initialization.
   Node2D(): Node2D(0, 0, 0, 0, nullptr) {}
   /// Constructor for a node with the given arguments
-  Node2D(int x, int y, float g, float h, const Node2D *pred)
+  Node2D(int x, int y, float g, float h, const std::shared_ptr<Node2D> &pred_ptr)
   {
     this->x = x;
     this->y = y;
     this->g = g;
     this->h = h;
-    this->pred = pred;
+    this->pred_ptr_ = pred_ptr;
     this->o = false;
     this->c = false;
     this->d = false;
@@ -48,7 +48,7 @@ class Node2D {
   /// determine whether the node is discovered
   bool  isDiscovered() const { return d; }
   /// get a pointer to the predecessor
-  const Node2D *GetPred() const { return pred; }
+  std::shared_ptr<Node2D> GetPred() const { return pred_ptr_; }
 
   // SETTER METHODS
   /// set the x position
@@ -70,11 +70,15 @@ class Node2D {
   /// discover the node
   void discover() { d = true; }
   /// set a pointer to the predecessor of the node
-  void SetPred(Node2D *pred) { this->pred = pred; }
+  void SetPred(const std::shared_ptr<Node2D> &pred_ptr) { this->pred_ptr_ = pred_ptr; }
 
   // UPDATE METHODS
   /// Updates the cost-so-far for the node x' coming from its predecessor. It also discovers the node.
-  void updateG() { g += movementCost(*pred); d = true; }
+  void updateG()
+  {
+    g += movementCost(*pred_ptr_);
+    d = true;
+  }
   /// Updates the cost-to-go for the node x' to the goal node.
   void UpdateHeuristic(const Node2D &goal) { h = movementCost(goal); }
   /// The heuristic as well as the cost measure.
@@ -119,7 +123,7 @@ private:
   /// the discovered value
   bool d;
   /// the predecessor pointer
-  const Node2D *pred;
+  std::shared_ptr<Node2D> pred_ptr_;
 };
 }
 #endif // NODE2D_H

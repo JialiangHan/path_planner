@@ -1,6 +1,42 @@
 #include "collisiondetection.h"
 
 using namespace HybridAStar;
+
+bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr) const
+{
+  if (!IsOnGrid(node2d_ptr))
+  {
+    return false;
+  }
+  /* Depending on the used collision checking mechanism this needs to be adjusted
+       standard: collision checking using the spatial occupancy enumeration
+       other: collision checking using the 2d costmap and the navigation stack
+    */
+  float cost = 0;
+  float x;
+  float y;
+  float t;
+  // assign values to the configuration
+  getConfiguration(node2d_ptr, x, y, t);
+
+  // 2D collision test
+  if (t == 99)
+  {
+    return !grid_ptr_->data[node2d_ptr->GetIdx()];
+  }
+
+  if (true)
+  {
+    cost = configurationTest(x, y, t) ? 0 : 1;
+  }
+  else
+  {
+    cost = configurationCost(x, y, t);
+  }
+
+  return cost <= 0;
+};
+
 bool CollisionDetection::IsOnGrid(const Node3D &node3d) const
 {
   return node3d.GetX() >= 0 && node3d.GetX() < grid_ptr_->info.width &&
@@ -23,6 +59,13 @@ bool CollisionDetection::IsOnGrid(const Node2D *node2d_ptr) const
   return node2d_ptr->GetX() >= 0 && node2d_ptr->GetX() < (int)grid_ptr_->info.width &&
          node2d_ptr->GetY() >= 0 && node2d_ptr->GetY() < (int)grid_ptr_->info.height;
 }
+
+bool CollisionDetection::IsOnGrid(const std::shared_ptr<Node2D> node2d_ptr) const
+{
+  return node2d_ptr->GetX() >= 0 && node2d_ptr->GetX() < (int)grid_ptr_->info.width &&
+         node2d_ptr->GetY() >= 0 && node2d_ptr->GetY() < (int)grid_ptr_->info.height;
+}
+
 bool CollisionDetection::configurationTest(float x, float y, float t) const {
   const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
   int X = (int)x;
@@ -67,4 +110,12 @@ void CollisionDetection::getConfiguration(const Node3D *node, float &x, float &y
   x = node->GetX();
   y = node->GetY();
   t = node->GetT();
+}
+
+void CollisionDetection::getConfiguration(const std::shared_ptr<Node2D> &node2d_ptr, float &x, float &y, float &t) const
+{
+  x = node2d_ptr->GetX();
+  y = node2d_ptr->GetY();
+  // avoid 2D collision checking
+  t = 99;
 }

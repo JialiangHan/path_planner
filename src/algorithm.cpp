@@ -16,7 +16,7 @@ struct CompareNodes
     return lhs->GetC() > rhs->GetC();
   }
   /// Sorting 2D nodes by increasing C value - the total estimated cost
-  bool operator()(const Node2D *lhs, const Node2D *rhs) const
+  bool operator()(const std::shared_ptr<Node2D> lhs, const std::shared_ptr<Node2D> rhs) const
   {
     return lhs->GetC() > rhs->GetC();
   }
@@ -283,19 +283,20 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
   // VISUALIZATION DELAY
   ros::Duration d(0.001);
 
-  boost::heap::binomial_heap<Node2D *, boost::heap::compare<CompareNodes>> openlist;
+  boost::heap::binomial_heap<std::shared_ptr<Node2D>, boost::heap::compare<CompareNodes>> openlist;
   // update h value
   start.UpdateHeuristic(goal);
   // mark start as open
   start.open();
   // push on priority queue
-  openlist.push(&start);
+  std::shared_ptr<Node2D> start_ptr = std::make_shared<Node2D>(start);
+  openlist.push(start_ptr);
   iPred = start.setIdx(width);
   nodes2D[iPred] = start;
 
   // NODE POINTER
-  Node2D* nPred;
-  Node2D* nSucc;
+  std::shared_ptr<Node2D> nPred;
+  std::shared_ptr<Node2D> nSucc;
 
   // continue until O empty
   while (!openlist.empty())
@@ -341,14 +342,13 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
       else {
         // _______________________________
         // CREATE POSSIBLE SUCCESSOR NODES
-        std::vector<Node2D *> successor_vec = CreateSuccessor(*nPred, params_.possible_direction);
+        std::vector<std::shared_ptr<Node2D>> successor_vec = CreateSuccessor(*nPred, params_.possible_direction);
         for (uint i = 0; i < successor_vec.size(); ++i)
         {
           // create possible successor
           nSucc = successor_vec[i];
           // set index of the successor
           iSucc = nSucc->setIdx(width);
-
           // ensure successor is on grid ROW MAJOR
           // ensure successor is not blocked by obstacle
           // ensure successor is not on closed list
@@ -357,7 +357,6 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
             // calculate new G value
             nSucc->updateG();
             newG = nSucc->GetG();
-
             // if successor not on open list or g value lower than before put it on open list
             if (!nodes2D[iSucc].isOpen() || newG < nodes2D[iSucc].GetG())
             {
@@ -366,17 +365,9 @@ float Algorithm::AStar(Node2D &start, Node2D &goal, Node2D *nodes2D, int width, 
               // put successor on open list
               nSucc->open();
               nodes2D[iSucc] = *nSucc;
-              openlist.push(&nodes2D[iSucc]);
-              delete nSucc;
+              std::shared_ptr<Node2D> nSucc_ptr = std::make_shared<Node2D>(nodes2D[iSucc]);
+              openlist.push(nSucc_ptr);
             }
-            else
-            {
-              delete nSucc;
-            }
-          }
-          else
-          {
-            delete nSucc;
           }
         }
       }
@@ -634,21 +625,24 @@ std::vector<Node3D *> Algorithm::CreateSuccessor(const Node3D &pred, const int &
   return out;
 }
 
-std::vector<Node2D *> Algorithm::CreateSuccessor(const Node2D &pred, const int &possible_dir)
+std::vector<std::shared_ptr<Node2D>> Algorithm::CreateSuccessor(const Node2D &pred, const int &possible_dir)
 {
-  std::vector<Node2D *> successor_vec;
+  std::vector<std::shared_ptr<Node2D>> successor_vec;
+  std::shared_ptr<Node2D> pred_ptr = std::make_shared<Node2D>(pred);
   if (possible_dir == 4)
   {
     std::vector<int> delta = {-1, 1};
     for (uint i = 0; i < delta.size(); ++i)
     {
       int x_successor = pred.GetX() + delta[i];
-      successor_vec.emplace_back(new Node2D(x_successor, pred.GetY(), pred.GetG(), 0, &pred));
+      std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(x_successor, pred.GetY(), pred.GetG(), 0, pred_ptr));
+      successor_vec.emplace_back(temp);
     }
     for (uint i = 0; i < delta.size(); ++i)
     {
       int y_successor = pred.GetY() + delta[i];
-      successor_vec.emplace_back(new Node2D(pred.GetX(), y_successor, pred.GetG(), 0, &pred));
+      std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(pred.GetX(), y_successor, pred.GetG(), 0, pred_ptr));
+      successor_vec.emplace_back(temp);
     }
   }
   else if (possible_dir == 8)
@@ -665,7 +659,8 @@ std::vector<Node2D *> Algorithm::CreateSuccessor(const Node2D &pred, const int &
         }
         int x_successor = pred.GetX() + delta_x[i];
         int y_successor = pred.GetY() + delta_y[j];
-        successor_vec.emplace_back(new Node2D(x_successor, y_successor, pred.GetG(), 0, &pred));
+        std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(x_successor, y_successor, pred.GetG(), 0, pred_ptr));
+        successor_vec.emplace_back(temp);
       }
     }
   }

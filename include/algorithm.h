@@ -97,7 +97,9 @@ namespace HybridAStar
       * @param possible_dir this value can only be 4 or 8;
       * @return std::vector<Node2D> 
       */
-      std::vector<Node2D *> CreateSuccessor(const Node2D &pred, const int &possible_dir);
+      // std::vector<Node2D *> CreateSuccessor(const Node2D &pred, const int &possible_dir);
+
+      std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const int &possible_dir);
 
       void TracePath(const Node3D *node);
 
