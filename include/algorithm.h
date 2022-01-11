@@ -89,6 +89,7 @@ namespace HybridAStar
       Path AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace);
 
       Node3D *CreateSuccessor(const Node3D *pred, const int &i);
+      std::vector<Node3D *> CreateSuccessor(const Node3D &pred, const int &possible_dir);
 
       /**
       * @brief Create possible successors of current node according its possible direction
