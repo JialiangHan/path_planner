@@ -60,7 +60,7 @@ class Node3D {
    /// set the heading theta
    void setT(const float &t) { this->t = t; }
    /// set the cost-so-far (real value)
-   void setG(const float &g) { this->g = g; }
+   void SetG(const float &g) { this->g = g; }
    /// set the cost-to-come (heuristic value)
    void setH(const float &h) { this->h = h; }
    /// set and get the index of the node in the 3D grid
@@ -85,45 +85,14 @@ class Node3D {
 
    void SetPred(const std::shared_ptr<Node3D> &pred_ptr) { this->pred_ptr_ = pred_ptr; }
 
-   // UPDATE METHODS
-   /// Updates the cost-so-far for the node x' coming from its predecessor. It also discovers the node.
-   void updateG(const float &weight_turning, const float &weight_change_of_direction, const float &weight_reverse);
-
    // CUSTOM OPERATORS
    /// Custom operator to compare nodes. Nodes are equal if their x and y position as well as heading is similar.
-   bool operator==(const Node3D &rhs) const;
-
-   // RANGE CHECKING
-   /// Determines whether it is appropriate to find a analytical solution.
-   //  bool IsInRange(const Node3D &goal, const float &range) const;
-   /**
-    * @brief determin if two Node3D are close enough to say they are equal
-    * 
-    * @param goal 
-    * @param distance_range 
-    * @param angle_range 
-    * @return true 
-    * @return false 
-    */
-   //  bool IsCloseEnough(const Node3D &goal, const float &distance_range, const float &angle_range) const;
-   // GRID CHECKING
-   /// Validity check to test, whether the node is in the 3D array.
-
-   //  bool isOnGrid(const int width, const int height) const;
-
-   // SUCCESSOR CREATION
-   /// Creates a successor in the continuous space.
-   //  Node3D *createSuccessor(const int i);
-
-   // CONSTANT VALUES
-   /// Number of possible directions
-   //  static const int dir;
-   /// Possible movements in the x direction
-   static const float dx[];
-   /// Possible movements in the y direction
-   static const float dy[];
-   /// Possible movements regarding heading theta
-   static const float dt[];
+   bool operator==(const Node3D &rhs) const
+   {
+     return (int)x == (int)rhs.x &&
+            (int)y == (int)rhs.y &&
+            (t == rhs.t);
+   };
 
  private:
   /// the x position

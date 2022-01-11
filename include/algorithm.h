@@ -99,7 +99,7 @@ namespace HybridAStar
        */
       std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const int &possible_dir);
 
-      // void TracePath(const Node3D *node);
+      void UpdateCostSoFar(Node3D &node, const float &weight_turning, const float &weight_change_of_direction, const float &weight_reverse);
 
       void TracePath(std::shared_ptr<Node3D> node3d_ptr);
 
