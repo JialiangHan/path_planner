@@ -39,7 +39,8 @@ find_package(Eigen3 REQUIRED)
 
 include_directories(${EIGEN3_INCLUDE_DIRS})
 set(SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/algorithm.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/src/a_star.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/hybrid_a_star.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bucketedqueue.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/src/collisiondetection.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/cubic_bezier.cpp
@@ -55,7 +56,8 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/visualize.cpp
     )
 set(HEADERS
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/algorithm.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/a_star.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/hybrid_a_star.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/bucketedqueue.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/include/collisiondetection.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/constants.h

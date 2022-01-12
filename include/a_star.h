@@ -13,7 +13,7 @@
 #include <boost/heap/binomial_heap.hpp>
 #include "visualize.h"
 #include "collisiondetection.h"
-#include "lookup_table.h"
+#include "utility.h"
 namespace HybridAStar
 {
     //path from start to goal
