@@ -79,11 +79,11 @@ namespace HybridAStar
     // #********************** vehicle parameters *****************
 
     /// [m] --- Uniformly adds a padding around the vehicle
-    double bloating = 0;
+    float bloating = 0;
     /// [m] --- The width of the vehicle
-    double vehicle_width = 1.75;
+    float vehicle_width = 1.75;
     /// [m] --- The length of the vehicle
-    double vehicle_length = 2.65;
+    float vehicle_length = 2.65;
   };
   //this struct contains some used parameter in planner.cpp
   struct ParameterPlanner

@@ -38,18 +38,18 @@ namespace PathEvaluator
          */
 
         void CallbackSetMap(const nav_msgs::OccupancyGridConstPtr &map);
-        void ConvertRosPathToVectorEigenVector3d(const nav_msgs::Path::ConstPtr &path, std::vector<Eigen::Vector3d> &node_3d_vec);
+        void ConvertRosPathToVectorEigenVector3f(const nav_msgs::Path::ConstPtr &path, std::vector<Eigen::Vector3f> &node_3d_vec);
         /**
          * @brief calculate curvature for the path 
          * 
          * @param path got from planner
          * @return std::vector<float> 
          */
-        int CalculateCurvature(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name);
+        int CalculateCurvature(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name);
 
-        int CalculateClearance(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name);
+        int CalculateClearance(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name);
 
-        int CalculateSmoothness(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name);
+        int CalculateSmoothness(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name);
         /**
          * @brief plot all the metrics for the path.
          * 

@@ -32,9 +32,9 @@ namespace Constants
   // GENERAL CONSTANTS
 
   /// [m] --- The width of the vehicle
-  static const double width = 1.75;
+  static const float width = 1.75;
   /// [m] --- The length of the vehicle
-  static const double length = 2.65;
+  static const float length = 2.65;
 
   /// [m] --- The number of discretizations in heading
   static const int headings = 72;

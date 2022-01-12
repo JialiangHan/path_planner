@@ -21,7 +21,7 @@
             float distance = GetDistance(start, goal);
             if (distance < distance_range)
             {
-                float angle_diff = RadToZeroTo2P(start.GetT() - goal.GetT());
+                float angle_diff = RadNormalization(start.GetT() - goal.GetT());
                 if (angle_diff <= angle_range)
                 {
                     DLOG(INFO) << "two node distance and orientation are close enough, return true";
@@ -39,7 +39,7 @@
                 return false;
             }
         }
-        HybridAStar::Node3D ConvertVector3dToNode3D(const Eigen::Vector3d &vector3d)
+        HybridAStar::Node3D ConvertVector3fToNode3D(const Eigen::Vector3f &vector3d)
         {
             float x = vector3d.x();
             float y = vector3d.y();
@@ -48,15 +48,15 @@
             return node3d;
         }
 
-        Eigen::Vector3d ConvertNode3DToVector3d(const HybridAStar::Node3D &node3d)
+        Eigen::Vector3f ConvertNode3DToVector3f(const HybridAStar::Node3D &node3d)
         {
-            Eigen::Vector3d out;
+            Eigen::Vector3f out;
             out.x() = node3d.GetX();
             out.y() = node3d.GetY();
             out.z() = node3d.GetT();
             return out;
         }
-        nav_msgs::Path ConvertVectorVector3DToRosPath(const std::vector<Eigen::Vector3d> &vector_3d_vec)
+        nav_msgs::Path ConvertVectorVector3DToRosPath(const std::vector<Eigen::Vector3f> &vector_3d_vec)
         {
             nav_msgs::Path out;
             out.header.stamp = ros::Time::now();
@@ -75,12 +75,12 @@
             return out;
         }
 
-        void ConvertRosPathToVectorVector3D(const nav_msgs::Path::ConstPtr &path, std::vector<Eigen::Vector3d> &vector_3d_vec)
+        void ConvertRosPathToVectorVector3D(const nav_msgs::Path::ConstPtr &path, std::vector<Eigen::Vector3f> &vector_3d_vec)
         {
             vector_3d_vec.clear();
             for (uint i = 0; i < path->poses.size(); ++i)
             {
-                Eigen::Vector3d point;
+                Eigen::Vector3f point;
                 point.x() = (path->poses[i].pose.position.x);
                 point.y() = (path->poses[i].pose.position.y);
                 //not sure this is correct;
@@ -88,29 +88,29 @@
                 vector_3d_vec.emplace_back(point);
             }
         }
-        Eigen::Vector3d ConvertVector2dToVector3d(const Eigen::Vector2d &vector_2d)
+        Eigen::Vector3f ConvertVector2fToVector3f(const Eigen::Vector2f &vector_2d)
         {
-            Eigen::Vector3d out;
+            Eigen::Vector3f out;
             out.x() = vector_2d.x();
             out.y() = vector_2d.y();
             out.z() = 0;
             return out;
         }
-        double ConvertDegToRad(const double &deg)
+        float ConvertDegToRad(const float &deg)
         {
-            double rad;
+            float rad;
             rad = deg / 360 * 2 * M_PI;
             return RadToZeroTo2P(rad);
         }
-        double ConvertRadToDeg(const double &rad)
+        float ConvertRadToDeg(const float &rad)
         {
-            double deg;
+            float deg;
             deg = rad / 2 / M_PI * 360;
             return DegToZeroTo2P(deg);
         }
-        double DegNormalization(const double &t)
+        float DegNormalization(const float &t)
         {
-            double out;
+            float out;
             out = fmod(t, 360);
             if (out < 0)
             {
@@ -123,9 +123,9 @@
             return out;
         }
 
-        double RadNormalization(const double &rad)
+        float RadNormalization(const float &rad)
         {
-            double out;
+            float out;
             out = fmod(rad, 2.f * M_PI);
             if (out < 0)
             {
@@ -138,9 +138,9 @@
             return out;
         }
 
-        double DegToZeroTo2P(const double &deg)
+        float DegToZeroTo2P(const float &deg)
         {
-            double out;
+            float out;
             out = fmod(deg, 360);
             if (out < 0)
             {
@@ -150,9 +150,9 @@
             return out;
         }
 
-        double RadToZeroTo2P(const double &rad)
+        float RadToZeroTo2P(const float &rad)
         {
-            double out;
+            float out;
             out = fmod(rad, 2.f * M_PI);
             if (out < 0)
             {
@@ -161,28 +161,28 @@
 
             return out;
         }
-        Eigen::Vector2d ConvertVector3dToVector2d(const Eigen::Vector3d &vector_3d)
+        Eigen::Vector2f ConvertVector3fToVector2f(const Eigen::Vector3f &vector_3d)
         {
-            Eigen::Vector2d out;
+            Eigen::Vector2f out;
             out.x() = vector_3d.x();
             out.y() = vector_3d.y();
             return out;
         }
 
-        Eigen::Vector2d ConvertIndexToEigenVector2d(const int &index, const int &map_width)
+        Eigen::Vector2f ConvertIndexToEigenVector2f(const int &index, const int &map_width)
         {
-            Eigen::Vector2d out;
+            Eigen::Vector2f out;
             out.x() = (index % map_width);
             out.y() = (index / map_width);
             return out;
         }
 
-        bool OnSegment(const Eigen::Vector2d &p1, const Eigen::Vector2d &p3, const Eigen::Vector2d &p2)
+        bool OnSegment(const Eigen::Vector2f &p1, const Eigen::Vector2f &p3, const Eigen::Vector2f &p2)
         {
             if (p2.x() <= std::max(p1.x(), p3.x()) && p2.x() >= std::min(p1.x(), p3.x()) && p2.y() <= std::max(p1.y(), p3.y()) && p2.y() >= std::min(p1.y(), p3.y()))
             {
-                Eigen::Vector2d p1p2 = p2 - p1;
-                Eigen::Vector2d p1p3 = p3 - p1;
+                Eigen::Vector2f p1p2 = p2 - p1;
+                Eigen::Vector2f p1p3 = p3 - p1;
                 if (abs(p1p2.dot(p1p3) / p1p2.norm() / p1p3.norm() - 1) < 1e-6)
                 {
                     return true;
@@ -198,15 +198,15 @@
             }
         }
 
-        double CrossProduct(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2)
+        float CrossProduct(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2)
         {
-            double out;
+            float out;
             out = p1.x() * p2.y() - p2.x() * p1.y();
             //DLOG(INFO) << "result is " << out;
             return out;
         }
 
-        int IsIntersect(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3, const Eigen::Vector2d &p4)
+        int IsIntersect(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2, const Eigen::Vector2f &p3, const Eigen::Vector2f &p4)
         {
             if (std::max(p3.x(), p4.x()) < std::min(p1.x(), p2.x()) ||
                 std::max(p3.y(), p4.y()) < std::min(p1.y(), p2.y()) ||
@@ -228,9 +228,9 @@
             }
         }
 
-        Eigen::Vector2d FindIntersectionPoint(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3, const Eigen::Vector2d &p4)
+        Eigen::Vector2f FindIntersectionPoint(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2, const Eigen::Vector2f &p3, const Eigen::Vector2f &p4)
         {
-            Eigen::Vector2d out;
+            Eigen::Vector2f out;
             if (0 == IsIntersect(p1, p2, p3, p4))
             {
                 out.x() = 10000;
@@ -238,14 +238,14 @@
             }
             else
             {
-                Eigen::Vector2d dir_1 = p2 - p1, dir_2 = p4 - p3;
-                double t;
+                Eigen::Vector2f dir_1 = p2 - p1, dir_2 = p4 - p3;
+                float t;
                 t = CrossProduct(p3 - p1, dir_2) / CrossProduct(dir_1, dir_2);
                 out = p1 + t * dir_1;
             }
             return out;
         }
-        int IsAboveSegment(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3)
+        int IsAboveSegment(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2, const Eigen::Vector2f &p3)
         {
             int above = 1, on_segment = 1, below = 0;
             if (OnSegment(p1, p2, p3))
@@ -278,8 +278,8 @@
                 }
                 else
                 {
-                    double k = (p2 - p1).y() / (p2 - p1).x();
-                    double b = p1.y() - k * p1.x();
+                    float k = (p2 - p1).y() / (p2 - p1).x();
+                    float b = p1.y() - k * p1.x();
                     if (k * p3.x() + b - p3.y() < 0)
                     {
                         return above;
@@ -291,9 +291,9 @@
                 }
             }
         }
-        int IsInsidePolygon(const std::vector<Eigen::Vector2d> &polygon, const Eigen::Vector2d &point)
+        int IsInsidePolygon(const std::vector<Eigen::Vector2f> &polygon, const Eigen::Vector2f &point)
         {
-            Eigen::Vector2d far_away_point(10000, point.y());
+            Eigen::Vector2f far_away_point(10000, point.y());
             int number_intersection = 0;
             for (uint i = 0; i < polygon.size() - 1; ++i)
             {
@@ -306,7 +306,7 @@
                 //if edge intersect with vector from point to far away point
                 if (IsIntersect(point, far_away_point, polygon[i], polygon[i + 1]) == 1)
                 {
-                    Eigen::Vector2d intersection_point = FindIntersectionPoint(point, far_away_point, polygon[i], polygon[i + 1]);
+                    Eigen::Vector2f intersection_point = FindIntersectionPoint(point, far_away_point, polygon[i], polygon[i + 1]);
                     //DLOG(INFO) << "point horizontal vector is intersecting polygon!";
                     if ((polygon[i] - intersection_point).norm() < 1e-3)
                     {
@@ -341,23 +341,23 @@
                 return 1;
             }
         }
-        int IsInsidePolygon(const std::vector<Eigen::Vector2d> &polygon, const Eigen::Vector3d &point)
+        int IsInsidePolygon(const std::vector<Eigen::Vector2f> &polygon, const Eigen::Vector3f &point)
         {
-            Eigen::Vector2d point_2d = Utility::ConvertVector3dToVector2d(point);
+            Eigen::Vector2f point_2d = Utility::ConvertVector3fToVector2f(point);
             return IsInsidePolygon(polygon, point_2d);
         }
-        std::vector<Eigen::Vector2d> CreatePolygon(const double &width, const double &height)
+        std::vector<Eigen::Vector2f> CreatePolygon(const float &width, const float &height)
         {
-            std::vector<Eigen::Vector2d> polygon;
-            polygon.emplace_back(Eigen::Vector2d(0, 0));
-            polygon.emplace_back(Eigen::Vector2d(width, 0));
-            polygon.emplace_back(Eigen::Vector2d(width, height));
-            polygon.emplace_back(Eigen::Vector2d(0, height));
-            polygon.emplace_back(Eigen::Vector2d(0, 0));
+            std::vector<Eigen::Vector2f> polygon;
+            polygon.emplace_back(Eigen::Vector2f(0, 0));
+            polygon.emplace_back(Eigen::Vector2f(width, 0));
+            polygon.emplace_back(Eigen::Vector2f(width, height));
+            polygon.emplace_back(Eigen::Vector2f(0, height));
+            polygon.emplace_back(Eigen::Vector2f(0, 0));
             return polygon;
         }
 
-        float GetDistanceFromVector2dToVector3d(const Eigen::Vector3d &vector_3d, const Eigen::Vector2d &vector_2d)
+        float GetDistanceFromVector2fToVector3f(const Eigen::Vector3f &vector_3d, const Eigen::Vector2f &vector_2d)
         {
             float distance;
             float delta_x = vector_2d.x() - vector_3d.x();

@@ -290,9 +290,9 @@ namespace HybridAStar
     // {
 
     //   // start
-    //   double q0[] = {start.GetX(), start.GetY(), start.GetT()};
+    //   float q0[] = {start.GetX(), start.GetY(), start.GetT()};
     //   // goal
-    //   double q1[] = {goal.GetX(), goal.GetY(), goal.GetT()};
+    //   float q1[] = {goal.GetX(), goal.GetY(), goal.GetT()};
     //   // initialize the path
     //   DubinsPath path;
     //   // calculate the path
@@ -302,7 +302,7 @@ namespace HybridAStar
 
     //   while (x < length)
     //   {
-    //     double q[3];
+    //     float q[3];
     //     dubins_path_sample(&path, x, q);
     //     Node3D *node3d;
     //     node3d->setX(q[0]);
@@ -328,9 +328,9 @@ namespace HybridAStar
     // }
     // else if (params_.curve_type == 1)
     // {
-    Eigen::Vector3d vector3d_start = Utility::ConvertNode3DToVector3d(start);
+    Eigen::Vector3f vector3d_start = Utility::ConvertNode3DToVector3f(start);
     // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
-    Eigen::Vector3d vector3d_goal = Utility::ConvertNode3DToVector3d(goal);
+    Eigen::Vector3f vector3d_goal = Utility::ConvertNode3DToVector3f(goal);
     int map_width, map_height;
     map_width = configuration_space_ptr_->grid_ptr_->info.width;
     map_height = configuration_space_ptr_->grid_ptr_->info.height;
@@ -342,7 +342,7 @@ namespace HybridAStar
     while (x < length)
     {
       // DLOG(INFO) << i << "th iteration";
-      Node3D node3d = Utility::ConvertVector3dToNode3D(cubic_bezier.GetValueAt(x / length));
+      Node3D node3d = Utility::ConvertVector3fToNode3D(cubic_bezier.GetValueAt(x / length));
       float curvature = cubic_bezier.GetCurvatureAt(x / length);
       node3d.setT(cubic_bezier.GetAngleAt(x / length));
 

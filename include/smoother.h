@@ -44,22 +44,22 @@ namespace HybridAStar
       const std::vector<Node3D> &GetPath() { return path_; }
 
       /// obstacleCost - pushes the path away from obstacles
-      Eigen::Vector2d ObstacleTerm(Eigen::Vector2d xi);
+      Eigen::Vector2f ObstacleTerm(Eigen::Vector2f xi);
 
       /// curvatureCost - forces a maximum curvature of 1/R along the path ensuring drivability
-      Eigen::Vector2d CurvatureTerm(Eigen::Vector2d xim2, Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1, Eigen::Vector2d xip2);
+      Eigen::Vector2f CurvatureTerm(Eigen::Vector2f xim2, Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1, Eigen::Vector2f xip2);
 
       /// smoothnessCost - attempts to spread nodes equidistantly and with the same orientation
-      Eigen::Vector2d SmoothnessTerm(Eigen::Vector2d xim2, Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1, Eigen::Vector2d xip2);
+      Eigen::Vector2f SmoothnessTerm(Eigen::Vector2f xim2, Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1, Eigen::Vector2f xip2);
 
       /// voronoiCost - trade off between path length and closeness to obstacles
-      Eigen::Vector2d VoronoiTerm(Eigen::Vector2d xi);
+      Eigen::Vector2f VoronoiTerm(Eigen::Vector2f xi);
 
       // cost for path length, in order to minimize path length
-      Eigen::Vector2d PathLengthTerm(Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1);
+      Eigen::Vector2f PathLengthTerm(Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1);
 
       /// a boolean test, whether vector is on the grid or not
-      bool isOnGrid(Eigen::Vector2d vec)
+      bool isOnGrid(Eigen::Vector2f vec)
       {
          if (vec(0, 0) >= 0 && vec(0, 0) < map_width_ &&
              vec(1, 0) >= 0 && vec(1, 0) < map_height_)
@@ -83,7 +83,7 @@ namespace HybridAStar
        */
       float GetPathDiff(const std::vector<Node3D> &path_before_smooth, const std::vector<Node3D> &path_after_smooth);
 
-      Eigen::Vector2d OrthogonalComplements(const Eigen::Vector2d &a, const Eigen::Vector2d &b);
+      Eigen::Vector2f OrthogonalComplements(const Eigen::Vector2f &a, const Eigen::Vector2f &b);
 
    private:
       void SetSmootherParams(const ParameterSmoother &smoother_params);

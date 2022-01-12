@@ -45,17 +45,17 @@
 namespace HybridAStar {
 
 // The various types of solvers for each of the path types
-typedef int (*DubinsWord)(double, double, double, double* );
+typedef int (*DubinsWord)(float, float, float, float *);
 
 // A complete list of the possible solvers that could give optimal paths
 extern DubinsWord dubins_words[];
 
 typedef struct
 {
-    double qi[3];       // the initial configuration
-    double param[3];    // the lengths of the three segments
-    double rho;         // model forward velocity / model angular velocity
-    int type;           // path type. one of LSL, LSR, ...
+  float qi[3];    // the initial configuration
+  float param[3]; // the lengths of the three segments
+  float rho;      // model forward velocity / model angular velocity
+  int type;       // path type. one of LSL, LSR, ...
 } DubinsPath;
 
 /**
@@ -66,7 +66,7 @@ typedef struct
  * @note the user_data parameter is forwarded from the caller
  * @note return non-zero to denote sampling should be stopped
  */
-typedef int (*DubinsPathSamplingCallback)(double q[3], double t, void* user_data);
+typedef int (*DubinsPathSamplingCallback)(float q[3], float t, void *user_data);
 
 /**
  * Generate a path from an initial configuration to
@@ -82,14 +82,14 @@ typedef int (*DubinsPathSamplingCallback)(double q[3], double t, void* user_data
  * @param path  - the resultant path
  * @return      - non-zero on error
  */
-int dubins_init( double q0[3], double q1[3], double rho, DubinsPath* path);
+int dubins_init(float q0[3], float q1[3], float rho, DubinsPath *path);
 
 /**
  * Calculate the length of an initialised path
  *
  * @param path - the path to find the length of
  */
-double dubins_path_length( DubinsPath* path );
+float dubins_path_length(DubinsPath *path);
 
 /**
  * Extract an integer that represents which path type was used
@@ -107,7 +107,7 @@ int dubins_path_type( DubinsPath * path );
  * @param q    - the configuration result
  * @returns    - non-zero if 't' is not in the correct range
  */
-int dubins_path_sample( DubinsPath* path, double t, double q[3]);
+int dubins_path_sample(DubinsPath *path, float t, float q[3]);
 
 /**
  * Walk along the path at a fixed sampling interval, calling the
@@ -118,7 +118,7 @@ int dubins_path_sample( DubinsPath* path, double t, double q[3]);
  * @param user_data - optional information to pass on to the callback
  * @param stepSize  - the distance along the path for subsequent samples
  */
-int dubins_path_sample_many( DubinsPath* path, DubinsPathSamplingCallback cb, double stepSize, void* user_data );
+int dubins_path_sample_many(DubinsPath *path, DubinsPathSamplingCallback cb, float stepSize, void *user_data);
 
 /**
  * Convenience function to identify the endpoint of a path
@@ -126,7 +126,7 @@ int dubins_path_sample_many( DubinsPath* path, DubinsPathSamplingCallback cb, do
  * @param path - an initialised path
  * @param q    - the configuration result
  */
-int dubins_path_endpoint( DubinsPath* path, double q[3] );
+int dubins_path_endpoint(DubinsPath *path, float q[3]);
 
 /**
  * Convenience function to extract a subset of a path
@@ -135,15 +135,14 @@ int dubins_path_endpoint( DubinsPath* path, double q[3] );
  * @param t       - a length measure, where 0 < t < dubins_path_length(path)
  * @param newpath - the resultant path
  */
-int dubins_extract_subpath( DubinsPath* path, double t, DubinsPath* newpath );
+int dubins_extract_subpath(DubinsPath *path, float t, DubinsPath *newpath);
 
 // Only exposed for testing purposes
-int dubins_LSL( double alpha, double beta, double d, double* outputs );
-int dubins_RSR( double alpha, double beta, double d, double* outputs );
-int dubins_LSR( double alpha, double beta, double d, double* outputs );
-int dubins_RSL( double alpha, double beta, double d, double* outputs );
-int dubins_LRL( double alpha, double beta, double d, double* outputs );
-int dubins_RLR( double alpha, double beta, double d, double* outputs );
-
+int dubins_LSL(float alpha, float beta, float d, float *outputs);
+int dubins_RSR(float alpha, float beta, float d, float *outputs);
+int dubins_LSR(float alpha, float beta, float d, float *outputs);
+int dubins_RSL(float alpha, float beta, float d, float *outputs);
+int dubins_LRL(float alpha, float beta, float d, float *outputs);
+int dubins_RLR(float alpha, float beta, float d, float *outputs);
 }
 #endif // DUBINS_H

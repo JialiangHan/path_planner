@@ -66,12 +66,12 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
       for (uint i = 2; i < path_before_smooth.size() - 2; ++i)
       {
 
-        Eigen::Vector2d xim2(path_before_smooth[i - 2].GetX(), path_before_smooth[i - 2].GetY());
-        Eigen::Vector2d xim1(path_before_smooth[i - 1].GetX(), path_before_smooth[i - 1].GetY());
-        Eigen::Vector2d xi(path_before_smooth[i].GetX(), path_before_smooth[i].GetY());
-        Eigen::Vector2d xip1(path_before_smooth[i + 1].GetX(), path_before_smooth[i + 1].GetY());
-        Eigen::Vector2d xip2(path_before_smooth[i + 2].GetX(), path_before_smooth[i + 2].GetY());
-        Eigen::Vector2d correction;
+        Eigen::Vector2f xim2(path_before_smooth[i - 2].GetX(), path_before_smooth[i - 2].GetY());
+        Eigen::Vector2f xim1(path_before_smooth[i - 1].GetX(), path_before_smooth[i - 1].GetY());
+        Eigen::Vector2f xi(path_before_smooth[i].GetX(), path_before_smooth[i].GetY());
+        Eigen::Vector2f xip1(path_before_smooth[i + 1].GetX(), path_before_smooth[i + 1].GetY());
+        Eigen::Vector2f xip2(path_before_smooth[i + 2].GetX(), path_before_smooth[i + 2].GetY());
+        Eigen::Vector2f correction;
         // //DLOG(INFO) << "xim2: " << xim2(0,0) << " " << xim2(1,0)
         //  << "xim1: " << xim1(0,0) << " " << xim1(1,0)
         //  << "xi: " << xi(0,0) << " " << xi(1,0)
@@ -129,7 +129,7 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
         }
         smoothed_path[i].setX(xi(0, 0));
         smoothed_path[i].setY(xi(1, 0));
-        Eigen::Vector2d Dxi = xi - xim1;
+        Eigen::Vector2f Dxi = xi - xim1;
         smoothed_path[i - 1].setT(std::atan2(Dxi(1, 0), Dxi(0, 0)));
         // //DLOG(INFO) << i << "th node after correction: x: " << xi(0,0) << " y: " << xi(1,0);
       }
@@ -173,9 +173,9 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
 //###################################################
 //                                      OBSTACLE TERM
 //###################################################
-Eigen::Vector2d Smoother::ObstacleTerm(Eigen::Vector2d xi)
+Eigen::Vector2f Smoother::ObstacleTerm(Eigen::Vector2f xi)
 {
-  Eigen::Vector2d gradient;
+  Eigen::Vector2f gradient;
   // the distance to the closest obstacle from the current node
   float obsDst = voronoi_.getDistance(xi(0, 0), xi(1, 0));
   // the vector determining where the obstacle is
@@ -184,7 +184,7 @@ Eigen::Vector2d Smoother::ObstacleTerm(Eigen::Vector2d xi)
   // if the node is within the map
   if (x < map_width_ && x >= 0 && y < map_height_ && y >= 0)
   {
-    Eigen::Vector2d obsVct(xi(0, 0) - voronoi_.data[(int)xi(0, 0)][(int)xi(1, 0)].obstX,
+    Eigen::Vector2f obsVct(xi(0, 0) - voronoi_.data[(int)xi(0, 0)][(int)xi(1, 0)].obstX,
                            xi(1, 0) - voronoi_.data[(int)xi(0, 0)][(int)xi(1, 0)].obstY);
 
     // the closest obstacle is closer than desired correct the path for that
@@ -199,19 +199,19 @@ Eigen::Vector2d Smoother::ObstacleTerm(Eigen::Vector2d xi)
 //###################################################
 //                                       VORONOI TERM
 //###################################################
-Eigen::Vector2d Smoother::VoronoiTerm(Eigen::Vector2d xi)
+Eigen::Vector2f Smoother::VoronoiTerm(Eigen::Vector2f xi)
 {
-  Eigen::Vector2d gradient;
+  Eigen::Vector2f gradient;
 
   float obsDst = voronoi_.getDistance(xi(0, 0), xi(1, 0));
   // the vector determining where the obstacle is
-  Eigen::Vector2d obsVct(xi(0, 0) - voronoi_.data[(int)xi(0, 0)][(int)xi(1, 0)].obstX,
+  Eigen::Vector2f obsVct(xi(0, 0) - voronoi_.data[(int)xi(0, 0)][(int)xi(1, 0)].obstX,
                          xi(1, 0) - voronoi_.data[(int)xi(0, 0)][(int)xi(1, 0)].obstY);
   // distance to the closest voronoi edge
-  double edgDst = 0.0;
+  float edgDst = 0.0;
   INTPOINT closest_edge_pt = voronoi_.GetClosestVoronoiEdgePoint(xi, edgDst);
   // the vector determining where the voronoi edge is
-  Eigen::Vector2d edgVct(xi(0, 0) - closest_edge_pt.x, xi(1, 0) - closest_edge_pt.y);
+  Eigen::Vector2f edgVct(xi(0, 0) - closest_edge_pt.x, xi(1, 0) - closest_edge_pt.y);
   //calculate the distance to the closest obstacle from the current node
 
   if (obsDst < params_.vor_obs_dmax && obsDst > 1e-6)
@@ -221,8 +221,8 @@ Eigen::Vector2d Smoother::VoronoiTerm(Eigen::Vector2d xi)
     if (edgDst > 0)
     {
       // equations can be found in paper "Path Planning for autonomous vehicle in unknown semi-structured environments"
-      Eigen::Vector2d PobsDst_Pxi = obsVct / obsDst;
-      Eigen::Vector2d PedgDst_Pxi = edgVct / edgDst;
+      Eigen::Vector2f PobsDst_Pxi = obsVct / obsDst;
+      Eigen::Vector2f PedgDst_Pxi = edgVct / edgDst;
 
       float PvorPtn_PedgDst = (params_.alpha / (params_.alpha + obsDst)) * std::pow((obsDst - params_.vor_obs_dmax) / params_.vor_obs_dmax, 2) * (obsDst / std::pow(obsDst + edgDst, 2));
 
@@ -240,15 +240,15 @@ Eigen::Vector2d Smoother::VoronoiTerm(Eigen::Vector2d xi)
 //###################################################
 //                                     CURVATURE TERM
 //###################################################
-Eigen::Vector2d Smoother::CurvatureTerm(Eigen::Vector2d xim2, Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1, Eigen::Vector2d xip2)
+Eigen::Vector2f Smoother::CurvatureTerm(Eigen::Vector2f xim2, Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1, Eigen::Vector2f xip2)
 {
   //use curvature square as cost function for curvature term
-  Eigen::Vector2d gradient;
+  Eigen::Vector2f gradient;
   // the vectors between the nodes
-  Eigen::Vector2d Dxi = xi - xim1;
-  Eigen::Vector2d Dxip1 = xip1 - xi;
-  Eigen::Vector2d Dxip2 = xip2 - xip1;
-  Eigen::Vector2d Dxim1 = xim1 - xim2;
+  Eigen::Vector2f Dxi = xi - xim1;
+  Eigen::Vector2f Dxip1 = xip1 - xi;
+  Eigen::Vector2f Dxip2 = xip2 - xip1;
+  Eigen::Vector2f Dxim1 = xim1 - xim2;
 
   // the distance of the vectors
   float norm_Dxi = Dxi.norm();
@@ -265,7 +265,7 @@ Eigen::Vector2d Smoother::CurvatureTerm(Eigen::Vector2d xim2, Eigen::Vector2d xi
     if (Dphim1 == 0 || Dphi == 0 || Dphip1 == 0)
     {
       //DLOG(INFO) << "one of the changing angle is 0!!!";
-      Eigen::Vector2d zeros(0, 0);
+      Eigen::Vector2f zeros(0, 0);
       return zeros;
     }
     float absDxi1Inv = 1 / norm_Dxi;
@@ -280,13 +280,13 @@ Eigen::Vector2d Smoother::CurvatureTerm(Eigen::Vector2d xim2, Eigen::Vector2d xi
     float uim1 = absDxim1Inv * PDphim1_PcosDphim1;
     float uip1 = absDxip1Inv * PDphip1_PcosDphip1;
 
-    Eigen::Vector2d PcosDphi_Pxi = -OrthogonalComplements(xi, -xip1) / (norm_Dxi * norm_Dxip1) - OrthogonalComplements(-xip1, xi) / (norm_Dxi * norm_Dxip1);
-    Eigen::Vector2d PcosDphim1_Pxi = OrthogonalComplements(xim1, -xi) / (norm_Dxim1 * norm_Dxi);
-    Eigen::Vector2d PcosDphip1_Pxi = OrthogonalComplements(-xip2, xip1) / (norm_Dxip1 * norm_Dxip2);
-    Eigen::Vector2d ones(1, 1);
-    Eigen::Vector2d Pcurvature_m_Pxi = uim1 * PcosDphim1_Pxi;
-    Eigen::Vector2d Pcurvature_i_Pxi = ui * PcosDphi_Pxi - Dphi / std::pow(norm_Dxi, 2) * ones;
-    Eigen::Vector2d Pcurvature_p_Pxi = uip1 * PcosDphip1_Pxi + Dphip1 / std::pow(norm_Dxip1, 2) * ones;
+    Eigen::Vector2f PcosDphi_Pxi = -OrthogonalComplements(xi, -xip1) / (norm_Dxi * norm_Dxip1) - OrthogonalComplements(-xip1, xi) / (norm_Dxi * norm_Dxip1);
+    Eigen::Vector2f PcosDphim1_Pxi = OrthogonalComplements(xim1, -xi) / (norm_Dxim1 * norm_Dxi);
+    Eigen::Vector2f PcosDphip1_Pxi = OrthogonalComplements(-xip2, xip1) / (norm_Dxip1 * norm_Dxip2);
+    Eigen::Vector2f ones(1, 1);
+    Eigen::Vector2f Pcurvature_m_Pxi = uim1 * PcosDphim1_Pxi;
+    Eigen::Vector2f Pcurvature_i_Pxi = ui * PcosDphi_Pxi - Dphi / std::pow(norm_Dxi, 2) * ones;
+    Eigen::Vector2f Pcurvature_p_Pxi = uip1 * PcosDphip1_Pxi + Dphip1 / std::pow(norm_Dxip1, 2) * ones;
 
     // calculate the gradient
     gradient = params_.weight_curvature * (2 * Pcurvature_m_Pxi + 2 * Pcurvature_i_Pxi + 2 * Pcurvature_p_Pxi);
@@ -403,7 +403,7 @@ Eigen::Vector2d Smoother::CurvatureTerm(Eigen::Vector2d xim2, Eigen::Vector2d xi
           //DLOG(INFO) << "inside acos : " << Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2);
         }
       }
-      Eigen::Vector2d zeros(0, 0);
+      Eigen::Vector2f zeros(0, 0);
       return zeros;
     }
     // return gradient of 0
@@ -432,7 +432,7 @@ Eigen::Vector2d Smoother::CurvatureTerm(Eigen::Vector2d xim2, Eigen::Vector2d xi
         //DLOG(WARNING) << "xi is equal to xip1!!!!";
       }
     }
-    Eigen::Vector2d zeros(0, 0);
+    Eigen::Vector2f zeros(0, 0);
     return zeros;
   }
 }
@@ -440,12 +440,12 @@ Eigen::Vector2d Smoother::CurvatureTerm(Eigen::Vector2d xim2, Eigen::Vector2d xi
 //###################################################
 //                                    SMOOTHNESS TERM
 //###################################################
-Eigen::Vector2d Smoother::SmoothnessTerm(Eigen::Vector2d xim2, Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1, Eigen::Vector2d xip2)
+Eigen::Vector2f Smoother::SmoothnessTerm(Eigen::Vector2f xim2, Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1, Eigen::Vector2f xip2)
 {
   //this is correct, see https://zhuanlan.zhihu.com/p/118666410
   return params_.weight_smoothness * (xim2 - 4 * xim1 + 6 * xi - 4 * xip1 + xip2);
 }
-Eigen::Vector2d Smoother::PathLengthTerm(Eigen::Vector2d xim1, Eigen::Vector2d xi, Eigen::Vector2d xip1)
+Eigen::Vector2f Smoother::PathLengthTerm(Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1)
 {
   return params_.weight_length * 2 * (2 * xi - xim1 - xip1);
 }
@@ -479,8 +479,8 @@ float Smoother::GetPathDiff(const std::vector<Node3D> &path_before_smooth, const
     float diff = 0.0;
     for (uint i = 0; i < path_after_smooth.size(); ++i)
     {
-      Eigen::Vector2d xi_before(path_before_smooth[i].GetX(), path_before_smooth[i].GetY());
-      Eigen::Vector2d xi_after(path_after_smooth[i].GetX(), path_after_smooth[i].GetY());
+      Eigen::Vector2f xi_before(path_before_smooth[i].GetX(), path_before_smooth[i].GetY());
+      Eigen::Vector2f xi_after(path_after_smooth[i].GetX(), path_after_smooth[i].GetY());
       diff += (xi_after - xi_before).norm();
     }
     diff = diff / path_after_smooth.size();
@@ -489,9 +489,9 @@ float Smoother::GetPathDiff(const std::vector<Node3D> &path_before_smooth, const
   }
 }
 
-Eigen::Vector2d Smoother::OrthogonalComplements(const Eigen::Vector2d &a, const Eigen::Vector2d &b)
+Eigen::Vector2f Smoother::OrthogonalComplements(const Eigen::Vector2f &a, const Eigen::Vector2f &b)
 {
-  Eigen::Vector2d out;
+  Eigen::Vector2f out;
   out = a - a.dot(b) * b / b.norm() / b.norm();
   return out;
 }

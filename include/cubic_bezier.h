@@ -28,7 +28,7 @@ namespace CubicBezier
                 0, 0, 3, -3,
                 0, 0, 0, 1;
         };
-        CubicBezier(const Eigen::Vector3d &start, const Eigen::Vector3d &goal, int width, int height)
+        CubicBezier(const Eigen::Vector3f &start, const Eigen::Vector3f &goal, int width, int height)
         {
             basis_matrix_ << 1, -3, 3, -1,
                 0, 3, -6, 3,
@@ -42,7 +42,7 @@ namespace CubicBezier
             // CalculateLength();
             CalculateAnchorPoints();
         };
-        CubicBezier(const Eigen::Matrix<double, 3, 4> &point_matrix)
+        CubicBezier(const Eigen::Matrix<float, 3, 4> &point_matrix)
         {
 
             basis_matrix_ << 1, -3, 3, -1,
@@ -64,24 +64,24 @@ namespace CubicBezier
             CalculateAnchorPoints();
         }
 
-        Eigen::Vector3d GetValueAt(const double &t);
+        Eigen::Vector3f GetValueAt(const float &t);
 
-        double GetAngleAt(const double &t);
+        float GetAngleAt(const float &t);
 
-        // std::vector<Eigen::Vector3d> GetControlPoints() const { return control_points_vec_; };
-        std::vector<Eigen::Vector3d> GetAnchorPoints() const { return anchor_points_vec_; };
+        // std::vector<Eigen::Vector3f> GetControlPoints() const { return control_points_vec_; };
+        std::vector<Eigen::Vector3f> GetAnchorPoints() const { return anchor_points_vec_; };
 
-        double GetLength()
+        float GetLength()
         {
             CalculateLength();
             return length_;
         };
 
-        double GetCurvatureAt(const double &t);
-        double GetMaxCurvature();
-        double GetTotalCurvature();
+        float GetCurvatureAt(const float &t);
+        float GetMaxCurvature();
+        float GetTotalCurvature();
 
-        std::vector<Eigen::Vector3d> ConvertCubicBezierToVector3d(const int &number_of_points);
+        std::vector<Eigen::Vector3f> ConvertCubicBezierToVector3f(const int &number_of_points);
 
     private:
         /**
@@ -90,42 +90,42 @@ namespace CubicBezier
          */
         void CalculateLength();
 
-        Eigen::Vector4d CalculateCoefficient(const double &t);
+        Eigen::Vector4f CalculateCoefficient(const float &t);
 
-        Eigen::Vector4d CalculateFirstOrderDerivativeCoefficient(const double &t);
+        Eigen::Vector4f CalculateFirstOrderDerivativeCoefficient(const float &t);
 
-        Eigen::Vector4d CalculateSecondOrderDerivativeCoefficient(const double &t);
+        Eigen::Vector4f CalculateSecondOrderDerivativeCoefficient(const float &t);
 
         void CalculateControlPoints();
 
         void CalculateAnchorPoints();
 
-        Eigen::Vector3d GetFirstOrderDerivativeValueAt(const double &t);
+        Eigen::Vector3f GetFirstOrderDerivativeValueAt(const float &t);
 
-        Eigen::Vector3d GetSecondOrderDerivativeValueAt(const double &t);
+        Eigen::Vector3f GetSecondOrderDerivativeValueAt(const float &t);
 
     private:
         /**
          * @brief this is matrix form of anchor and control points
          * row is 3 due to eigen vector3d, column is 4 due to this is a cubic bezier
          */
-        Eigen::Matrix<double, 3, 4> geometrical_constraint_matrix_;
+        Eigen::Matrix<float, 3, 4> geometrical_constraint_matrix_;
 
-        Eigen::Matrix<double, 4, 4> basis_matrix_;
+        Eigen::Matrix<float, 4, 4> basis_matrix_;
 
         /**
          * @brief actually is start and goal points
          * 
          */
-        std::vector<Eigen::Vector3d> anchor_points_vec_;
+        std::vector<Eigen::Vector3f> anchor_points_vec_;
 
-        Eigen::Vector3d start_point_;
-        Eigen::Vector3d goal_point_;
+        Eigen::Vector3f start_point_;
+        Eigen::Vector3f goal_point_;
 
-        double length_ = 0;
+        float length_ = 0;
 
-        double map_width_;
-        double map_height_;
+        float map_width_;
+        float map_height_;
         /**
          * @brief determine how to calculate control points, random or use the way in paper
          * 

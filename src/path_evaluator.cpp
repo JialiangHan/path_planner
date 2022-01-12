@@ -12,7 +12,7 @@
 
 namespace PathEvaluator
 {
-    int PathEvaluator::CalculateCurvature(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name)
+    int PathEvaluator::CalculateCurvature(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name)
     {
         if (path.size() < 3)
         {
@@ -28,11 +28,11 @@ namespace PathEvaluator
         for (uint i = 0; i < path.size() - 2; ++i)
         {
             //get three points from path
-            Eigen::Vector2d xp(path[i].x(), path[i].y());
+            Eigen::Vector2f xp(path[i].x(), path[i].y());
             // DLOG(INFO) << "xp x is :" << xp(0,0) << "y is: " << xp.y();
-            Eigen::Vector2d xi(path[i + 1].x(), path[i + 1].y());
+            Eigen::Vector2f xi(path[i + 1].x(), path[i + 1].y());
             // DLOG(INFO) << "xi x is :" << xi(0,0) << "y is: " << xi.y();
-            Eigen::Vector2d xs(path[i + 2].x(), path[i + 2].y());
+            Eigen::Vector2f xs(path[i + 2].x(), path[i + 2].y());
             if (xp == xi || xi == xs)
             {
                 DLOG(WARNING) << "In CalculateCurvature: some points are equal, skip these points for curvature calculation!!";
@@ -40,22 +40,22 @@ namespace PathEvaluator
             }
             // DLOG(INFO) << "xs x is :" << xs(0,0) << "y is: " << xs.y();
             //get two vector between these three nodes
-            Eigen::Vector2d pre_vector = xi - xp;
+            Eigen::Vector2f pre_vector = xi - xp;
             // DLOG(INFO) << "pre_vector x is :" << pre_vector(0,0) << "y is: " << pre_vector.y();
-            Eigen::Vector2d succ_vector = xs - xi;
+            Eigen::Vector2f succ_vector = xs - xi;
             // DLOG(INFO) << "succ_vector x is :" << succ_vector(0,0) << "y is: " << succ_vector.y();
             //calculate delta distance and delta angle
-            double delta_distance = succ_vector.norm();
-            double pre_vector_length = pre_vector.norm();
+            float delta_distance = succ_vector.norm();
+            float pre_vector_length = pre_vector.norm();
             // DLOG(INFO) << "delta_distance is:" << delta_distance;
             // DLOG(INFO) << "pre_vector_length is: " << pre_vector_length;
             // there would some calculation error here causing number inside acos greater than 1 or smaller than -1.
-            double temp = pre_vector.dot(succ_vector) / (delta_distance * pre_vector_length);
+            float temp = pre_vector.dot(succ_vector) / (delta_distance * pre_vector_length);
             if (temp > 1 || temp < -1)
             {
                 temp = round(temp);
             }
-            double delta_angle = std::acos(temp);
+            float delta_angle = std::acos(temp);
             // DLOG(INFO) << "delta_angle is: " << delta_angle;
             //curvature = abs(delta_angle)/abs(delta_distance)
             curvature = delta_angle / delta_distance;
@@ -95,7 +95,7 @@ namespace PathEvaluator
         return 1;
     }
 
-    int PathEvaluator::CalculateSmoothness(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name)
+    int PathEvaluator::CalculateSmoothness(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name)
     {
         if (path.size() < 3)
         {
@@ -109,17 +109,17 @@ namespace PathEvaluator
         for (uint i = 0; i < path.size() - 2; ++i)
         {
             //get three points from path
-            Eigen::Vector2d xp(path[i].x(), path[i].y());
-            Eigen::Vector2d xi(path[i + 1].x(), path[i + 1].y());
-            Eigen::Vector2d xs(path[i + 2].x(), path[i + 2].y());
+            Eigen::Vector2f xp(path[i].x(), path[i].y());
+            Eigen::Vector2f xi(path[i + 1].x(), path[i + 1].y());
+            Eigen::Vector2f xs(path[i + 2].x(), path[i + 2].y());
             if (xp == xi || xi == xs)
             {
                 DLOG(WARNING) << "In CalculateSmoothness: some points are equal, skip these points for curvature calculation!!";
                 continue;
             }
             //get two vector between these three nodes
-            Eigen::Vector2d pre_vector = xi - xp;
-            Eigen::Vector2d succ_vector = xs - xi;
+            Eigen::Vector2f pre_vector = xi - xp;
+            Eigen::Vector2f succ_vector = xs - xi;
 
             smoothness = std::pow((succ_vector - pre_vector).norm(), 2);
             smoothness_vec.emplace_back(smoothness);
@@ -137,7 +137,7 @@ namespace PathEvaluator
         }
         return 1;
     }
-    int PathEvaluator::CalculateClearance(const std::vector<Eigen::Vector3d> &path, const std::string &topic_name)
+    int PathEvaluator::CalculateClearance(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name)
     {
         if (path.size() < 1)
         {
@@ -157,8 +157,8 @@ namespace PathEvaluator
             {
                 if (map_->data[index])
                 {
-                    Eigen::Vector2d obstacle_2d = Utility::ConvertIndexToEigenVector2d(index, map_width);
-                    float distance = Utility::GetDistanceFromVector2dToVector3d(vector_3d, obstacle_2d);
+                    Eigen::Vector2f obstacle_2d = Utility::ConvertIndexToEigenVector2f(index, map_width);
+                    float distance = Utility::GetDistanceFromVector2fToVector3f(vector_3d, obstacle_2d);
                     if (distance < clearance)
                     {
                         clearance = distance;
@@ -195,7 +195,7 @@ namespace PathEvaluator
 
     void PathEvaluator::CallbackPath(const nav_msgs::Path::ConstPtr &path, const std::string &topic_name)
     {
-        std::vector<Eigen::Vector3d> vector_3d_vec;
+        std::vector<Eigen::Vector3f> vector_3d_vec;
         Utility::ConvertRosPathToVectorVector3D(path, vector_3d_vec);
         //reverse path since path is from goal to start.
         // std::reverse(vector_3d_vec.begin(), vector_3d_vec.end());

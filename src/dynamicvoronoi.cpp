@@ -227,7 +227,7 @@ void DynamicVoronoi::update(bool updateRealDist) {
               open.push(newSqDistance, INTPOINT(nx,ny));
               nc.queueing = fwQueued;
               if (updateRealDist) {
-                nc.dist = sqrt((double) newSqDistance);
+                nc.dist = sqrt((float)newSqDistance);
               }
               nc.sqdist = newSqDistance;
               nc.obstX = c.obstX;
@@ -566,7 +566,7 @@ void DynamicVoronoi::CollectVoronoiEdgePoints()
   }
 }
 
-INTPOINT DynamicVoronoi::GetClosestVoronoiEdgePoint(Eigen::Vector2d xi, double &closest_dis)
+INTPOINT DynamicVoronoi::GetClosestVoronoiEdgePoint(Eigen::Vector2f xi, float &closest_dis)
 {
   INTPOINT closest_pt;
   std::string index = ComputeIndex(xi);
@@ -588,7 +588,7 @@ INTPOINT DynamicVoronoi::GetClosestVoronoiEdgePoint(Eigen::Vector2d xi, double &
       closest_pt = pt;
     }
   }
-  closest_dis = sqrt(static_cast<double>(closest_dis_sq));
+  closest_dis = sqrt(static_cast<float>(closest_dis_sq));
   closest_edge_points_.emplace(ComputeIndex(xi), std::make_pair(closest_pt, closest_dis));
   return closest_pt;
 }
@@ -598,7 +598,7 @@ std::string DynamicVoronoi::ComputeIndex(const INTPOINT &pi)
   return std::to_string(pi.x) + "_" + std::to_string(pi.y);
 }
 
-std::string DynamicVoronoi::ComputeIndex(const Eigen::Vector2d &pd)
+std::string DynamicVoronoi::ComputeIndex(const Eigen::Vector2f &pd)
 {
   return std::to_string((int)pd(0, 0)) + "_" + std::to_string((int)pd(1, 0));
 }

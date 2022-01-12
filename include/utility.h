@@ -19,19 +19,19 @@
 namespace Utility
 {
     //*******************type conversion*******************
-    void ConvertRosPathToVectorVector3D(const nav_msgs::Path::ConstPtr &path, std::vector<Eigen::Vector3d> &vector_3d_vec);
+    void ConvertRosPathToVectorVector3D(const nav_msgs::Path::ConstPtr &path, std::vector<Eigen::Vector3f> &vector_3d_vec);
 
-    Eigen::Vector2d ConvertIndexToEigenVector2d(const int &index, const int &map_width);
+    Eigen::Vector2f ConvertIndexToEigenVector2f(const int &index, const int &map_width);
 
-    nav_msgs::Path ConvertVectorVector3DToRosPath(const std::vector<Eigen::Vector3d> &vector_3d_vec);
+    nav_msgs::Path ConvertVectorVector3DToRosPath(const std::vector<Eigen::Vector3f> &vector_3d_vec);
 
-    Eigen::Vector2d ConvertVector3dToVector2d(const Eigen::Vector3d &vector_3d);
+    Eigen::Vector2f ConvertVector3fToVector2f(const Eigen::Vector3f &vector_3d);
 
-    Eigen::Vector3d ConvertVector2dToVector3d(const Eigen::Vector2d &vector_2d);
+    Eigen::Vector3f ConvertVector2fToVector3f(const Eigen::Vector2f &vector_2d);
 
-    Eigen::Vector3d ConvertNode3DToVector3d(const HybridAStar::Node3D &node3d);
+    Eigen::Vector3f ConvertNode3DToVector3f(const HybridAStar::Node3D &node3d);
 
-    HybridAStar::Node3D ConvertVector3dToNode3D(const Eigen::Vector3d &vector3d);
+    HybridAStar::Node3D ConvertVector3fToNode3D(const Eigen::Vector3f &vector3d);
     //**********************computational geometry****************
 
     /**
@@ -43,7 +43,7 @@ namespace Utility
      * @return true 
      * @return false 
      */
-    bool OnSegment(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3);
+    bool OnSegment(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2, const Eigen::Vector2f &p3);
     /**
      * @brief determine p3 is above or below segment p1-p2
      * 
@@ -52,7 +52,7 @@ namespace Utility
      * @param p3 
      * @return int 1 above and on segment, 0 below, 
      */
-    int IsAboveSegment(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3);
+    int IsAboveSegment(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2, const Eigen::Vector2f &p3);
     /**
      * @brief determine if two segment(p1-p2, p3-p4) are intersected? 
      * 
@@ -62,7 +62,7 @@ namespace Utility
      * @param p4 
      * @return int 
      */
-    int IsIntersect(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3, const Eigen::Vector2d &p4);
+    int IsIntersect(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2, const Eigen::Vector2f &p3, const Eigen::Vector2f &p4);
     /**
      * @brief find intersection point between segment p1-p2 and segment p3-p4
      * 
@@ -70,17 +70,17 @@ namespace Utility
      * @param p2 
      * @param p3 
      * @param p4 
-     * @return Eigen::Vector2d 
+     * @return Eigen::Vector2f 
      */
-    Eigen::Vector2d FindIntersectionPoint(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2, const Eigen::Vector2d &p3, const Eigen::Vector2d &p4);
+    Eigen::Vector2f FindIntersectionPoint(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2, const Eigen::Vector2f &p3, const Eigen::Vector2f &p4);
     /**
      * @brief this is only work for vector2d, for 3d please cross in eigen
      * 
      * @param p1 
      * @param p2 
-     * @return double 
+     * @return float 
      */
-    double CrossProduct(const Eigen::Vector2d &p1, const Eigen::Vector2d &p2);
+    float CrossProduct(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2);
     /**
      * @brief determine if a point is inside a polygon
      * 
@@ -88,18 +88,18 @@ namespace Utility
      * @param point 
      * @return int 1 inside, 0 outside
      */
-    int IsInsidePolygon(const std::vector<Eigen::Vector2d> &polygon, const Eigen::Vector2d &point);
-    int IsInsidePolygon(const std::vector<Eigen::Vector2d> &polygon, const Eigen::Vector3d &point);
+    int IsInsidePolygon(const std::vector<Eigen::Vector2f> &polygon, const Eigen::Vector2f &point);
+    int IsInsidePolygon(const std::vector<Eigen::Vector2f> &polygon, const Eigen::Vector3f &point);
     /**
      * @brief Create a Polygon object, current is only for rectangle
      * 
      * @param width 
      * @param height 
-     * @return std::vector<Eigen::Vector2d> 
+     * @return std::vector<Eigen::Vector2f> 
      */
-    std::vector<Eigen::Vector2d> CreatePolygon(const double &width, const double &height);
+    std::vector<Eigen::Vector2f> CreatePolygon(const float &width, const float &height);
 
-    float GetDistanceFromVector2dToVector3d(const Eigen::Vector3d &vector_3d, const Eigen::Vector2d &vector_2d);
+    float GetDistanceFromVector2fToVector3f(const Eigen::Vector3f &vector_3d, const Eigen::Vector2f &vector_2d);
 
     //*************************other ***********************
 
@@ -109,19 +109,19 @@ namespace Utility
      * @brief convert angle in deg into [-PI,Pi)
      * 
      * @param deg 
-     * @return double 
+     * @return float 
      */
-    double DegNormalization(const double &deg);
+    float DegNormalization(const float &deg);
 
-    double RadNormalization(const double &rad);
+    float RadNormalization(const float &rad);
 
-    double DegToZeroTo2P(const double &deg);
+    float DegToZeroTo2P(const float &deg);
 
-    double RadToZeroTo2P(const double &rad);
+    float RadToZeroTo2P(const float &rad);
 
-    double ConvertDegToRad(const double &deg);
+    float ConvertDegToRad(const float &deg);
 
-    double ConvertRadToDeg(const double &rad);
+    float ConvertRadToDeg(const float &rad);
 
     bool IsCloseEnough(const HybridAStar::Node3D &start, const HybridAStar::Node3D &goal, const float &distance_range, const float &angle_range);
 

@@ -14,7 +14,7 @@ namespace Lookup {
 
   // _____________
   // SIGN FUNCTION
-  inline int sign(double x)
+  inline int sign(float x)
   {
     if (x >= 0)
     {
@@ -37,8 +37,8 @@ inline void collisionLookup(Constants::config* lookup) {
   const int size = Constants::bbSize;
 
   struct point {
-    double x;
-    double y;
+    float x;
+    float y;
   };
 
   // ______________________
@@ -51,7 +51,7 @@ inline void collisionLookup(Constants::config* lookup) {
   point nP[4];
 
   // turning angle
-  double theta;
+  float theta;
 
   // ____________________________
   // VARIABLES FOR GRID TRAVERSAL
@@ -63,11 +63,11 @@ inline void collisionLookup(Constants::config* lookup) {
   int X;
   int Y;
   // t value for crossing vertical and horizontal boundary
-  double tMaxX;
-  double tMaxY;
+  float tMaxX;
+  float tMaxY;
   // t value for width/height of cell
-  double tDeltaX;
-  double tDeltaY;
+  float tDeltaX;
+  float tDeltaY;
   // positive or negative step direction
   int stepX;
   int stepY;
@@ -98,8 +98,8 @@ inline void collisionLookup(Constants::config* lookup) {
     theta = 0;
 
     // set points of rectangle
-    c.x = (double)size / 2 + points[q].x;
-    c.y = (double)size / 2 + points[q].y;
+    c.x = (float)size / 2 + points[q].x;
+    c.y = (float)size / 2 + points[q].y;
 
     p[0].x = c.x - Constants::length / 2 / cSize;
     p[0].y = c.y - Constants::width / 2 / cSize;

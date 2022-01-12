@@ -47,12 +47,12 @@ class DynamicVoronoi {
   //! returns the vertical size of the workspace/map
   unsigned int getSizeY() const { return sizeY; };
 
-  INTPOINT GetClosestVoronoiEdgePoint(Eigen::Vector2d point, double &closest_dis);
+  INTPOINT GetClosestVoronoiEdgePoint(Eigen::Vector2f point, float &closest_dis);
 
   void CollectVoronoiEdgePoints();
 
   std::string ComputeIndex(const INTPOINT &pi);
-  std::string ComputeIndex(const Eigen::Vector2d &pd);
+  std::string ComputeIndex(const Eigen::Vector2f &pd);
   // was private, changed to public for obstX, obstY
  public:
   struct dataCell {
@@ -100,9 +100,9 @@ class DynamicVoronoi {
 
   // parameters
   int padding;
-  double doubleThreshold;
+  float floatThreshold;
 
-  double sqrt2;
+  float sqrt2;
 
   std::vector<INTPOINT> edge_points_;
   std::unordered_map<std::string, std::pair<INTPOINT, float>> closest_edge_points_;
