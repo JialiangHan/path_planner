@@ -4,7 +4,7 @@
 #include <ctime>
 #include <tf/transform_listener.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include "algorithm.h"
+#include "hybrid_a_star.h"
 #include "path_publisher.h"
 #include "smoother.h"
 #include "lookup.h"
@@ -73,8 +73,7 @@ class Planner {
   std::shared_ptr<PathPublisher> smoothed_path_publisher_ptr_;
   /// The visualization used for search visualization
   std::shared_ptr<Visualize> visualization_ptr_;
-  /// The collission detection for testing specific configurations
-  std::shared_ptr<CollisionDetection> configuration_space_ptr_;
+
   /// The voronoi diagram
   DynamicVoronoi voronoi_diagram_;
   /// A pointer to the grid_ the planner runs on
@@ -92,9 +91,7 @@ class Planner {
   //parameter manager, load param from *.yaml file
   std::shared_ptr<ParameterManager> param_manager_;
   ParameterPlanner params_;
-  std::shared_ptr<Algorithm> algorithm_ptr_;
-
-  std::shared_ptr<LookupTable> lookup_table_ptr_;
+  std::shared_ptr<HybridAStar> hybrid_a_star_ptr_;
 };
 }
 #endif // PLANNER_H

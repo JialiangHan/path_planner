@@ -30,8 +30,13 @@ namespace HybridAStar
   };
 
   //this struct contains some used parameters in algorithm class
-  struct ParameterAlgorithm
+  struct ParameterHybridAStar
   {
+
+    ParameterCollisionDetection collision_detection_params;
+    // ParameterAStar a_star_params;
+    bool add_one_more_successor = true;
+    bool analytical_expansion = true;
     /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
     float penalty_turning = 1.05;
     /// [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
@@ -42,11 +47,13 @@ namespace HybridAStar
     bool reverse = true;
     /// A flag for the visualization of 3D nodes (true = on; false = off)
     bool visualization = false;
+    /// A flag for the visualization of 2D nodes (true = on; false = off)
+    bool visualization2D = true;
     // max iterations for smoother
     int max_iterations = 10000;
-
+    int steering_angle = 5;
     // the small number which will terminate loop if path difference smaller than this number.
-    float epsilon = 1e-3;
+    float goal_range = 1e-3;
     /*!
   \brief [m] --- The tie breaker breaks ties between nodes expanded in the same cell
 
@@ -55,21 +62,14 @@ namespace HybridAStar
   to allow the successor being placed in the same cell.
 */
     float tie_breaker = 0.01;
-    /// A flag for the visualization of 2D nodes (true = on; false = off)
-    bool visualization2D = true;
-
     /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
     float curve_step_size = 1;
     /// maximum possible curvature of the non-holonomic vehicle
     float min_turning_radius = 6;
-
     /// [m] --- The number of discretizations in heading,used in planner.cpp
     int headings = 72;
-
     // nubmer of direction to create successor for A-star algorithm
     int possible_direction = 8;
-
-    // int curve_type = 0;
   };
   //this struct contains some used parameters in path class
   struct ParameterPathPublisher
@@ -90,12 +90,6 @@ namespace HybridAStar
   {
     /// A flag for the mode (true = manual; false = dynamic). Manual for  map or dynamic for dynamic map. used in planner.cpp
     bool manual = true;
-    /*!
-   \var   bool dubinsLookup
-   \brief A flag to toggle the Dubin's heuristic via lookup, potentially speeding up the search by a lot
-   \todo not yet functional,used in planner.cpp
-*/
-    bool dubins_lookup = false;
     /// [m] --- The cell size of the 2D grid of the world,used in planner.cpp
     float cell_size = 1;
     /// [m] --- The number of discretizations in heading,used in planner.cpp
@@ -130,7 +124,7 @@ namespace HybridAStar
   };
   struct ParameterContainer
   {
-    ParameterAlgorithm algorithm_params;
+    ParameterHybridAStar hybrid_a_star_params;
     ParameterPathPublisher path_publisher_params;
     ParameterSmoother smoother_params;
     ParameterPlanner planner_params;
@@ -154,13 +148,14 @@ namespace HybridAStar
 
     virtual void Initialization() {}
     virtual void LoadParams();
-    virtual void LoadAlgorithmParams();
+    virtual void LoadHybridAStarParams();
     virtual void LoadPathParams();
     //load param for smoother
     virtual void LoadSmootherParams();
     virtual void LoadPlannerParams();
     virtual void LoadVisualizeParams();
     virtual void LoadCollisionDetectionParams();
+    // virtual void LoadAStarParams();
     //load param by param name, member variable, param type
     template <typename T>
     void GetSingleParam(const std::string &param_name, T &param_data);
@@ -171,9 +166,10 @@ namespace HybridAStar
     ParameterSmoother GetSmootherParams();
     ParameterPathPublisher GetPathPublisherParams();
     ParameterPlanner GetPlannerParams();
-    ParameterAlgorithm GetAlgorithmParams();
+    ParameterHybridAStar GetHybridAStarParams();
     ParameterVisualize GetVisualizeParams();
     ParameterCollisionDetection GetCollisionDetectionParams();
+    // ParameterAStar GetAStarParams();
 
   private:
     std::shared_ptr<ParameterContainer> param_container_ptr_;

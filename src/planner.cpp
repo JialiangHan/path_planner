@@ -12,10 +12,10 @@ Planner::Planner() {
   smoother_ptr_.reset(new Smoother(param_manager_->GetSmootherParams()));
   path_publisher_ptr_.reset(new PathPublisher(param_manager_->GetPathPublisherParams()));
   smoothed_path_publisher_ptr_.reset(new PathPublisher(param_manager_->GetPathPublisherParams(), true));
-  algorithm_ptr_.reset(new Algorithm(param_manager_->GetAlgorithmParams()));
+
   visualization_ptr_.reset(new Visualize(param_manager_->GetVisualizeParams()));
-  configuration_space_ptr_.reset(new CollisionDetection(param_manager_->GetCollisionDetectionParams()));
-  lookup_table_ptr_.reset(new LookupTable(param_manager_->GetCollisionDetectionParams()));
+
+  hybrid_a_star_ptr_.reset(new HybridAStar(param_manager_->GetHybridAStarParams(), visualization_ptr_));
 
   // _________________
   // TOPICS TO PUBLISH
@@ -44,8 +44,7 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
 {
 
   grid_ = map;
-  //update the configuration space with the current map
-  configuration_space_ptr_->UpdateGrid(map);
+  hybrid_a_star_ptr_->Initialize(map);
   //create array for Voronoi diagram
 //  ros::Time t0 = ros::Time::now();
   int height = map->info.height;
@@ -175,8 +174,6 @@ void Planner::MakePlan()
     int depth = params_.headings;
     int length = width * height * depth;
 
-    lookup_table_ptr_->Initialize(width, height);
-
     // define list pointers and initialize lists
     Node3D *nodes3D = new Node3D[length]();
     Node2D *nodes2D = new Node2D[width * height]();
@@ -202,7 +199,7 @@ void Planner::MakePlan()
     // START AND TIME THE PLANNING
     ros::Time t0 = ros::Time::now();
     // FIND THE PATH
-    Path path = algorithm_ptr_->HybridAStar(nStart, nGoal, nodes3D, nodes2D, width, height, configuration_space_ptr_, lookup_table_ptr_, visualization_ptr_);
+    Path3D path = hybrid_a_star_ptr_->GetPath(nStart, nGoal, nodes3D, nodes2D, width, height);
     // for (const auto &node : path)
     // {
     //   DLOG(INFO) << "node in path is " << node.GetX() << " " << node.GetY();

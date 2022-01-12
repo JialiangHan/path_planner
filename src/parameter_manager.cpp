@@ -6,12 +6,11 @@ namespace HybridAStar
   void ParameterManager::LoadParams()
   {
     LoadSmootherParams();
-    LoadAlgorithmParams();
+    LoadHybridAStarParams();
     LoadPathParams();
     LoadPlannerParams();
     LoadPathParams();
     LoadVisualizeParams();
-    LoadCollisionDetectionParams();
   }
   void ParameterManager::LoadSmootherParams()
   {
@@ -58,15 +57,15 @@ namespace HybridAStar
     std::string node_prefix = "/hybrid_astar/";
 
     ros_param_name = "position_resolution";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.position_resolution);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.position_resolution);
     ros_param_name = "headings";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.headings);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.headings);
 
     ros_param_name = "min_turning_radius";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.min_turning_radius);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.min_turning_radius);
 
     ros_param_name = "reverse";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->collision_detection_params.reverse);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.reverse);
   }
   void ParameterManager::LoadPlannerParams()
   {
@@ -82,39 +81,45 @@ namespace HybridAStar
     ros_param_name = "manual";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.manual);
   }
-  void ParameterManager::LoadAlgorithmParams()
+  void ParameterManager::LoadHybridAStarParams()
   {
     std::string ros_param_name;
     std::string node_prefix = "/hybrid_astar/";
-
+    ros_param_name = "add_one_more_successor";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.add_one_more_successor);
+    ros_param_name = "analytical_expansion";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.analytical_expansion);
     ros_param_name = "penalty_turning";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.penalty_turning);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.penalty_turning);
     ros_param_name = "penalty_reverse";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.penalty_reverse);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.penalty_reverse);
     ros_param_name = "penalty_change_of_direction";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.penalty_change_of_direction);
-
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.penalty_change_of_direction);
+    ros_param_name = "steering_angle";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.steering_angle);
     ros_param_name = "reverse";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.reverse);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.reverse);
     ros_param_name = "visualization";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.visualization);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.visualization);
     ros_param_name = "max_iterations";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.max_iterations);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.max_iterations);
 
     ros_param_name = "tie_breaker";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.tie_breaker);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.tie_breaker);
     ros_param_name = "visualization2D";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.visualization2D);
-    ros_param_name = "epsilon";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.epsilon);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.visualization2D);
+    ros_param_name = "goal_range";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.goal_range);
 
     ros_param_name = "curve_step_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.curve_step_size);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.curve_step_size);
     ros_param_name = "min_turning_radius";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.min_turning_radius);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.min_turning_radius);
 
     ros_param_name = "headings";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->algorithm_params.headings);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.headings);
+
+    LoadCollisionDetectionParams();
   }
   void ParameterManager::LoadPathParams()
   {
@@ -155,9 +160,9 @@ namespace HybridAStar
     return param_container_ptr_;
   }
 
-  ParameterAlgorithm ParameterManager::GetAlgorithmParams()
+  ParameterHybridAStar ParameterManager::GetHybridAStarParams()
   {
-    return param_container_ptr_->algorithm_params;
+    return param_container_ptr_->hybrid_a_star_params;
   }
 
   ParameterSmoother ParameterManager::GetSmootherParams()
