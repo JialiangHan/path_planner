@@ -17,6 +17,7 @@
 #include "parameter_manager.h"
 #include "node3d.h"
 #include "cubic_bezier.h"
+#include "bezier.h"
 namespace HybridAStar
 {
     typedef ompl::base::SE2StateSpace::StateType State;
@@ -41,6 +42,11 @@ namespace HybridAStar
         void CalculateDubinsLookup();
         void CalculateReedsSheppLookup();
         void CalculateCubicBezierLookup();
+        /**
+         * @brief use bezier.h from github for cubic bezier
+         * 
+         */
+        void CalculateCubicBezierLookupV1();
 
     private:
         ParameterCollisionDetection params_;

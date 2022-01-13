@@ -17,7 +17,7 @@ namespace HybridAStar
 
     float min_turning_radius = 6;
 
-    // int curve_type = 0;
+    int curve_type = 0;
 
     bool reverse = true;
   };

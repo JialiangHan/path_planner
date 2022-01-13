@@ -66,6 +66,8 @@ namespace HybridAStar
 
     ros_param_name = "reverse";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.reverse);
+    ros_param_name = "curve_type";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.curve_type);
   }
   void ParameterManager::LoadPlannerParams()
   {
