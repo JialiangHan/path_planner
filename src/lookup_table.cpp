@@ -19,6 +19,7 @@ namespace HybridAStar
 
     void LookupTable::Initialize(const int &width, const int &height)
     {
+        // DLOG(INFO) << "lookup table initializing";
         if (map_width_ != width || map_height_ != height)
         {
             Clear();
@@ -114,6 +115,7 @@ namespace HybridAStar
     }
     void LookupTable::CalculateDubinsLookup()
     {
+        // DLOG(INFO) << "CalculateDubinsLookup start:";
         float x = 0, y = 0, theta = 0, cost = 0;
         ompl::base::DubinsStateSpace dubinsPath(params_.min_turning_radius);
         State *dbStart = (State *)dubinsPath.allocState();
@@ -130,6 +132,7 @@ namespace HybridAStar
                 theta = 0;
                 if (x == 0 && y == 0)
                 {
+                    y += 1.0f / params_.position_resolution;
                     continue;
                 }
                 while (theta < 2 * M_PI)
@@ -139,7 +142,7 @@ namespace HybridAStar
                     cost = dubinsPath.distance(dbStart, dbEnd);
                     int index = CalculateNode3DIndex(x, y, theta);
                     dubins_lookup_.emplace(index, cost);
-                    DLOG(INFO) << "point is " << x << " " << y << " " << theta << " index is " << index << " cost is " << cost;
+                    // DLOG(INFO) << "point is " << x << " " << y << " " << theta << " index is " << index << " cost is " << cost;
                     theta += delta_heading_in_rad;
                 }
                 y += 1.0f / params_.position_resolution;
@@ -150,6 +153,7 @@ namespace HybridAStar
     }
     void LookupTable::CalculateReedsSheppLookup()
     {
+        // DLOG(INFO) << "CalculateRSLookup start.";
         float x = 0, y = 0, theta = 0, cost = 0;
         ompl::base::ReedsSheppStateSpace reedsSheppPath(params_.min_turning_radius);
         State *rsStart = (State *)reedsSheppPath.allocState();
@@ -166,6 +170,7 @@ namespace HybridAStar
                 theta = 0;
                 if (x == 0 && y == 0)
                 {
+                    y += 1.0f / params_.position_resolution;
                     continue;
                 }
                 while (theta < 2 * M_PI)
@@ -175,7 +180,7 @@ namespace HybridAStar
                     rsEnd->setYaw(theta);
                     cost = reedsSheppPath.distance(rsStart, rsEnd);
                     reeds_shepp_lookup_.emplace(index, cost);
-                    DLOG(INFO) << "point is " << x << " " << y << " " << theta << " index is " << index << " cost is " << cost;
+                    // DLOG(INFO) << "point is " << x << " " << y << " " << theta << " index is " << index << " cost is " << cost;
                     theta += delta_heading_in_rad;
                 }
                 y += 1.0f / params_.position_resolution;
@@ -187,6 +192,7 @@ namespace HybridAStar
 
     void LookupTable::CalculateCubicBezierLookupV1()
     {
+        // DLOG(INFO) << "CalculateCubicBezierV1 start.";
         float x = 0, y = 0, theta = 0, cost = 0;
         Bezier::Point start(x, y), goal;
         // control_points_vec_.clear();
@@ -202,6 +208,7 @@ namespace HybridAStar
                 theta = 0;
                 if (x == 0 && y == 0)
                 {
+                    y += 1.0f / params_.position_resolution;
                     continue;
                 }
                 while (theta < 2 * M_PI)
@@ -225,7 +232,7 @@ namespace HybridAStar
                     //     cost = 100000;
                     // }
                     cubic_bezier_lookup_.emplace(index, cost);
-                    DLOG(INFO) << "point is " << x << " " << y << " " << theta << " index is " << index << " cost is " << cost;
+                    // DLOG(INFO) << "point is " << x << " " << y << " " << theta << " index is " << index << " cost is " << cost;
                     theta += delta_heading_in_rad;
                 }
                 y += 1.0f / params_.position_resolution;

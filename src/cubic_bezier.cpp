@@ -78,8 +78,7 @@ namespace CubicBezier
         direction.y() = std::sin(start_angle);
         if (use_random_)
         {
-
-            std::vector<Eigen::Vector2f> polygon;
+            Utility::Polygon polygon;
             polygon = Utility::CreatePolygon(map_width_, map_height_);
             // DLOG(INFO) << " map width is " << map_width_ << " height is " << map_height_;
             //t is some random number;

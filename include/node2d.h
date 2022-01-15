@@ -56,9 +56,9 @@ class Node2D {
   /// set the y position
   void setY(const int& y) { this->y = y; }
   /// set the cost-so-far (real value)
-  void setG(const float& g) { this->g = g; }
+  void SetG(const float &g) { this->g = g; }
   /// set the cost-to-come (heuristic value)
-  void setH(const float& h) { this->h = h; }
+  void SetH(const float &h) { this->h = h; }
   /// set and get the index of the node in the 2D array
   int setIdx(int width) { this->idx = y * width + x; return idx;}
   /// open the node

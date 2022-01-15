@@ -62,7 +62,7 @@ class Node3D {
    /// set the cost-so-far (real value)
    void SetG(const float &g) { this->g = g; }
    /// set the cost-to-come (heuristic value)
-   void setH(const float &h) { this->h = h; }
+   void SetH(const float &h) { this->h = h; }
    /// set and get the index of the node in the 3D grid
    int setIdx(int width, int height, const float &delta_heading_in_rad)
    {

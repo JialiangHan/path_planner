@@ -158,7 +158,7 @@ namespace PathEvaluator
                 if (map_->data[index])
                 {
                     Eigen::Vector2f obstacle_2d = Utility::ConvertIndexToEigenVector2f(index, map_width);
-                    float distance = Utility::GetDistanceFromVector2fToVector3f(vector_3d, obstacle_2d);
+                    float distance = Utility::GetDistanceFromPointToPoint(vector_3d, obstacle_2d);
                     if (distance < clearance)
                     {
                         clearance = distance;

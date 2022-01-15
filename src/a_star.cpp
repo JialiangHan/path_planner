@@ -30,8 +30,8 @@ namespace HybridAStar
         // PREDECESSOR AND SUCCESSOR INDEX
         int iPred, iSucc;
         float newG;
-        int width = configuration_space_ptr_->grid_ptr_->info.width;
-        int height = configuration_space_ptr_->grid_ptr_->info.height;
+        int width = configuration_space_ptr_->GetMap()->info.width;
+        int height = configuration_space_ptr_->GetMap()->info.height;
         // reset the open and closed list
         for (int i = 0; i < width * height; ++i)
         {
