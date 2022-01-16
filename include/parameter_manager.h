@@ -20,6 +20,8 @@ namespace HybridAStar
     int curve_type = 0;
 
     bool reverse = true;
+
+    float obstacle_detection_range = 50;
   };
 
   //this struct contains some used parameters in visualize class
@@ -32,7 +34,9 @@ namespace HybridAStar
   //this struct contains some used parameters in algorithm class
   struct ParameterHybridAStar
   {
-
+    //for create successor
+    float step_size = 1;
+    bool adaptive_steering_angle = false;
     ParameterCollisionDetection collision_detection_params;
     // ParameterAStar a_star_params;
     bool add_one_more_successor = true;

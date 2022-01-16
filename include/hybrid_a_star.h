@@ -51,6 +51,15 @@ namespace HybridAStar
 
    private:
       /**
+   * @brief select possible steering angle(relative angle) from available_angle_range_vec according vehicle setup
+   * 
+   * @param available_angle_range_vec 
+   * @param pred 
+   * @return std::vector<float> 
+   */
+      std::vector<float> SelectAvailableSteeringAngle(const Utility::AngleRangeVec &available_angle_range_vec, const Node3D &pred);
+
+      /**
        * @brief update heuristic for hybrid a star
        * 
        * @param start 

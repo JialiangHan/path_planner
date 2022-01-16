@@ -35,21 +35,18 @@ namespace HybridAStar
   void HybridAStar::Initialize(nav_msgs::OccupancyGrid::Ptr map)
   {
     //update the configuration space with the current map
+    // DLOG(INFO) << "hybrid a star initializing";
     configuration_space_ptr_->UpdateGrid(map);
-    int width = configuration_space_ptr_->grid_ptr_->info.width;
-    int height = configuration_space_ptr_->grid_ptr_->info.height;
+    int width = configuration_space_ptr_->GetMap()->info.width;
+    int height = configuration_space_ptr_->GetMap()->info.height;
     lookup_table_ptr_->Initialize(width, height);
+    // DLOG(INFO) << "hybrid a star initialized done.   ";
   }
 
   //###################################################
   //                                        3D A*
   //###################################################
-  Path3D HybridAStar::GetPath(Node3D &start,
-                              Node3D &goal,
-                              Node3D *nodes3D,
-                              Node2D *nodes2D,
-                              int width,
-                              int height)
+  Path3D HybridAStar::GetPath(Node3D &start, Node3D &goal, Node3D *nodes3D, Node2D *nodes2D, int width, int height)
   {
 
     DLOG(INFO) << "Hybrid A star start!!";
@@ -237,17 +234,21 @@ namespace HybridAStar
 
     // if dubins heuristic is activated calculate the shortest path
     // constrained without obstacles
-    if (params_.reverse == false)
+    if (params_.collision_detection_params.curve_type == 0)
     {
       curve_cost = lookup_table_ptr_->GetDubinsCost(goal_rotated_translated);
       // DLOG(INFO) << "dubins cost is " << curve_cost;
     }
 
     // if reversing is active use a
-    if (params_.reverse == true)
+    else if (params_.collision_detection_params.curve_type == 1)
     {
       curve_cost = lookup_table_ptr_->GetReedsSheppCost(goal_rotated_translated);
       // DLOG(INFO) << "rs cost is " << curve_cost;
+    }
+    else
+    {
+      curve_cost = lookup_table_ptr_->GetCubicBezierCost(goal_rotated_translated);
     }
 
     // unconstrained with obstacles
@@ -332,8 +333,8 @@ namespace HybridAStar
     // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
     Eigen::Vector3f vector3d_goal = Utility::ConvertNode3DToVector3f(goal);
     int map_width, map_height;
-    map_width = configuration_space_ptr_->grid_ptr_->info.width;
-    map_height = configuration_space_ptr_->grid_ptr_->info.height;
+    map_width = configuration_space_ptr_->GetMap()->info.width;
+    map_height = configuration_space_ptr_->GetMap()->info.height;
     CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width, map_height);
     float length = cubic_bezier.GetLength();
     i = 0;
@@ -388,55 +389,163 @@ namespace HybridAStar
   {
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
-    //assume constant speed.
-    float theta = Utility::ConvertDegToRad(params_.steering_angle);
-    float step_size = params_.min_turning_radius * theta;
-    float distance_to_goal = Utility::GetDistance(pred, goal_);
-    if (distance_to_goal < step_size)
+    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+    if (params_.adaptive_steering_angle)
     {
-      step_size = distance_to_goal;
-      theta = step_size / params_.min_turning_radius;
-    }
+      std::vector<std::pair<float, float>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRange(pred);
+      std::vector<float> available_steering_angle_vec = SelectAvailableSteeringAngle(available_angle_range_vec, pred);
+      float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle;
+      int prem;
 
-    const float dx[] = {step_size, params_.min_turning_radius * sin(theta), params_.min_turning_radius * sin(theta)};
-    const float dy[] = {0, -(params_.min_turning_radius * (1 - cos(theta))), (params_.min_turning_radius * (1 - cos(theta)))};
-    const float dt[] = {0, theta, -theta};
-    float xSucc, ySucc, tSucc;
-    for (int i = 0; i < possible_dir; ++i)
-    {
-      // calculate successor positions forward
-      if (i < 3)
+      //fix step_size
+      float step_size = params_.step_size;
+      float distance_to_goal = Utility::GetDistance(pred, goal_);
+      if (distance_to_goal < step_size)
       {
-        xSucc = pred.GetX() + dx[i] * cos(pred.GetT()) - dy[i] * sin(pred.GetT());
-        ySucc = pred.GetY() + dx[i] * sin(pred.GetT()) + dy[i] * cos(pred.GetT());
-        tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt[i]);
+        step_size = distance_to_goal;
+        DLOG(INFO) << "distance to goal is smaller than step size, reset step size.";
       }
-      // backwards
-      else
+      for (const auto &angle : available_steering_angle_vec)
       {
-        xSucc = pred.GetX() - dx[i - 3] * cos(pred.GetT()) - dy[i - 3] * sin(pred.GetT());
-        ySucc = pred.GetY() - dx[i - 3] * sin(pred.GetT()) + dy[i - 3] * cos(pred.GetT());
-        tSucc = Utility::RadToZeroTo2P(pred.GetT() - dt[i - 3]);
-      }
-      std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetG(), 0, pred_ptr, i));
-      out.emplace_back(temp);
-    }
-    if (params_.add_one_more_successor)
-    {
-      //add one more successor,angle is the difference between current node and goal,keep step size the same
-      float angle_diff = Utility::RadNormalization(goal_.GetT() - pred.GetT());
-      // DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff);
-      if (angle_diff < theta && angle_diff > -theta)
-      {
-        int sign = angle_diff > 0 ? 1 : -1;
-        xSucc = pred.GetX() + params_.min_turning_radius * sin(abs(angle_diff)) * cos(pred.GetT()) - sign * params_.min_turning_radius * (1 - cos(theta)) * sin(pred.GetT());
-        ySucc = pred.GetY() + params_.min_turning_radius * sin(abs(angle_diff)) * sin(pred.GetT()) + sign * params_.min_turning_radius * (1 - cos(theta)) * cos(pred.GetT());
-        tSucc = Utility::RadToZeroTo2P(pred.GetT() + angle_diff);
-        int prem = angle_diff > 0 ? 1 : 2;
+        DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(angle);
+        steering_angle = angle;
+        turning_radius = step_size / abs(steering_angle);
+        dt = steering_angle;
+
+        //forward, checked
+        //right
+        if (steering_angle < 0)
+        {
+          dx = turning_radius * sin(abs(steering_angle));
+          dy = -(turning_radius * (1 - cos(steering_angle)));
+          prem = 1;
+          // DLOG(INFO) << "forward right, dx " << dx << " dy " << dy;
+        }
+        //left
+        else if (steering_angle > 1e-3)
+        {
+          dx = turning_radius * sin(abs(steering_angle));
+          dy = (turning_radius * (1 - cos(steering_angle)));
+          prem = 2;
+          // DLOG(INFO) << "forward left, dx " << dx << " dy " << dy;
+        }
+        //straight forward,checked
+        else
+        {
+          dx = step_size;
+          dy = 0;
+          prem = 0;
+          // DLOG(INFO) << "forward straight";
+        }
+
+        xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
+        ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
+        tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
+        // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
         std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetG(), 0, pred_ptr, prem));
         out.emplace_back(temp);
-        // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
-        // DLOG(INFO) << "one more successor is " << temp->GetX() << " " << temp->GetY() << " " << Utility::ConvertRadToDeg(temp->GetT());
+        if (params_.reverse)
+        {
+          //backward,checked
+          //right
+          if (steering_angle > 1e-3)
+          {
+            prem = 5;
+            // DLOG(INFO) << "backward left";
+          }
+          //left
+          else if (steering_angle < 0)
+          {
+            prem = 4;
+            // DLOG(INFO) << "backward right";
+          }
+          //straight backward
+          else
+          {
+            prem = 3;
+            // DLOG(INFO) << "backward straight";
+          }
+          // DLOG(INFO) << "dx is " << dx << " dy " << dy << " dt " << dt;
+          xSucc = pred.GetX() - dx * cos(pred.GetT()) - dy * sin(pred.GetT());
+          ySucc = pred.GetY() - dx * sin(pred.GetT()) + dy * cos(pred.GetT());
+          tSucc = Utility::RadToZeroTo2P(pred.GetT() - dt);
+          // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+          std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetG(), 0, pred_ptr, prem));
+          out.emplace_back(temp);
+        }
+      }
+      if (params_.add_one_more_successor)
+      {
+        //add one more successor,angle is the difference between current node and goal,keep step size the same
+        float angle_diff = Utility::RadNormalization(goal_.GetT() - pred.GetT());
+        turning_radius = step_size / angle_diff;
+        // DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff);
+        if (angle_diff < Utility::ConvertDegToRad(30) && angle_diff > -Utility::ConvertDegToRad(30))
+        {
+          int sign = angle_diff > 0 ? 1 : -1;
+          xSucc = pred.GetX() + turning_radius * sin(abs(angle_diff)) * cos(pred.GetT()) - sign * turning_radius * (1 - cos(angle_diff)) * sin(pred.GetT());
+          ySucc = pred.GetY() + turning_radius * sin(abs(angle_diff)) * sin(pred.GetT()) + sign * turning_radius * (1 - cos(angle_diff)) * cos(pred.GetT());
+          tSucc = Utility::RadToZeroTo2P(pred.GetT() + angle_diff);
+          int prem = angle_diff > 0 ? 1 : 2;
+          std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetG(), 0, pred_ptr, prem));
+          out.emplace_back(temp);
+          // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+          // DLOG(INFO) << "one more successor is " << temp->GetX() << " " << temp->GetY() << " " << Utility::ConvertRadToDeg(temp->GetT());
+        }
+      }
+    }
+    else
+    {
+      //assume constant speed.
+      float theta = Utility::ConvertDegToRad(params_.steering_angle);
+      float step_size = params_.min_turning_radius * theta;
+      float distance_to_goal = Utility::GetDistance(pred, goal_);
+      if (distance_to_goal < step_size)
+      {
+        step_size = distance_to_goal;
+        theta = step_size / params_.min_turning_radius;
+      }
+
+      const float dx[] = {step_size, params_.min_turning_radius * sin(theta), params_.min_turning_radius * sin(theta)};
+      const float dy[] = {0, -(params_.min_turning_radius * (1 - cos(theta))), (params_.min_turning_radius * (1 - cos(theta)))};
+      const float dt[] = {0, theta, -theta};
+      float xSucc, ySucc, tSucc;
+      for (int i = 0; i < possible_dir; ++i)
+      {
+        // calculate successor positions forward
+        if (i < 3)
+        {
+          xSucc = pred.GetX() + dx[i] * cos(pred.GetT()) - dy[i] * sin(pred.GetT());
+          ySucc = pred.GetY() + dx[i] * sin(pred.GetT()) + dy[i] * cos(pred.GetT());
+          tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt[i]);
+        }
+        // backwards
+        else
+        {
+          xSucc = pred.GetX() - dx[i - 3] * cos(pred.GetT()) - dy[i - 3] * sin(pred.GetT());
+          ySucc = pred.GetY() - dx[i - 3] * sin(pred.GetT()) + dy[i - 3] * cos(pred.GetT());
+          tSucc = Utility::RadToZeroTo2P(pred.GetT() - dt[i - 3]);
+        }
+        std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetG(), 0, pred_ptr, i));
+        out.emplace_back(temp);
+      }
+      if (params_.add_one_more_successor)
+      {
+        //add one more successor,angle is the difference between current node and goal,keep step size the same
+        float angle_diff = Utility::RadNormalization(goal_.GetT() - pred.GetT());
+        // DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff);
+        if (angle_diff < theta && angle_diff > -theta)
+        {
+          int sign = angle_diff > 0 ? 1 : -1;
+          xSucc = pred.GetX() + params_.min_turning_radius * sin(abs(angle_diff)) * cos(pred.GetT()) - sign * params_.min_turning_radius * (1 - cos(theta)) * sin(pred.GetT());
+          ySucc = pred.GetY() + params_.min_turning_radius * sin(abs(angle_diff)) * sin(pred.GetT()) + sign * params_.min_turning_radius * (1 - cos(theta)) * cos(pred.GetT());
+          tSucc = Utility::RadToZeroTo2P(pred.GetT() + angle_diff);
+          int prem = angle_diff > 0 ? 1 : 2;
+          std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetG(), 0, pred_ptr, prem));
+          out.emplace_back(temp);
+          // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+          // DLOG(INFO) << "one more successor is " << temp->GetX() << " " << temp->GetY() << " " << Utility::ConvertRadToDeg(temp->GetT());
+        }
       }
     }
     return out;
@@ -511,5 +620,28 @@ namespace HybridAStar
       node3d_ptr = node3d_ptr->GetPred();
     }
     std::reverse(path_.begin(), path_.end());
+  }
+  //checked
+  std::vector<float> HybridAStar::SelectAvailableSteeringAngle(const Utility::AngleRangeVec &available_angle_range_vec, const Node3D &pred)
+  {
+    std::vector<float> out;
+    float steering_angle;
+    for (const auto &pair : available_angle_range_vec)
+    {
+      // DLOG(INFO) << "pair first " << Utility::ConvertRadToDeg(pair.first) << " pair second is " << Utility::ConvertRadToDeg(pair.second) << " pred angle is " << Utility::ConvertRadToDeg(pred.GetT());
+      steering_angle = Utility::RadNormalization(-(pair.first + pair.second / 4 - pred.GetT()));
+      out.emplace_back(steering_angle);
+
+      steering_angle = Utility::RadNormalization(-(pair.first + 2 * pair.second / 4 - pred.GetT()));
+      out.emplace_back(steering_angle);
+
+      steering_angle = Utility::RadNormalization(-(pair.first + 3 * pair.second / 4 - pred.GetT()));
+      out.emplace_back(steering_angle);
+    }
+    // for (const auto &angle : out)
+    // {
+    //   DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle);
+    // }
+    return out;
   }
 }

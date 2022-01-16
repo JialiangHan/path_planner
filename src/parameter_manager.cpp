@@ -68,6 +68,8 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.reverse);
     ros_param_name = "curve_type";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.curve_type);
+    ros_param_name = "obstacle_detection_range";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.obstacle_detection_range);
   }
   void ParameterManager::LoadPlannerParams()
   {
@@ -87,6 +89,11 @@ namespace HybridAStar
   {
     std::string ros_param_name;
     std::string node_prefix = "/hybrid_astar/";
+
+    ros_param_name = "step_size";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.step_size);
+    ros_param_name = "adaptive_steering_angle";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_steering_angle);
     ros_param_name = "add_one_more_successor";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.add_one_more_successor);
     ros_param_name = "analytical_expansion";

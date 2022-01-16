@@ -13,14 +13,15 @@
 #include "utility.h"
 // #include "lookup_table.h"
 
-// TEST(LookupTable, CalculateNode3DIndex)
-// {
-//     float x = 0.1, y = 0, theta = 0;
-//     HybridAStar::LookupTable test_table;
-//     int expect = 1;
-//     int result = test_table.CalculateNode3DIndex(x, y, theta);
-//     EXPECT_EQ(expect, result);
-// }
+TEST(Utility, IsSegmentIntersectWithPolygon)
+{
+    Eigen::Vector2f start(0, 0), end(10, 0), origin(0, 0);
+    Utility::Polygon polygon = Utility::CreatePolygon(origin);
+
+    int expect = 1;
+    int result = Utility::IsSegmentIntersectWithPolygon(polygon, start, end);
+    EXPECT_EQ(expect, result);
+}
 TEST(Utility, DegNormalization)
 {
     float t1 = 361, t2 = -359, t3 = 721, t4 = -719;
@@ -110,4 +111,63 @@ TEST(Utility, IsInsidePolygon)
         result = Utility::IsInsidePolygon(polygon, point);
         EXPECT_EQ(expect, result);
     }
+}
+TEST(Utility, GetAngleBetweenTwoVector)
+{
+    Eigen::Vector2f p1(0, 0), p2(1, 0), p3(-1, -1), p4(1, 1), p5(-1, 1),
+        p6(1, -1);
+
+    float expect_1 = Utility::ConvertDegToRad(-135);
+    float result_1 = Utility::GetAngleBetweenTwoVector(p1, p2, p1, p3);
+    EXPECT_FLOAT_EQ(expect_1, result_1);
+    float expect_2 = (Utility::ConvertDegToRad(45));
+    float result_2 = Utility::GetAngleBetweenTwoVector(p1, p2, p1, p4);
+    EXPECT_FLOAT_EQ(expect_2, result_2);
+    float expect_3 = (Utility::ConvertDegToRad(135));
+    float result_3 = Utility::GetAngleBetweenTwoVector(p1, p2, p1, p5);
+    EXPECT_FLOAT_EQ(expect_3, result_3);
+    float expect_4 = (Utility::ConvertDegToRad(-45));
+    float result_4 = Utility::GetAngleBetweenTwoVector(p1, p2, p1, p6);
+    EXPECT_FLOAT_EQ(expect_4, result_4);
+}
+TEST(Utility, GetAngleRangeFromPointToSegment)
+{
+    Eigen::Vector2f p1(0, 0), p2(-1, -1), p3(-1, 1);
+
+    float expect_1 = Utility::DegToZeroTo2P(Utility::ConvertDegToRad(225));
+    float expect_2 = Utility::RadNormalization(Utility::ConvertDegToRad(-90));
+    Utility::AngleRange result =
+        Utility::GetAngleRangeFromPointToSegment(p2, p3, p1);
+    EXPECT_FLOAT_EQ(expect_1, result.first);
+    EXPECT_FLOAT_EQ(expect_2, result.second);
+}
+TEST(Utility, GetAngleRangeFromPointToPolygon)
+{
+    Eigen::Vector2f p1(0, -1), origin(-2, 0);
+    Utility::Polygon polygon = Utility::CreatePolygon(origin);
+    float expect_range = Utility::RadNormalization(Utility::ConvertDegToRad(45));
+    float expect_start_angle = Utility::RadToZeroTo2P(Utility::ConvertDegToRad(180));
+    Utility::AngleRange result =
+        Utility::GetAngleRangeFromPointToPolygon(polygon, p1);
+    EXPECT_FLOAT_EQ(expect_range, result.second);
+    EXPECT_FLOAT_EQ(expect_start_angle, result.first);
+}
+
+TEST(Utility, IsOverlap)
+{
+    Utility::AngleRange first, second;
+    first = std::make_pair(0, 45);
+    second = std::make_pair(30, 60);
+    bool result = Utility::IsOverlap(first, second);
+    EXPECT_TRUE(result);
+}
+
+TEST(Utility, FindVisibleVertexFromNode)
+{
+    Eigen::Vector2f p1(0, 0), p2(1, 0), p3(2, 0), p4(2, 1), p5(1, 1), origin(1, 0);
+    Utility::Polygon polygon = Utility::CreatePolygon(origin);
+
+    std::vector<Eigen::Vector2f> result = Utility::FindVisibleVertexFromNode(polygon, p1);
+    EXPECT_EQ(result.size(), 2);
+    EXPECT_EQ(result[1].x(), p5.x());
 }
