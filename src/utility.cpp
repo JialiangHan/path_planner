@@ -124,6 +124,11 @@ namespace Utility
     int IsIntersect(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2,
                     const Eigen::Vector2f &p3, const Eigen::Vector2f &p4)
     {
+        if ((p1.x() == p2.x() && p2.x() == p3.x() && p3.x() == p4.x()) || (p1.y() == p2.y() && p2.y() == p3.y() && p3.y() == p4.y()))
+        {
+            //these segments are have same coordinate. maybe they are overlapped.
+            return 0;
+        }
         if (std::max(p3.x(), p4.x()) < std::min(p1.x(), p2.x()) ||
             std::max(p3.y(), p4.y()) < std::min(p1.y(), p2.y()) ||
             std::max(p1.x(), p2.x()) < std::min(p3.x(), p4.x()) ||
@@ -321,15 +326,26 @@ namespace Utility
         {
             return 0;
         }
+        Eigen::Vector2f far_point;
+        float distance_to_start, distance_to_goal;
+        distance_to_start = GetDistanceFromPointToPoint(start, point);
+        distance_to_goal = GetDistanceFromPointToPoint(end, point);
+        if (distance_to_start > distance_to_goal)
+        {
+            far_point = start;
+        }
+        else
+        {
+            far_point = end;
+        }
         float projection_length =
-            abs((point - start).dot(end - start)) / (end - start).norm();
+            abs((point - far_point).dot(end - start)) / (end - start).norm();
         if (projection_length > (end - start).norm())
         {
             // this means point is outside segment
-            return std::min(GetDistanceFromPointToPoint(start, point),
-                            GetDistanceFromPointToPoint(end, point));
+            return std::min(distance_to_start, distance_to_goal);
         }
-        return sqrt(std::pow((point - start).norm(), 2) -
+        return sqrt(std::pow((point - far_point).norm(), 2) -
                     std::pow(projection_length, 2));
     }
     float GetDistanceFromPolygonToPoint(const Polygon &polygon,
@@ -379,22 +395,38 @@ namespace Utility
         float range_length = GetAngleBetweenTwoVector(point, start, point, end);
         return std::make_pair(RadToZeroTo2P(start_angle), range_length);
     }
+    //checked
     AngleRange GetAngleRangeFromPointToPolygon(const Polygon &polygon,
                                                const Eigen::Vector2f &point)
     {
-
         float starting_angle = 100000, range = 0;
         std::vector<Eigen::Vector2f> visible_vertex = FindVisibleVertexFromNode(polygon, point);
+        // DLOG(INFO) << "point is " << point.x() << " " << point.y();
         // DLOG(INFO) << "size of visible vertex is " << visible_vertex.size();
         for (uint index = 0; index < visible_vertex.size() - 1; ++index)
         {
-            AngleRange angle_range = GetAngleRangeFromPointToSegment(visible_vertex[index], visible_vertex[index + 1], point);
-            // DLOG(INFO) << "angle range start is " << angle_range.first;
+            AngleRange angle_range1 = GetAngleRangeFromPointToSegment(visible_vertex[index], visible_vertex[index + 1], point);
+            AngleRange angle_range2 = GetAngleRangeFromPointToSegment(visible_vertex[index + 1], visible_vertex[index], point);
+            AngleRange angle_range;
+
             //use smallest starting angle as new start angle for polygon
+            if (angle_range1.first > angle_range2.first)
+            {
+
+                angle_range.first = angle_range2.first;
+                angle_range.second = angle_range2.second;
+            }
+            else
+            {
+                angle_range.first = angle_range1.first;
+                angle_range.second = angle_range1.second;
+            }
+            // DLOG(INFO) << "vertex angle range start is " << Utility::ConvertRadToDeg(angle_range.first) << " range is " << Utility::ConvertRadToDeg(angle_range.second);
             starting_angle = starting_angle > angle_range.first ? angle_range.first : starting_angle;
+            // DLOG(INFO) << "angle range start is " << Utility::ConvertRadToDeg(starting_angle);
             // DLOG(INFO) << "range is " << range;
             range += angle_range.second;
-            // DLOG(INFO) << "range is " << range;
+            // DLOG(INFO) << "range is " << Utility::ConvertRadToDeg(range);
         }
 
         return std::make_pair(starting_angle, abs(range));
@@ -457,37 +489,36 @@ namespace Utility
         }
         return false;
     }
+    // checked
     bool IsAngleRangeInclude(const AngleRange &angle_range_1,
                              const AngleRange &angle_range_2)
     {
+        //all input should be in rad.
         float angle_range_1_start = angle_range_1.first;
         float angle_range_1_end = angle_range_1.first + angle_range_1.second;
         float angle_range_2_start = angle_range_2.first;
         float angle_range_2_end = angle_range_2.first + angle_range_2.second;
-        // far away
-        if (angle_range_2_start > angle_range_1_end ||
-            angle_range_1_start > angle_range_2_end)
+        if (angle_range_1_start > M_PI && angle_range_1_end > M_PI)
         {
-            return false;
+            angle_range_1_start = Utility::RadNormalization(angle_range_1_start);
+            angle_range_1_end = Utility::RadNormalization(angle_range_1_end);
         }
-        // include
-        else if ((angle_range_1_start <= angle_range_2_start &&
-                  angle_range_1_end >= angle_range_2_end) ||
-                 (angle_range_2_start <= angle_range_1_start &&
-                  angle_range_2_end >= angle_range_1_end))
+        if (angle_range_2_start > M_PI && angle_range_2_end > M_PI)
+        {
+            angle_range_2_start = Utility::RadNormalization(angle_range_2_start);
+            angle_range_2_end = Utility::RadNormalization(angle_range_2_end);
+        }
+        // DLOG(INFO) << "ar1 start is " << Utility::ConvertRadToDeg(angle_range_1_start) << " end is " << Utility::ConvertRadToDeg(angle_range_1_end) << " ar2 start is " << Utility::ConvertRadToDeg(angle_range_2_start) << " end is " << Utility::ConvertRadToDeg(angle_range_2_end);
+        // DLOG(INFO) << "ar1 start smaller than ar2 start :" << (angle_range_1_start <= angle_range_2_start);
+        // DLOG(INFO) << "ar1 end greater than ar2 end :" << (angle_range_1_end >= angle_range_2_end);
+        if (((angle_range_1_start <= angle_range_2_start) || abs(angle_range_1_start - angle_range_2_start) < 1e-3) && angle_range_1_end >= angle_range_2_end)
         {
             return true;
         }
-        // overlap
-        else if ((angle_range_1_end >= angle_range_2_end &&
-                  angle_range_1_start >= angle_range_2_start) ||
-                 (angle_range_2_end >= angle_range_1_end &&
-                  angle_range_2_start >= angle_range_1_start))
-        {
-            return false;
-        }
+
         return false;
     }
+    // checked
     AngleRange MinusAngleRange(const AngleRange &angle_range_1,
                                const AngleRange &angle_range_2)
     {
@@ -501,14 +532,15 @@ namespace Utility
         float angle_range_1_end = angle_range_1.first + angle_range_1.second;
         float angle_range_2_start = angle_range_2.first;
         float angle_range_2_end = angle_range_2.first + angle_range_2.second;
+        DLOG(INFO) << "ar1 start is " << Utility::ConvertRadToDeg(angle_range_1_start) << " end is " << Utility::ConvertRadToDeg(angle_range_1_end) << " ar2 start is " << Utility::ConvertRadToDeg(angle_range_2_start) << " end is " << Utility::ConvertRadToDeg(angle_range_2_end);
         //case 1, start of first<start of second<end of first<end of second
-        if (angle_range_1_start < angle_range_2_start && angle_range_2_start < angle_range_1_end && angle_range_1_end < angle_range_2_end)
+        if (angle_range_1_start <= angle_range_2_start && angle_range_2_start <= angle_range_1_end && angle_range_1_end <= angle_range_2_end)
         {
             out.first = angle_range_1_start;
             out.second = angle_range_2_start - angle_range_1_start;
         }
         //case 2, start of second<start of first<end of second<end of first
-        if (angle_range_2_start < angle_range_1_start && angle_range_1_start < angle_range_2_end && angle_range_2_end < angle_range_1_end)
+        if (angle_range_2_start <= angle_range_1_start && angle_range_1_start <= angle_range_2_end && angle_range_2_end <= angle_range_1_end)
         {
             out.first = angle_range_2_end;
             out.second = angle_range_1_end - angle_range_2_end;
@@ -541,17 +573,21 @@ namespace Utility
         if (distance < distance_range)
         {
             float angle_diff = RadNormalization(start.GetT() - goal.GetT());
-            if (angle_diff <= angle_range)
+
+            if (abs(angle_diff) <= angle_range)
             {
                 DLOG(INFO)
                     << "two node distance and orientation are close enough, return true";
+                // DLOG(INFO) << "current node is " << start.GetX() << " " << start.GetY() << " " << Utility::ConvertRadToDeg(start.GetT());
+                // DLOG(INFO) << "goal is " << goal.GetX() << " " << goal.GetY() << " " << Utility::ConvertRadToDeg(goal.GetT());
+                // DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
                 return true;
             }
             else
             {
                 DLOG(INFO)
                     << "two node distance is close enough but orientation is too far is "
-                    << angle_diff;
+                    << Utility::ConvertRadToDeg(angle_diff);
                 return false;
             }
         }
@@ -599,6 +635,10 @@ namespace Utility
         {
             out = out - 2.0f * M_PI;
         }
+        if (abs(out) < 1e-3)
+        {
+            out = 0;
+        }
         return out;
     }
 
@@ -621,6 +661,10 @@ namespace Utility
         if (out < 0)
         {
             out += 2.f * M_PI;
+        }
+        if (abs(out - 2 * M_PI) < 1e-3)
+        {
+            out = 0;
         }
 
         return out;

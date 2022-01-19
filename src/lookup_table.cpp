@@ -47,13 +47,15 @@ namespace HybridAStar
 
     void LookupTable::Clear()
     {
+        std::unique_lock<std::mutex> lock(map_access_);
         dubins_lookup_.clear();
         reeds_shepp_lookup_.clear();
         cubic_bezier_lookup_.clear();
     }
 
-    float LookupTable::GetDubinsCost(const Node3D &node3d) const
+    float LookupTable::GetDubinsCost(const Node3D &node3d)
     {
+        std::unique_lock<std::mutex> lock(map_access_);
         float out = 0;
         int index = CalculateNode3DIndex(node3d);
         if (dubins_lookup_.find(index) != dubins_lookup_.end())
@@ -62,14 +64,24 @@ namespace HybridAStar
         }
         else
         {
-            DLOG(INFO) << "index not found in dubins map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
+            if (node3d.GetX() < params_.position_resolution && node3d.GetY() < params_.position_resolution)
+            {
+                // DLOG(INFO) << "index : " << index << " not found in dubins map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
+            }
+            else
+            {
+                DLOG(WARNING) << "Warning: index : " << index << " not found in dubins map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
+            }
+
+            // const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
+            // DLOG(INFO) << "(int)(theta / delta_heading_in_rad) " << (int)(Utility::RadToZeroTo2P(node3d.GetT()) / delta_heading_in_rad);
         }
         return out;
     }
     float
-    LookupTable::GetReedsSheppCost(const Node3D &node3d) const
+    LookupTable::GetReedsSheppCost(const Node3D &node3d)
     {
-
+        std::unique_lock<std::mutex> lock(map_access_);
         float out = 0;
         int index = CalculateNode3DIndex(node3d);
         if (reeds_shepp_lookup_.find(index) != reeds_shepp_lookup_.end())
@@ -82,8 +94,9 @@ namespace HybridAStar
         }
         return out;
     }
-    float LookupTable::GetCubicBezierCost(const Node3D &node3d) const
+    float LookupTable::GetCubicBezierCost(const Node3D &node3d)
     {
+        std::unique_lock<std::mutex> lock(map_access_);
         float out = 0;
         int index = CalculateNode3DIndex(node3d);
         if (cubic_bezier_lookup_.find(index) != cubic_bezier_lookup_.end())
@@ -92,7 +105,7 @@ namespace HybridAStar
         }
         else
         {
-            DLOG(INFO) << "index " << index << " not found in cubic bezier map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
+            // DLOG(INFO) << "index " << index << " not found in cubic bezier map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
         }
         return out;
     }
@@ -102,6 +115,7 @@ namespace HybridAStar
         float x_float = node3d.GetX();
         float y_float = node3d.GetY();
         float t_float = Utility::RadToZeroTo2P(node3d.GetT());
+        // DLOG(INFO) << "t is " << t_float;
         out = CalculateNode3DIndex(x_float, y_float, t_float);
         return out;
     }
@@ -109,12 +123,25 @@ namespace HybridAStar
     {
         int out;
         const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
-        out = (int)(theta / delta_heading_in_rad) * map_width_ * map_height_ * params_.position_resolution * params_.position_resolution + (int)(y * params_.position_resolution) * map_width_ + (int)(x * params_.position_resolution);
+        float angle;
+        if (abs(theta) < 1e-4)
+        {
+            angle = 0;
+        }
+        else
+        {
+            angle = theta;
+        }
+        // DLOG(INFO) << "angle is " << angle;
+        // DLOG(INFO) << "delta heading in rad is " << delta_heading_in_rad;
+        // DLOG(INFO) << "(int)(theta / delta_heading_in_rad) " << (int)(theta / delta_heading_in_rad);
+        out = (int)(angle / delta_heading_in_rad) * map_width_ * map_height_ * params_.position_resolution * params_.position_resolution + (int)(y * params_.position_resolution) * map_width_ + (int)(x * params_.position_resolution);
 
         return out;
     }
     void LookupTable::CalculateDubinsLookup()
     {
+        std::unique_lock<std::mutex> lock(map_access_);
         // DLOG(INFO) << "CalculateDubinsLookup start:";
         float x = 0, y = 0, theta = 0, cost = 0;
         ompl::base::DubinsStateSpace dubinsPath(params_.min_turning_radius);
@@ -142,7 +169,7 @@ namespace HybridAStar
                     cost = dubinsPath.distance(dbStart, dbEnd);
                     int index = CalculateNode3DIndex(x, y, theta);
                     dubins_lookup_.emplace(index, cost);
-                    // DLOG(INFO) << "point is " << x << " " << y << " " << theta << " index is " << index << " cost is " << cost;
+                    // DLOG(INFO) << "point is " << x << " " << y << " " << Utility::ConvertRadToDeg(theta) << " index is " << index << " cost is " << cost;
                     theta += delta_heading_in_rad;
                 }
                 y += 1.0f / params_.position_resolution;
@@ -153,6 +180,7 @@ namespace HybridAStar
     }
     void LookupTable::CalculateReedsSheppLookup()
     {
+        std::unique_lock<std::mutex> lock(map_access_);
         // DLOG(INFO) << "CalculateRSLookup start.";
         float x = 0, y = 0, theta = 0, cost = 0;
         ompl::base::ReedsSheppStateSpace reedsSheppPath(params_.min_turning_radius);
@@ -192,6 +220,7 @@ namespace HybridAStar
 
     void LookupTable::CalculateCubicBezierLookupV1()
     {
+        std::unique_lock<std::mutex> lock(map_access_);
         // DLOG(INFO) << "CalculateCubicBezierV1 start.";
         float x = 0, y = 0, theta = 0, cost = 0;
         Bezier::Point start(x, y), goal;
@@ -243,6 +272,7 @@ namespace HybridAStar
     }
     void LookupTable::CalculateCubicBezierLookup()
     {
+        std::unique_lock<std::mutex> lock(map_access_);
         //since cubic bezier has no limit to its curvature, we have to make the cost to inf when curvature greater then the limit
         float x = 0, y = 0, theta = 0, cost = 0;
         Eigen::Vector3f vector3d_start(x, y, theta);

@@ -240,8 +240,8 @@ namespace Utility
     /**
  * @brief angle range 1 minus angle range 2,only for overlap condition, fully included is not considered
  * 
- * @param angle_range_1 
- * @param angle_range_2 
+ * @param angle_range_1 this one should always be the free angle range
+ * @param angle_range_2 should be obstacle angle range
  * @return AngleRange 
  */
     AngleRange MinusAngleRange(const AngleRange &angle_range_1,

@@ -127,7 +127,9 @@ namespace HybridAStar
         }
         else if (Utility::IsCloseEnough(*nPred, goal, params_.goal_range, 2 * M_PI / params_.headings))
         {
-          DLOG(INFO) << "Goal reached!!!";
+          // DLOG(INFO) << "current node is " << nPred->GetX() << " " << nPred->GetY() << " " << Utility::ConvertRadToDeg(nPred->GetT());
+          // DLOG(INFO) << "goal is " << goal.GetX() << " " << goal.GetY() << " " << Utility::ConvertRadToDeg(goal.GetT());
+          // DLOG(INFO) << "Goal reached!!!";
           // return nPred;
           TracePath(nPred);
           DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
@@ -187,6 +189,12 @@ namespace HybridAStar
                 {
                   // calculate H value
                   UpdateHeuristic(*nSucc, goal, nodes2D, width, height);
+                  if (iPred == iSucc)
+                  {
+                    // DLOG(INFO) << "successor cost is " << nSucc->GetC();
+                    // DLOG(INFO) << "pred cost is " << nPred->GetC();
+                  }
+                  //TODO need check if tie breaker need reset?
                   // if the successor is in the same cell but the C value is larger
                   if (iPred == iSucc && nSucc->GetC() > nPred->GetC() + params_.tie_breaker)
                   {
@@ -195,6 +203,7 @@ namespace HybridAStar
                   // if successor is in the same cell and the C value is lower, set predecessor to predecessor of predecessor
                   else if (iPred == iSucc && nSucc->GetC() <= nPred->GetC() + params_.tie_breaker)
                   {
+                    // DLOG(INFO) << "same cell expansion, but successor has lower cost.";
                     nSucc->SetPred(nPred->GetPred());
                   }
                   if (nSucc->GetPred() == nSucc)
@@ -230,8 +239,10 @@ namespace HybridAStar
     Node3D goal_rotated_translated;
     goal_rotated_translated.setX(abs(goal.GetX() - start.GetX()));
     goal_rotated_translated.setY(abs(goal.GetY() - start.GetY()));
-    goal_rotated_translated.setT(Utility::RadNormalization(goal.GetT() - start.GetT()));
-
+    goal_rotated_translated.setT(Utility::RadToZeroTo2P(goal.GetT() - start.GetT()));
+    // DLOG(INFO) << "goal is " << goal.GetX() << " " << goal.GetY() << " " << Utility::ConvertRadToDeg(goal.GetT());
+    // DLOG(INFO) << "start is " << start.GetX() << " " << start.GetY() << " " << Utility::ConvertRadToDeg(start.GetT());
+    // DLOG(INFO) << "goal rotated is " << goal_rotated_translated.GetX() << " " << goal_rotated_translated.GetY() << " " << Utility::ConvertRadToDeg(goal_rotated_translated.GetT());
     // if dubins heuristic is activated calculate the shortest path
     // constrained without obstacles
     if (params_.collision_detection_params.curve_type == 0)
@@ -389,7 +400,7 @@ namespace HybridAStar
   {
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
-    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle)
     {
       std::vector<std::pair<float, float>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRange(pred);
@@ -403,11 +414,11 @@ namespace HybridAStar
       if (distance_to_goal < step_size)
       {
         step_size = distance_to_goal;
-        DLOG(INFO) << "distance to goal is smaller than step size, reset step size.";
+        // DLOG(INFO) << "distance to goal is smaller than step size, reset step size.";
       }
       for (const auto &angle : available_steering_angle_vec)
       {
-        DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(angle);
+        // DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(angle);
         steering_angle = angle;
         turning_radius = step_size / abs(steering_angle);
         dt = steering_angle;
@@ -476,9 +487,10 @@ namespace HybridAStar
       }
       if (params_.add_one_more_successor)
       {
+        //TODO: need to consider the angle between these two nodes
         //add one more successor,angle is the difference between current node and goal,keep step size the same
         float angle_diff = Utility::RadNormalization(goal_.GetT() - pred.GetT());
-        turning_radius = step_size / angle_diff;
+        turning_radius = step_size / abs(angle_diff);
         // DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff);
         if (angle_diff < Utility::ConvertDegToRad(30) && angle_diff > -Utility::ConvertDegToRad(30))
         {
@@ -531,6 +543,7 @@ namespace HybridAStar
       }
       if (params_.add_one_more_successor)
       {
+        //TODO: need to consider the angle between these two nodes
         //add one more successor,angle is the difference between current node and goal,keep step size the same
         float angle_diff = Utility::RadNormalization(goal_.GetT() - pred.GetT());
         // DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff);

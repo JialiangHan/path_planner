@@ -18,6 +18,7 @@
 #include "node3d.h"
 #include "cubic_bezier.h"
 #include "bezier.h"
+#include <mutex>
 namespace HybridAStar
 {
     typedef ompl::base::SE2StateSpace::StateType State;
@@ -31,9 +32,9 @@ namespace HybridAStar
 
         void Initialize(const int &width, const int &height);
 
-        float GetDubinsCost(const Node3D &node3d) const;
-        float GetReedsSheppCost(const Node3D &node3d) const;
-        float GetCubicBezierCost(const Node3D &node3d) const;
+        float GetDubinsCost(const Node3D &node3d);
+        float GetReedsSheppCost(const Node3D &node3d);
+        float GetCubicBezierCost(const Node3D &node3d);
         // int CalculateNode3DIndex(const float &x, const float &y, const float &theta) const;
 
     private:
@@ -59,5 +60,7 @@ namespace HybridAStar
         std::unordered_map<int, float> dubins_lookup_;
         std::unordered_map<int, float> reeds_shepp_lookup_;
         std::unordered_map<int, float> cubic_bezier_lookup_;
+
+        std::mutex map_access_;
     };
 }

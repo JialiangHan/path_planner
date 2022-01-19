@@ -132,10 +132,10 @@ TEST(Utility, GetAngleBetweenTwoVector)
 }
 TEST(Utility, GetAngleRangeFromPointToSegment)
 {
-    Eigen::Vector2f p1(0, 0), p2(-1, -1), p3(-1, 1);
+    Eigen::Vector2f p1(0, 0), p2(-1, 0), p3(-1, 1);
 
-    float expect_1 = Utility::DegToZeroTo2P(Utility::ConvertDegToRad(225));
-    float expect_2 = Utility::RadNormalization(Utility::ConvertDegToRad(-90));
+    float expect_1 = Utility::DegToZeroTo2P(Utility::ConvertDegToRad(180));
+    float expect_2 = Utility::RadNormalization(Utility::ConvertDegToRad(-45));
     Utility::AngleRange result =
         Utility::GetAngleRangeFromPointToSegment(p2, p3, p1);
     EXPECT_FLOAT_EQ(expect_1, result.first);
@@ -143,10 +143,10 @@ TEST(Utility, GetAngleRangeFromPointToSegment)
 }
 TEST(Utility, GetAngleRangeFromPointToPolygon)
 {
-    Eigen::Vector2f p1(0, -1), origin(-2, 0);
+    Eigen::Vector2f p1(0, 0), origin(-2, 0);
     Utility::Polygon polygon = Utility::CreatePolygon(origin);
     float expect_range = Utility::RadNormalization(Utility::ConvertDegToRad(45));
-    float expect_start_angle = Utility::RadToZeroTo2P(Utility::ConvertDegToRad(180));
+    float expect_start_angle = Utility::RadToZeroTo2P(Utility::ConvertDegToRad(135));
     Utility::AngleRange result =
         Utility::GetAngleRangeFromPointToPolygon(polygon, p1);
     EXPECT_FLOAT_EQ(expect_range, result.second);
@@ -156,9 +156,12 @@ TEST(Utility, GetAngleRangeFromPointToPolygon)
 TEST(Utility, IsOverlap)
 {
     Utility::AngleRange first, second;
-    first = std::make_pair(0, 45);
-    second = std::make_pair(30, 60);
+    first = std::make_pair(0.059347, 6.69515);
+    second = std::make_pair(6.7545, 8.24555);
     bool result = Utility::IsOverlap(first, second);
+    // Utility::AngleRange first1 = std::make_pair(, 6.69515);
+    // Utility::AngleRange second1= std::make_pair(6.7545, 8.24555);
+    // bool result = Utility::IsOverlap(first1, second1);
     EXPECT_TRUE(result);
 }
 
@@ -170,4 +173,42 @@ TEST(Utility, FindVisibleVertexFromNode)
     std::vector<Eigen::Vector2f> result = Utility::FindVisibleVertexFromNode(polygon, p1);
     EXPECT_EQ(result.size(), 2);
     EXPECT_EQ(result[1].x(), p5.x());
+}
+
+TEST(Utility, GetDistanceFromPolygonToPoint)
+{
+    Eigen::Vector2f p1(37, 15), p2(38, 16);
+    Utility::Polygon polygon = Utility::CreatePolygon(p2);
+
+    float result = Utility::GetDistanceFromPolygonToPoint(polygon, p1);
+    EXPECT_FLOAT_EQ(result, sqrt(2));
+}
+
+TEST(Utility, GetDistanceFromSegmentToPoint)
+{
+    Eigen::Vector2f p1(37, 15), p2(38, 16), p3(38, 17);
+
+    float result = Utility::GetDistanceFromSegmentToPoint(p2, p3, p1);
+    EXPECT_FLOAT_EQ(result, sqrt(2));
+}
+TEST(Utility, IsAngleRangeInclude)
+{
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(330), Utility::ConvertDegToRad(60)), ar2(Utility::ConvertDegToRad(351), Utility::ConvertDegToRad(7)), ar3(Utility::ConvertDegToRad(2), Utility::ConvertDegToRad(7)), ar4(Utility::ConvertDegToRad(-30), Utility::ConvertDegToRad(40));
+
+    bool result1 = Utility::IsAngleRangeInclude(ar1, ar2);
+    bool result2 = Utility::IsAngleRangeInclude(ar1, ar3);
+    bool result3 = Utility::IsAngleRangeInclude(ar1, ar4);
+    EXPECT_TRUE(result1);
+    EXPECT_TRUE(result2);
+    EXPECT_TRUE(result3);
+}
+TEST(Utility, MinusAngleRange)
+{
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(330), Utility::ConvertDegToRad(60)), ar2(Utility::ConvertDegToRad(340), Utility::ConvertDegToRad(60)), ar3(Utility::ConvertDegToRad(350), Utility::ConvertDegToRad(60)), ar4(Utility::ConvertDegToRad(360), Utility::ConvertDegToRad(60));
+
+    Utility::AngleRange result1 = Utility::MinusAngleRange(ar1, ar2);
+    // Utility::AngleRange result2 = Utility::MinusAngleRange(ar1, ar3);
+    // Utility::AngleRange result3 = Utility::MinusAngleRange(ar1, ar4);
+    EXPECT_FLOAT_EQ(result1.first, Utility::ConvertDegToRad(330));
+    EXPECT_FLOAT_EQ(result1.second, Utility::ConvertDegToRad(10));
 }

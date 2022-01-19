@@ -173,7 +173,7 @@ void Planner::MakePlan()
     int height = grid_->info.height;
     int depth = params_.headings;
     int length = width * height * depth;
-
+    DLOG(INFO) << "map size is " << width << " " << height;
     // define list pointers and initialize lists
     Node3D *nodes3D = new Node3D[length]();
     Node2D *nodes2D = new Node2D[width * height]();
