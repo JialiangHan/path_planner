@@ -37,6 +37,8 @@ namespace HybridAStar
     //for create successor
     float step_size = 1;
     bool adaptive_steering_angle = false;
+    //use adaptive step size or not
+    bool adaptive_step_size = false;
     ParameterCollisionDetection collision_detection_params;
     // ParameterAStar a_star_params;
     bool add_one_more_successor = true;

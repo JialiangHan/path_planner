@@ -90,6 +90,8 @@ namespace HybridAStar
     std::string ros_param_name;
     std::string node_prefix = "/hybrid_astar/";
 
+    ros_param_name = "adaptive_step_size";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_step_size);
     ros_param_name = "step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.step_size);
     ros_param_name = "adaptive_steering_angle";

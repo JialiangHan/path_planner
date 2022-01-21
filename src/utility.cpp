@@ -3,6 +3,14 @@
 namespace Utility
 {
     //*******************type conversion*******************
+
+    HybridAStar::Node2D ConvertNode3DToNode2D(const HybridAStar::Node3D &node3d)
+    {
+        HybridAStar::Node2D out;
+        out.setX(node3d.GetX());
+        out.setY(node3d.GetY());
+        return out;
+    }
     void ConvertRosPathToVectorVector3D(
         const nav_msgs::Path::ConstPtr &path,
         std::vector<Eigen::Vector3f> &vector_3d_vec)
@@ -668,5 +676,17 @@ namespace Utility
         }
 
         return out;
+    }
+    float GetAngle(const HybridAStar::Node3D &start,
+                   const HybridAStar::Node3D &goal)
+    {
+        return GetAngle(ConvertNode3DToNode2D(start), ConvertNode3DToNode2D(goal));
+    }
+    float GetAngle(const HybridAStar::Node2D &start,
+                   const HybridAStar::Node2D &goal)
+    {
+        Eigen::Vector2f diff;
+        diff = ConvertNod2DToVector2f(start) - ConvertNod2DToVector2f(goal);
+        return atan2(diff.y(), diff.x());
     }
 } // namespace Utility

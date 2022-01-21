@@ -43,6 +43,7 @@ namespace Utility
     Eigen::Vector2f ConvertNod3DToVector2f(const HybridAStar::Node3D &node3d);
 
     HybridAStar::Node3D ConvertVector3fToNode3D(const Eigen::Vector3f &vector3d);
+    HybridAStar::Node2D ConvertNode3DToNode2D(const HybridAStar::Node3D &node3d);
     //**********************computational geometry****************
 
     /**
@@ -277,6 +278,17 @@ namespace Utility
                       const HybridAStar::Node3D &goal);
     float GetDistance(const HybridAStar::Node2D &start,
                       const HybridAStar::Node2D &goal);
+    /**
+    * @brief Get the Angle object
+    * 
+    * @param start 
+    * @param goal 
+    * @return float in [-pi,pi]
+    */
+    float GetAngle(const HybridAStar::Node3D &start,
+                   const HybridAStar::Node3D &goal);
+    float GetAngle(const HybridAStar::Node2D &start,
+                   const HybridAStar::Node2D &goal);
 }
 
 #endif // UTILITY
