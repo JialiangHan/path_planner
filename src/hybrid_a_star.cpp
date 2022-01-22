@@ -74,7 +74,7 @@ namespace HybridAStar
     // push on priority queue aka open list
     std::shared_ptr<Node3D> start_ptr = std::make_shared<Node3D>(start);
     openlist.push(start_ptr);
-    number_nodes_explored++;
+
     iPred = start.setIdx(width, height, (float)2 * M_PI / params_.headings);
     nodes3D[iPred] = start;
     // NODE POINTER
@@ -86,6 +86,7 @@ namespace HybridAStar
     {
       // pop node with lowest cost from priority queue
       nPred = openlist.top();
+      number_nodes_explored++;
       // set index
       iPred = nPred->setIdx(width, height, (float)2 * M_PI / params_.headings);
       iterations++;
@@ -170,7 +171,7 @@ namespace HybridAStar
           for (const auto &node : successor_vec)
           {
             // create possible successor
-            number_nodes_explored++;
+
             nSucc = node;
             // set index of the successor
             iSucc = nSucc->setIdx(width, height, (float)2 * M_PI / params_.headings);
@@ -191,8 +192,8 @@ namespace HybridAStar
                   UpdateHeuristic(*nSucc, goal, nodes2D, width, height);
                   if (iPred == iSucc)
                   {
-                    // DLOG(INFO) << "successor cost is " << nSucc->GetC();
-                    // DLOG(INFO) << "pred cost is " << nPred->GetC();
+                    DLOG(INFO) << "successor cost is " << nSucc->GetC();
+                    DLOG(INFO) << "pred cost is " << nPred->GetC();
                   }
                   //TODO need check if tie breaker need reset?
                   // if the successor is in the same cell but the C value is larger
@@ -203,7 +204,7 @@ namespace HybridAStar
                   // if successor is in the same cell and the C value is lower, set predecessor to predecessor of predecessor
                   else if (iPred == iSucc && nSucc->GetC() <= nPred->GetC() + params_.tie_breaker)
                   {
-                    // DLOG(INFO) << "same cell expansion, but successor has lower cost.";
+                    DLOG(INFO) << "same cell expansion, but successor has lower cost.";
                     nSucc->SetPred(nPred->GetPred());
                   }
                   if (nSucc->GetPred() == nSucc)
@@ -589,27 +590,46 @@ namespace HybridAStar
       if (params_.add_one_more_successor)
       {
         //add one more successor,angle is the difference between current node and goal,keep step size the same
-        float angle_diff = Utility::RadNormalization(Utility::RadToZeroTo2P(goal_.GetT() - pred.GetT()) + Utility::RadToZeroTo2P(Utility::GetAngle(goal_, pred)));
-        float distance_to_goal = Utility::GetDistance(goal_, pred);
-        float step_size_1 = params_.step_size;
-        if (distance_to_goal < step_size_1)
+        float angle_diff = Utility::RadNormalization(Utility::RadToZeroTo2P(goal_.GetT() - pred.GetT()) + Utility::RadToZeroTo2P(Utility::GetAngle(pred, goal_)));
+        if (angle_diff != 0)
         {
-          step_size = distance_to_goal;
-        }
-        float steering_angle = angle_diff * (step_size_1 / distance_to_goal);
-        float turing_radius = step_size_1 / steering_angle;
-        DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(steering_angle);
-        if (steering_angle < theta && steering_angle > -theta)
-        {
-          int sign = steering_angle > 0 ? 1 : -1;
-          xSucc = pred.GetX() + turing_radius * sin(abs(steering_angle)) * cos(pred.GetT()) - sign * turing_radius * (1 - cos(theta)) * sin(pred.GetT());
-          ySucc = pred.GetY() + turing_radius * sin(abs(steering_angle)) * sin(pred.GetT()) + sign * turing_radius * (1 - cos(theta)) * cos(pred.GetT());
-          tSucc = Utility::RadToZeroTo2P(pred.GetT() + steering_angle);
-          int prem = steering_angle > 0 ? 1 : 2;
-          std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetG(), 0, pred_ptr, prem));
-          out.emplace_back(temp);
-          DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
-          DLOG(INFO) << "one more successor is " << temp->GetX() << " " << temp->GetY() << " " << Utility::ConvertRadToDeg(temp->GetT());
+          float distance_to_goal = Utility::GetDistance(goal_, pred);
+          float step_size_1 = params_.step_size;
+          if (distance_to_goal < step_size_1)
+          {
+            step_size = distance_to_goal;
+          }
+          float steering_angle = angle_diff * (step_size_1 / distance_to_goal);
+          float turing_radius = step_size_1 / steering_angle;
+          if (steering_angle < Utility::ConvertDegToRad(30) && steering_angle > Utility::ConvertDegToRad(-30))
+          {
+            int sign = steering_angle > 0 ? 1 : -1;
+            xSucc = pred.GetX() + turing_radius * sin(abs(steering_angle)) * cos(pred.GetT()) - sign * turing_radius * (1 - cos(steering_angle)) * sin(pred.GetT());
+            ySucc = pred.GetY() + turing_radius * sin(abs(steering_angle)) * sin(pred.GetT()) + sign * turing_radius * (1 - cos(steering_angle)) * cos(pred.GetT());
+            tSucc = Utility::RadToZeroTo2P(pred.GetT() + steering_angle);
+            int prem = steering_angle > 0 ? 1 : 2;
+            std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetG(), 0, pred_ptr, prem));
+            out.emplace_back(temp);
+            DLOG(INFO) << "goal is " << goal_.GetX() << " " << goal_.GetY() << " " << Utility::ConvertRadToDeg(goal_.GetT());
+            // DLOG(INFO) << "current is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+            // DLOG(INFO) << "angle diff between goal and current is " << Utility::ConvertRadToDeg(Utility::RadToZeroTo2P(goal_.GetT() - pred.GetT()));
+            // DLOG(INFO) << "angle of vector from goal to current is " << Utility::ConvertRadToDeg(Utility::RadToZeroTo2P(Utility::GetAngle(pred, goal_)));
+            // DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff);
+            DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+            DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+            DLOG(INFO) << "one more successor is " << temp->GetX() << " " << temp->GetY() << " " << Utility::ConvertRadToDeg(temp->GetT());
+            if (std::isnan(temp->GetX()) || std::isnan(temp->GetY()))
+            {
+              DLOG(INFO) << "goal is " << goal_.GetX() << " " << goal_.GetY() << " " << goal_.GetT();
+              DLOG(INFO) << "current is " << pred.GetX() << " " << pred.GetY() << " " << pred.GetT();
+              DLOG(INFO) << "angle diff between goal and current is " << Utility::RadToZeroTo2P(goal_.GetT() - pred.GetT());
+              DLOG(INFO) << "angle of vector from goal to current is " << Utility::RadToZeroTo2P(Utility::GetAngle(goal_, pred));
+              DLOG(INFO) << "angle diff is " << angle_diff;
+              DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+              DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+              DLOG(INFO) << "one more successor is " << temp->GetX() << " " << temp->GetY() << " " << Utility::ConvertRadToDeg(temp->GetT());
+            }
+          }
         }
       }
     }
@@ -621,8 +641,8 @@ namespace HybridAStar
   //###################################################
   void HybridAStar::UpdateCostSoFar(Node3D &node, const float &weight_turning, const float &weight_change_of_direction, const float &weight_reverse)
   {
-    float theta = Utility::ConvertDegToRad(params_.steering_angle);
-    float step_size = params_.min_turning_radius * theta;
+    // float theta = Utility::ConvertDegToRad(params_.steering_angle);
+    float step_size = Utility::GetDistance(node, *node.GetPred());
     float pred_cost_so_far = node.GetG();
     int prim = node.GetPrim();
     int pre_prim = node.GetPred()->GetPrim();
@@ -670,6 +690,7 @@ namespace HybridAStar
     }
     node.SetG(pred_cost_so_far);
   }
+
   void HybridAStar::TracePath(std::shared_ptr<Node3D> node3d_ptr)
   {
     path_.clear();

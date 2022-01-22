@@ -2,24 +2,29 @@
 #  A flag for the mode (true = manual; false = dynamic). Manual for static map or dynamic for dynamic map.
 manual : true
 #  A flag for the visualization of 3D nodes (true = on; false = off)
-visualization : false
+visualization : true
 #  A flag for the visualization of 2D nodes (true = on; false = off)
-visualization2D : false 
+visualization2D : true 
 #  A flag to toggle reversing (true = on; false = off)
-reverse : true
-
-#  A flag to toggle the Dubin's heuristic, this should be false, if reversing is enabled (true = on; false = off)
-dubins : false
-  #  \var static const bool dubinsLookup
-  #  \brief A flag to toggle the Dubin's heuristic via lookup, potentially speeding up the search by a lot
-  #  \todo not yet functional
-dubins_Lookup : false 
-#  A flag to toggle the 2D heuristic (true = on; false = off)
-two_D : true
-    # number of direction to create successor for A-star algorithm
+reverse : false
+# number of direction to create successor for A-star algorithm
 possible_direction : 8
-# 0: dubins curve, 1: cubic bezier
+
+
+# for heuristic in hybrid a, use dubins or reedshepp or cubic bezier
+# 0: dubins curve, 1: reedsshepp curve 2: cubic bezier
 curve_type : 0
+
+obstacle_detection_range: 10
+analytical_expansion: false
+adaptive_steering_angle: false
+adaptive_step_size : false
+add_one_more_successor: false
+# step size for create successor
+step_size: 1
+#  COLLISION LOOKUP SPECIFIC
+# [#] --- The sqrt of the number of discrete positions per cell
+position_resolution : 1
 # **********************vehicle parameters*****************
 # [m] --- Uniformly adds a padding around the vehicle
 bloating : 0
@@ -32,27 +37,23 @@ vehicle_length : 2.65
 #   \brief [m] --- The tie breaker breaks ties between nodes expanded in the same cell
 
 #   As the cost-so-far are bigger than the cost-to-come it is reasonable to believe that the algorithm would prefer the predecessor rather than the successor.
-#   This would lead to the fact that the successor would never be placed and the the one cell could only expand one node. The tieBreaker artificially increases the cost of the predecessor
-#   to allow the successor being placed in the same cell.
+#   This would lead to the fact that the successor would never be placed and the the one cell could only expand one node. The tieBreaker artificially increases the cost of the predecessor to allow the successor being placed in the same cell.
 # */
 tie_breaker : 0.01
-
+# range for goal test
+goal_range: 0.2
 # [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
 penalty_turning : 1.05
 # [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
-penalty_reverse : 2.0
+penalty_reverse : 1.2
 # [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
-penalty_change_of_direction : 2.0
+penalty_change_of_direction : 1.1
+# steering angle , unit is deg
+steering_angle: 5
 
 # [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
-curve_step_size : 0.5
-#  DUBINS LOOKUP SPECIFIC
-# [m] --- The width of the dubinsArea / 2 for the analytical solution (Dubin's shot)
-dubins_width : 15
+curve_step_size : 1
 
-#  COLLISION LOOKUP SPECIFIC
-# [#] --- The sqrt of the number of discrete positions per cell
-position_resolution : 10
 
 #  [m] --- The number of discretizations in heading
 headings : 72

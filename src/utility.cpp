@@ -686,7 +686,7 @@ namespace Utility
                    const HybridAStar::Node2D &goal)
     {
         Eigen::Vector2f diff;
-        diff = ConvertNod2DToVector2f(start) - ConvertNod2DToVector2f(goal);
+        diff = ConvertNod2DToVector2f(goal) - ConvertNod2DToVector2f(start);
         return atan2(diff.y(), diff.x());
     }
 } // namespace Utility

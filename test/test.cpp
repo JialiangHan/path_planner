@@ -212,3 +212,15 @@ TEST(Utility, MinusAngleRange)
     EXPECT_FLOAT_EQ(result1.first, Utility::ConvertDegToRad(330));
     EXPECT_FLOAT_EQ(result1.second, Utility::ConvertDegToRad(10));
 }
+TEST(Utility, GetAngle)
+{
+    HybridAStar::Node2D start, goal;
+    start.setX(3.77815);
+    start.setY(22.1007);
+    goal.setX(38.1625);
+    goal.setY(26.6218);
+
+    float result = Utility::GetAngle(start, goal);
+
+    EXPECT_FLOAT_EQ(result, Utility::ConvertDegToRad(45));
+}
