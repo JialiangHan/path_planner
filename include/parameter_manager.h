@@ -34,6 +34,7 @@ namespace HybridAStar
   //this struct contains some used parameters in algorithm class
   struct ParameterHybridAStar
   {
+    bool adaptive_steering_angle_and_step_size = false;
     //for create successor
     float step_size = 1;
     bool adaptive_steering_angle = false;
@@ -72,7 +73,7 @@ namespace HybridAStar
     float curve_step_size = 1;
     /// maximum possible curvature of the non-holonomic vehicle
     float min_turning_radius = 6;
-    /// [m] --- The number of discretizations in heading,used in planner.cpp
+    ///  --- The number of discretizations in heading,used in planner.cpp
     int headings = 72;
     // nubmer of direction to create successor for A-star algorithm
     int possible_direction = 8;

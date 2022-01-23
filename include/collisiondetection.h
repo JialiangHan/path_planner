@@ -44,6 +44,7 @@ namespace HybridAStar
       grid_ptr_ = map;
       SetObstacleVec();
       SetInRangeObstacle(params_.obstacle_detection_range);
+      SetDistanceAngleRangeMap();
     }
     /**
      * @brief find a list of angle range which has no obstacle in a certain radius, note for forward and backward, steering angle is the same
@@ -52,7 +53,16 @@ namespace HybridAStar
      * @return Utility::AngleRangeVec ,pair: first is min angle, second is max angle ,all in rads
      */
     Utility::AngleRangeVec FindFreeAngleRange(const Node3D &node3d);
+    /**
+     * @brief find a list of angle range which has no obstacle in a certain radius, note for forward and backward, steering angle is the same, and its step size
+     * 
+     * @param node3d 
+     * @return std::vector<std::pair<float,AngleRange>> first is step size 
+     */
+    std::vector<std::pair<float, Utility::AngleRange>> FindFreeAngleRangeAndStepSize(const Node3D &node3d);
     nav_msgs::OccupancyGrid::Ptr GetMap() const { return grid_ptr_; };
+
+    std::vector<std::pair<float, Utility::AngleRange>> GetDistanceAngleRangeVec(const HybridAStar::Node3D &current_node);
 
   private:
     bool IsOnGrid(const Node3D &node3d) const;
@@ -97,6 +107,8 @@ namespace HybridAStar
      */
     Utility::AngleRange GetNode3DAvailableAngleRange(const Node3D &node3d);
 
+    void SetDistanceAngleRangeMap();
+
   private:
     /// The occupancy grid
     nav_msgs::OccupancyGrid::Ptr grid_ptr_;
@@ -113,6 +125,11 @@ namespace HybridAStar
      * 
      */
     std::unordered_map<int, std::vector<Utility::Polygon>> in_range_obstacle_map_;
+    /**
+     * @brief key int: is the location index ,value is a vector of pair<distance to obstacle, and its angle range
+     * 
+     */
+    std::unordered_map<int, std::vector<std::pair<float, Utility::AngleRange>>> distance_angle_range_map_;
   };
 }
 #endif // COLLISIONDETECTION_H

@@ -184,7 +184,11 @@ void Planner::MakePlan()
     float t = tf::getYaw(goal_.pose.orientation);
     // set theta to a value (0,2PI]
     t = Utility::RadToZeroTo2P(t);
+    x = 72;
+    y = 5;
+    t = 0;
     Node3D nGoal(x, y, t, 0, 0, nullptr);
+
     // _________________________
     // retrieving start position
     x = start_.pose.pose.position.x / params_.cell_size;
@@ -192,6 +196,9 @@ void Planner::MakePlan()
     t = tf::getYaw(start_.pose.pose.orientation);
     // set theta to a value (0,2PI]
     t = Utility::RadToZeroTo2P(t);
+    x = 5;
+    y = 45;
+    t = 0;
     Node3D nStart(x, y, t, 0, 0, nullptr);
 
     Clear();

@@ -58,7 +58,7 @@ namespace HybridAStar
    * @return std::vector<float> 
    */
       std::vector<float> SelectAvailableSteeringAngle(const Utility::AngleRangeVec &available_angle_range_vec, const Node3D &pred);
-
+      std::vector<std::pair<float, float>> SelectAvailableSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred);
       /**
        * @brief update heuristic for hybrid a star
        * 
@@ -79,7 +79,7 @@ namespace HybridAStar
        */
       Path3D AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace);
 
-      std::vector<std::shared_ptr<Node3D>> CreateSuccessor(const Node3D &pred, const int &possible_dir);
+      std::vector<std::shared_ptr<Node3D>> CreateSuccessor(const Node3D &pred);
 
       void UpdateCostSoFar(Node3D &node, const float &weight_turning, const float &weight_change_of_direction, const float &weight_reverse);
 
