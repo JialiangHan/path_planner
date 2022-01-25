@@ -121,7 +121,7 @@ namespace PathEvaluator
             Eigen::Vector2f pre_vector = xi - xp;
             Eigen::Vector2f succ_vector = xs - xi;
 
-            smoothness = std::pow((succ_vector - pre_vector).norm(), 2);
+            smoothness = (succ_vector - pre_vector).norm() * (succ_vector - pre_vector).norm();
             smoothness_vec.emplace_back(smoothness);
         }
         if (smoothness_map_.count(topic_name) > 0)

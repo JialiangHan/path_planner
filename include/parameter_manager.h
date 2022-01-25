@@ -1,5 +1,4 @@
-#ifndef PARAMETER_MANAGER_H
-#define PARAMETER_MANAGER_H
+#pragma once
 
 #include <ros/ros.h>
 #include "glog/logging.h"
@@ -22,6 +21,8 @@ namespace HybridAStar
     bool reverse = true;
 
     float obstacle_detection_range = 50;
+
+    float free_step_size = 1;
   };
 
   //this struct contains some used parameters in visualize class
@@ -34,6 +35,7 @@ namespace HybridAStar
   //this struct contains some used parameters in algorithm class
   struct ParameterHybridAStar
   {
+    bool piecewise_cubic_bezier_interpolation = false;
     bool adaptive_steering_angle_and_step_size = false;
     //for create successor
     float step_size = 1;
@@ -183,4 +185,3 @@ namespace HybridAStar
     ros::NodeHandle nh_;
   };
 }
-#endif //

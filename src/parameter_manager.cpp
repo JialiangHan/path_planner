@@ -56,6 +56,9 @@ namespace HybridAStar
     std::string ros_param_name;
     std::string node_prefix = "/hybrid_astar/";
 
+    ros_param_name = "free_step_size";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.free_step_size);
+
     ros_param_name = "position_resolution";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.position_resolution);
     ros_param_name = "headings";
@@ -89,6 +92,9 @@ namespace HybridAStar
   {
     std::string ros_param_name;
     std::string node_prefix = "/hybrid_astar/";
+
+    ros_param_name = "piecewise_cubic_bezier_interpolation";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.piecewise_cubic_bezier_interpolation);
 
     ros_param_name = "adaptive_steering_angle_and_step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_steering_angle_and_step_size);

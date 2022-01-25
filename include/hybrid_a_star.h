@@ -1,6 +1,4 @@
-#ifndef ALGORITHM_H
-#define ALGORITHM_H
-
+#pragma once
 #include <ompl/base/spaces/ReedsSheppStateSpace.h>
 #include <ompl/base/spaces/DubinsStateSpace.h>
 #include <ompl/base/spaces/SE2StateSpace.h>
@@ -13,6 +11,7 @@ typedef ompl::base::SE2StateSpace::StateType State;
 #include "a_star.h"
 #include "cubic_bezier.h"
 #include "lookup_table.h"
+#include "piecewise_cubic_bezier.h"
 namespace HybridAStar
 {
    //path from start to goal
@@ -42,12 +41,10 @@ namespace HybridAStar
      \param goal the goal pose
      \param nodes3D the array of 3D nodes representing the configuration space C in R^3
      \param nodes2D the array of 2D nodes representing the configuration space C in R^2
-     \param width the width of the grid in number of cells
-     \param height the height of the grid in number of cells
-         \return the pointer to the node satisfying the goal condition
+            \return the pointer to the node satisfying the goal condition
   */
       Path3D GetPath(Node3D &start, Node3D &goal,
-                     Node3D *nodes3D, Node2D *nodes2D, int width, int height);
+                     Node3D *nodes3D, Node2D *nodes2D);
 
    private:
       /**
@@ -65,10 +62,8 @@ namespace HybridAStar
        * @param start 
        * @param goal 
        * @param nodes2D 
-       * @param width 
-       * @param height 
        */
-      void UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D, int width, int height);
+      void UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D);
       /**
        * @brief analytical expansion in paper, here use dubins curve.
        * 
@@ -77,7 +72,7 @@ namespace HybridAStar
        * @param configurationSpace 
        * @return Node3D* 
        */
-      Path3D AnalyticExpansions(const Node3D &start, Node3D &goal, std::shared_ptr<CollisionDetection> &configurationSpace);
+      Path3D AnalyticExpansions(const Node3D &start, Node3D &goal);
 
       std::vector<std::shared_ptr<Node3D>> CreateSuccessor(const Node3D &pred);
 
@@ -85,8 +80,11 @@ namespace HybridAStar
 
       void TracePath(std::shared_ptr<Node3D> node3d_ptr);
 
+      void ConvertToPiecewiseCubicBezierPath();
+
    private:
       ParameterHybridAStar params_;
+      Path3D piecewise_cubic_bezier_path_;
       Path3D path_;
       Node3D start_;
       Node3D goal_;
@@ -94,6 +92,7 @@ namespace HybridAStar
       std::shared_ptr<LookupTable> lookup_table_ptr_;
       std::shared_ptr<Visualize> visualization_ptr_;
       std::shared_ptr<AStar> a_star_ptr_;
+      uint map_width_;
+      uint map_height_;
    };
 }
-#endif // ALGORITHM_H
