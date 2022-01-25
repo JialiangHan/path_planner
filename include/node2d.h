@@ -1,5 +1,4 @@
-#ifndef NODE2D_H
-#define NODE2D_H
+#pragma once
 
 #include <cmath>
 
@@ -34,11 +33,11 @@ class Node2D {
   /// get the y position
   int GetY() const { return y; }
   /// get the cost-so-far (real value)
-  float GetG() const { return g; }
+  float GetCostSofar() const { return g; }
   /// get the cost-to-come (heuristic value)
-  float GetH() const { return h; }
+  float GetCostToGo() const { return h; }
   /// get the total estimated cost
-  float GetC() const { return g + h; }
+  float GetTotalCost() const { return g + h; }
   /// get the index of the node in the 2D array
   int GetIdx() const { return idx; }
   /// determine whether the node is open
@@ -112,4 +111,3 @@ private:
   std::shared_ptr<Node2D> pred_ptr_;
 };
 }
-#endif // NODE2D_H

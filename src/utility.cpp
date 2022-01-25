@@ -49,7 +49,7 @@ namespace Utility
             vertex.pose.orientation.y = 0;
             vertex.pose.orientation.z = 0;
             vertex.pose.orientation.w = 0;
-            out.poses.push_back(vertex);
+            out.poses.emplace_back(vertex);
         }
         return out;
     }
@@ -353,8 +353,8 @@ namespace Utility
             // this means point is outside segment
             return std::min(distance_to_start, distance_to_goal);
         }
-        return sqrt(std::pow((point - far_point).norm(), 2) -
-                    std::pow(projection_length, 2));
+        return sqrt((point - far_point).norm() * (point - far_point).norm() -
+                    projection_length * projection_length);
     }
     float GetDistanceFromPolygonToPoint(const Polygon &polygon,
                                         const Eigen::Vector2f &point)
@@ -540,7 +540,7 @@ namespace Utility
         float angle_range_1_end = angle_range_1.first + angle_range_1.second;
         float angle_range_2_start = angle_range_2.first;
         float angle_range_2_end = angle_range_2.first + angle_range_2.second;
-        DLOG(INFO) << "ar1 start is " << Utility::ConvertRadToDeg(angle_range_1_start) << " end is " << Utility::ConvertRadToDeg(angle_range_1_end) << " ar2 start is " << Utility::ConvertRadToDeg(angle_range_2_start) << " end is " << Utility::ConvertRadToDeg(angle_range_2_end);
+        // DLOG(INFO) << "ar1 start is " << Utility::ConvertRadToDeg(angle_range_1_start) << " end is " << Utility::ConvertRadToDeg(angle_range_1_end) << " ar2 start is " << Utility::ConvertRadToDeg(angle_range_2_start) << " end is " << Utility::ConvertRadToDeg(angle_range_2_end);
         //case 1, start of first<start of second<end of first<end of second
         if (angle_range_1_start <= angle_range_2_start && angle_range_2_start <= angle_range_1_end && angle_range_1_end <= angle_range_2_end)
         {

@@ -52,7 +52,7 @@ void PathPublisher::AddSegment(const Node3D &node)
   vertex.pose.orientation.y = 0;
   vertex.pose.orientation.z = 0;
   vertex.pose.orientation.w = 0;
-  path_.poses.push_back(vertex);
+  path_.poses.emplace_back(vertex);
 }
 
 // ________
@@ -78,7 +78,7 @@ void PathPublisher::AddNode(const Node3D &node, int i)
 
   pathNode.pose.position.x = node.GetX() * params_.cell_size;
   pathNode.pose.position.y = node.GetY() * params_.cell_size;
-  path_nodes_.markers.push_back(pathNode);
+  path_nodes_.markers.emplace_back(pathNode);
 }
 
 void PathPublisher::AddVehicle(const Node3D &node, int i)
@@ -116,5 +116,5 @@ void PathPublisher::AddVehicle(const Node3D &node, int i)
   pathVehicle.pose.position.x = node.GetX() * params_.cell_size;
   pathVehicle.pose.position.y = node.GetY() * params_.cell_size;
   pathVehicle.pose.orientation = tf::createQuaternionMsgFromYaw(node.GetT());
-  path_vehicles_.markers.push_back(pathVehicle);
+  path_vehicles_.markers.emplace_back(pathVehicle);
 }

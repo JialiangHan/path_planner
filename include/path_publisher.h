@@ -1,5 +1,4 @@
-#ifndef PATH_H
-#define PATH_H
+#pragma once
 
 #include <cstring>
 #include <vector>
@@ -106,4 +105,3 @@ namespace HybridAStar
       ParameterPathPublisher params_;
    };
 }
-#endif // PATH_H

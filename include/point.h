@@ -1,5 +1,4 @@
-#ifndef _VOROPOINT_H_
-#define _VOROPOINT_H_
+#pragma once
 
 #define INTPOINT IntPoint
 
@@ -12,4 +11,3 @@ class IntPoint {
   int x, y;
 };
 }
-#endif

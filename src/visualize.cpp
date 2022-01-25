@@ -16,7 +16,7 @@ void Visualize::clear() {
   costCube3D.header.stamp = ros::Time::now();
   costCube3D.id = 0;
   costCube3D.action = 3;
-  costCubes3D.markers.push_back(costCube3D);
+  costCubes3D.markers.emplace_back(costCube3D);
   pubNodes3DCosts.publish(costCubes3D);
 
   // 2D COSTS
@@ -27,7 +27,7 @@ void Visualize::clear() {
   costCube2D.header.stamp = ros::Time::now();
   costCube2D.id = 0;
   costCube2D.action = 3;
-  costCubes2D.markers.push_back(costCube2D);
+  costCubes2D.markers.emplace_back(costCube2D);
   pubNodes2DCosts.publish(costCubes2D);
 }
 
@@ -68,7 +68,7 @@ void Visualize::publishNode3DPoses(Node3D& node) {
   if (node.GetPrim() < 3)
   {
     pose.orientation = tf::createQuaternionMsgFromYaw(node.GetT());
-    poses3D.poses.push_back(pose);
+    poses3D.poses.emplace_back(pose);
     poses3D.header.stamp = ros::Time::now();
     // PUBLISH THE POSEARRAY
     pubNodes3D.publish(poses3D);
@@ -76,7 +76,7 @@ void Visualize::publishNode3DPoses(Node3D& node) {
   //REVERSE
   else {
     pose.orientation = tf::createQuaternionMsgFromYaw(node.GetT() + M_PI);
-    poses3Dreverse.poses.push_back(pose);
+    poses3Dreverse.poses.emplace_back(pose);
     poses3Dreverse.header.stamp = ros::Time::now();
     // PUBLISH THE POSEARRAY
     pubNodes3Dreverse.publish(poses3Dreverse);
@@ -110,7 +110,7 @@ void Visualize::publishNode2DPoses(Node2D& node) {
     pose.position.y = (node.GetY() + 0.5) * params_.cell_size;
     pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
-    poses2D.poses.push_back(pose);
+    poses2D.poses.emplace_back(pose);
     poses2D.header.stamp = ros::Time::now();
     // PUBLISH THE POSEARRAY
     pubNodes2D.publish(poses2D);
@@ -150,7 +150,7 @@ void Visualize::publishNode3DCosts(Node3D* nodes, int width, int height, int dep
 
       // set the minimum for the cell
       if (nodes[idx].isClosed() || nodes[idx].isOpen()) {
-        values[i] = nodes[idx].GetC();
+        values[i] = nodes[idx].GetTotalCost();
       }
     }
 
@@ -197,7 +197,7 @@ void Visualize::publishNode3DCosts(Node3D* nodes, int width, int height, int dep
       // center in cell +0.5
       costCube.pose.position.x = (i % width + 0.5) * params_.cell_size;
       costCube.pose.position.y = ((i / width) % height + 0.5) * params_.cell_size;
-      costCubes.markers.push_back(costCube);
+      costCubes.markers.emplace_back(costCube);
     }
   }
 
@@ -235,7 +235,7 @@ void Visualize::publishNode2DCosts(Node2D *nodes, int width, int height)
     // set the minimum for the cell
     if (nodes[i].isDiscovered())
     {
-      values[i] = nodes[i].GetG();
+      values[i] = nodes[i].GetCostSofar();
 
       // set a new minimum
       if (values[i] > 0 && values[i] < min)
@@ -287,7 +287,7 @@ void Visualize::publishNode2DCosts(Node2D *nodes, int width, int height)
       // center in cell +0.5
       costCube.pose.position.x = (i % width + 0.5) * params_.cell_size;
       costCube.pose.position.y = ((i / width) % height + 0.5) * params_.cell_size;
-      costCubes.markers.push_back(costCube);
+      costCubes.markers.emplace_back(costCube);
     }
   }
 

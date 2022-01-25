@@ -206,10 +206,10 @@ void Planner::MakePlan()
     // START AND TIME THE PLANNING
     ros::Time t0 = ros::Time::now();
     // FIND THE PATH
-    Path3D path = hybrid_a_star_ptr_->GetPath(nStart, nGoal, nodes3D, nodes2D, width, height);
+    Path3D path = hybrid_a_star_ptr_->GetPath(nStart, nGoal, nodes3D, nodes2D);
     // for (const auto &node : path)
     // {
-    //   DLOG(INFO) << "node in path is " << node.GetX() << " " << node.GetY();
+    //   DLOG(INFO) << "node in path is " << node.GetX() << " " << node.GetY() << " " << node.GetT();
     // }
     // set path
     smoother_ptr_->SetPath(path);

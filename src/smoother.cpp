@@ -224,9 +224,9 @@ Eigen::Vector2f Smoother::VoronoiTerm(Eigen::Vector2f xi)
       Eigen::Vector2f PobsDst_Pxi = obsVct / obsDst;
       Eigen::Vector2f PedgDst_Pxi = edgVct / edgDst;
 
-      float PvorPtn_PedgDst = (params_.alpha / (params_.alpha + obsDst)) * std::pow((obsDst - params_.vor_obs_dmax) / params_.vor_obs_dmax, 2) * (obsDst / std::pow(obsDst + edgDst, 2));
+      float PvorPtn_PedgDst = (params_.alpha / (params_.alpha + obsDst)) * ((obsDst - params_.vor_obs_dmax) / params_.vor_obs_dmax * (obsDst - params_.vor_obs_dmax) / params_.vor_obs_dmax) * (obsDst / ((obsDst + edgDst) * (obsDst + edgDst)));
 
-      float PvorPtn_PobsDst = (params_.alpha / (params_.alpha + obsDst)) * (edgDst / (obsDst + edgDst)) * ((obsDst - params_.vor_obs_dmax) / std::pow(params_.vor_obs_dmax, 2)) * (-(obsDst - params_.vor_obs_dmax) / (params_.alpha + obsDst) - (obsDst - params_.vor_obs_dmax) / (obsDst + edgDst) + 2);
+      float PvorPtn_PobsDst = (params_.alpha / (params_.alpha + obsDst)) * (edgDst / (obsDst + edgDst)) * ((obsDst - params_.vor_obs_dmax) / (params_.vor_obs_dmax * params_.vor_obs_dmax)) * (-(obsDst - params_.vor_obs_dmax) / (params_.alpha + obsDst) - (obsDst - params_.vor_obs_dmax) / (obsDst + edgDst) + 2);
 
       gradient = params_.weight_voronoi * (PvorPtn_PobsDst * PobsDst_Pxi + PvorPtn_PedgDst * PedgDst_Pxi);
 
@@ -272,9 +272,9 @@ Eigen::Vector2f Smoother::CurvatureTerm(Eigen::Vector2f xim2, Eigen::Vector2f xi
     float absDxim1Inv = 1 / norm_Dxim1;
     float absDxip1Inv = 1 / norm_Dxip1;
 
-    float PDphi_PcosDphi = -1 / std::sqrt(1 - std::pow(std::cos(Dphi), 2));
-    float PDphim1_PcosDphim1 = -1 / std::sqrt(1 - std::pow(std::cos(Dphim1), 2));
-    float PDphip1_PcosDphip1 = -1 / std::sqrt(1 - std::pow(std::cos(Dphip1), 2));
+    float PDphi_PcosDphi = -1 / std::sqrt(1 - std::cos(Dphi) * std::cos(Dphi));
+    float PDphim1_PcosDphim1 = -1 / std::sqrt(1 - std::cos(Dphim1) * std::cos(Dphim1));
+    float PDphip1_PcosDphip1 = -1 / std::sqrt(1 - std::cos(Dphip1) * std::cos(Dphip1));
 
     float ui = absDxi1Inv * PDphi_PcosDphi;
     float uim1 = absDxim1Inv * PDphim1_PcosDphim1;
@@ -285,8 +285,8 @@ Eigen::Vector2f Smoother::CurvatureTerm(Eigen::Vector2f xim2, Eigen::Vector2f xi
     Eigen::Vector2f PcosDphip1_Pxi = OrthogonalComplements(-xip2, xip1) / (norm_Dxip1 * norm_Dxip2);
     Eigen::Vector2f ones(1, 1);
     Eigen::Vector2f Pcurvature_m_Pxi = uim1 * PcosDphim1_Pxi;
-    Eigen::Vector2f Pcurvature_i_Pxi = ui * PcosDphi_Pxi - Dphi / std::pow(norm_Dxi, 2) * ones;
-    Eigen::Vector2f Pcurvature_p_Pxi = uip1 * PcosDphip1_Pxi + Dphip1 / std::pow(norm_Dxip1, 2) * ones;
+    Eigen::Vector2f Pcurvature_i_Pxi = ui * PcosDphi_Pxi - Dphi / (norm_Dxi * norm_Dxi) * ones;
+    Eigen::Vector2f Pcurvature_p_Pxi = uip1 * PcosDphip1_Pxi + Dphip1 / (norm_Dxip1 * norm_Dxip1) * ones;
 
     // calculate the gradient
     gradient = params_.weight_curvature * (2 * Pcurvature_m_Pxi + 2 * Pcurvature_i_Pxi + 2 * Pcurvature_p_Pxi);
@@ -313,7 +313,7 @@ Eigen::Vector2f Smoother::CurvatureTerm(Eigen::Vector2f xim2, Eigen::Vector2f xi
           if (std::isinf(PDphim1_PcosDphim1))
           {
             //DLOG(INFO) << "PDphim1_PcosDphim1 is " << PDphim1_PcosDphim1;
-            if ((1 - std::pow(std::cos(Dphim1), 2)) == 0)
+            if ((1 - std::cos(Dphim1) * std::cos(Dphim1)) == 0)
             {
               //DLOG(INFO) << "1- cosDpim1 == 0";
               //DLOG(INFO) << "Dphim1 is " << Dphim1;

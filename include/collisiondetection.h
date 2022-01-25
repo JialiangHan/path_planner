@@ -1,5 +1,4 @@
-#ifndef COLLISIONDETECTION_H
-#define COLLISIONDETECTION_H
+#pragma once
 
 #include <nav_msgs/OccupancyGrid.h>
 #include "constants.h"
@@ -124,12 +123,11 @@ namespace HybridAStar
      * @brief key is location index, value is vector of polygon in a certain range
      * 
      */
-    std::unordered_map<int, std::vector<Utility::Polygon>> in_range_obstacle_map_;
+    std::unordered_map<uint, std::vector<Utility::Polygon>> in_range_obstacle_map_;
     /**
      * @brief key int: is the location index ,value is a vector of pair<distance to obstacle, and its angle range
      * 
      */
-    std::unordered_map<int, std::vector<std::pair<float, Utility::AngleRange>>> distance_angle_range_map_;
+    std::unordered_map<uint, std::vector<std::pair<float, Utility::AngleRange>>> distance_angle_range_map_;
   };
 }
-#endif // COLLISIONDETECTION_H

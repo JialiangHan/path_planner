@@ -28,7 +28,7 @@ namespace CubicBezier
                 0, 0, 3, -3,
                 0, 0, 0, 1;
         };
-        CubicBezier(const Eigen::Vector3f &start, const Eigen::Vector3f &goal, int width, int height)
+        CubicBezier(const Eigen::Vector3f &start, const Eigen::Vector3f &goal, uint width, uint height)
         {
             basis_matrix_ << 1, -3, 3, -1,
                 0, 3, -6, 3,
@@ -81,7 +81,7 @@ namespace CubicBezier
         float GetMaxCurvature();
         float GetTotalCurvature();
 
-        std::vector<Eigen::Vector3f> ConvertCubicBezierToVector3f(const int &number_of_points);
+        std::vector<Eigen::Vector3f> ConvertCubicBezierToVector3f(const uint &number_of_points);
 
     private:
         /**

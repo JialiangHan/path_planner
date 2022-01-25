@@ -27,7 +27,7 @@ namespace HybridAStar
         /// The deault constructor
         AStar(){};
         AStar(const std::shared_ptr<CollisionDetection> &configuration_space_ptr,
-              const std::shared_ptr<Visualize> &visualization_ptr, const int &possible_direction, const bool &visualization2D);
+              const std::shared_ptr<Visualize> &visualization_ptr, const uint &possible_direction, const bool &visualization2D);
 
         void Initialize(const Node2D &start, const Node2D &goal);
 
@@ -47,7 +47,7 @@ namespace HybridAStar
        * @param possible_dir 
        * @return std::vector<std::shared_ptr<Node2D>> 
        */
-        std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const int &possible_dir);
+        std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir);
         /**
          * @brief update heuristic for a star
          * 
@@ -61,11 +61,11 @@ namespace HybridAStar
          */
         void UpdateCostSoFar(Node2D &node);
 
-        void TracePath(std::shared_ptr<Node2D> node2d_ptr);
+        // void TracePath(std::shared_ptr<Node2D> node2d_ptr);
 
     private:
         // nubmer of direction to create successor for A-star algorithm
-        int possible_direction_ = 8;
+        uint possible_direction_ = 8;
         /// A flag for the visualization of 2D nodes (true = on; false = off)
         bool visualization2D_ = true;
         Path2D path_;

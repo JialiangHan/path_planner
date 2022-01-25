@@ -2,7 +2,7 @@
 
 namespace HybridAStar
 {
-    AStar::AStar(const std::shared_ptr<CollisionDetection> &configuration_space_ptr, const std::shared_ptr<Visualize> &visualization_ptr, const int &possible_direction, const bool &visualization2D)
+    AStar::AStar(const std::shared_ptr<CollisionDetection> &configuration_space_ptr, const std::shared_ptr<Visualize> &visualization_ptr, const uint &possible_direction, const bool &visualization2D)
     {
         configuration_space_ptr_ = configuration_space_ptr;
         visualization_ptr_ = visualization_ptr;
@@ -19,7 +19,7 @@ namespace HybridAStar
         /// Sorting 2D nodes by increasing C value - the total estimated cost
         bool operator()(const std::shared_ptr<Node2D> lhs, const std::shared_ptr<Node2D> rhs) const
         {
-            return lhs->GetC() > rhs->GetC();
+            return lhs->GetTotalCost() > rhs->GetTotalCost();
         }
     };
     //###################################################
@@ -91,7 +91,7 @@ namespace HybridAStar
                 // GOAL TEST
                 if (*nPred == goal_)
                 {
-                    return nPred->GetG();
+                    return nPred->GetCostSofar();
                 }
                 // ____________________
                 // CONTINUE WITH SEARCH
@@ -114,9 +114,9 @@ namespace HybridAStar
                             // calculate new G value
                             // nSucc->updateG();
                             UpdateCostSoFar(*nSucc);
-                            newG = nSucc->GetG();
+                            newG = nSucc->GetCostSofar();
                             // if successor not on open list or g value lower than before put it on open list
-                            if (!nodes2D[iSucc].isOpen() || newG < nodes2D[iSucc].GetG())
+                            if (!nodes2D[iSucc].isOpen() || newG < nodes2D[iSucc].GetCostSofar())
                             {
                                 // calculate the H value
                                 // nSucc->UpdateHeuristic(goal);
@@ -136,7 +136,7 @@ namespace HybridAStar
         return 1000;
     }
 
-    std::vector<std::shared_ptr<Node2D>> AStar::CreateSuccessor(const Node2D &pred, const int &possible_dir)
+    std::vector<std::shared_ptr<Node2D>> AStar::CreateSuccessor(const Node2D &pred, const uint &possible_dir)
     {
         std::vector<std::shared_ptr<Node2D>> successor_vec;
         std::shared_ptr<Node2D> pred_ptr = std::make_shared<Node2D>(pred);
@@ -146,13 +146,13 @@ namespace HybridAStar
             for (uint i = 0; i < delta.size(); ++i)
             {
                 int x_successor = pred.GetX() + delta[i];
-                std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(x_successor, pred.GetY(), pred.GetG(), 0, pred_ptr));
+                std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(x_successor, pred.GetY(), pred.GetCostSofar(), 0, pred_ptr));
                 successor_vec.emplace_back(temp);
             }
             for (uint i = 0; i < delta.size(); ++i)
             {
                 int y_successor = pred.GetY() + delta[i];
-                std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(pred.GetX(), y_successor, pred.GetG(), 0, pred_ptr));
+                std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(pred.GetX(), y_successor, pred.GetCostSofar(), 0, pred_ptr));
                 successor_vec.emplace_back(temp);
             }
         }
@@ -170,7 +170,7 @@ namespace HybridAStar
                     }
                     int x_successor = pred.GetX() + delta_x[i];
                     int y_successor = pred.GetY() + delta_y[j];
-                    std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(x_successor, y_successor, pred.GetG(), 0, pred_ptr));
+                    std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(x_successor, y_successor, pred.GetCostSofar(), 0, pred_ptr));
                     successor_vec.emplace_back(temp);
                 }
             }
@@ -200,20 +200,20 @@ namespace HybridAStar
     //###################################################
     //                                   trace path
     //###################################################
-    void AStar::TracePath(std::shared_ptr<Node2D> node2d_ptr)
-    {
-        path_.clear();
-        while (node2d_ptr != nullptr)
-        {
+    // void AStar::TracePath(std::shared_ptr<Node2D> node2d_ptr)
+    // {
+    //     path_.clear();
+    //     while (node2d_ptr != nullptr)
+    //     {
 
-            path_.emplace_back(*node2d_ptr);
-            if (*node2d_ptr == start_)
-            {
-                break;
-            }
-            // DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
-            node2d_ptr = node2d_ptr->GetPred();
-        }
-        std::reverse(path_.begin(), path_.end());
-    }
+    //         path_.emplace_back(*node2d_ptr);
+    //         if (*node2d_ptr == start_)
+    //         {
+    //             break;
+    //         }
+    //         // DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
+    //         node2d_ptr = node2d_ptr->GetPred();
+    //     }
+    //     std::reverse(path_.begin(), path_.end());
+    // }
 }

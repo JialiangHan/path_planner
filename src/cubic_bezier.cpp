@@ -17,7 +17,7 @@ namespace CubicBezier
     {
         Eigen::Vector4f out;
 
-        for (int i = 0; i < out.size(); ++i)
+        for (uint i = 0; i < out.size(); ++i)
         {
             out[i] = std::pow(t, i);
             // DLOG(INFO) << i << "th element in coefficient matrix is " << out[i];
@@ -29,7 +29,7 @@ namespace CubicBezier
     {
         Eigen::Vector4f out;
 
-        for (int i = 0; i < out.size(); ++i)
+        for (uint i = 0; i < out.size(); ++i)
         {
             out[i] = i * (i - 1 < 0 ? 0 : std::pow(t, i - 1));
             // DLOG(INFO) << "t: " << t << " i-1 " << i - 1 << " std::pow(t, i - 1)" << (std::pow(t, i - 1));
@@ -41,7 +41,7 @@ namespace CubicBezier
     {
         Eigen::Vector4f out;
 
-        for (int i = 0; i < out.size(); ++i)
+        for (uint i = 0; i < out.size(); ++i)
         {
             out[i] = i * (i - 1) * (i - 2 < 0 ? 0 : std::pow(t, i - 2));
             // DLOG(INFO) << "t: " << t << " i-1 " << i - 1 << " std::pow(t, i - 1)" << (std::pow(t, i - 1));
@@ -82,7 +82,7 @@ namespace CubicBezier
             polygon = Utility::CreatePolygon(map_width_, map_height_);
             // DLOG(INFO) << " map width is " << map_width_ << " height is " << map_height_;
             //t is some random number;
-            int t = rand() % ((int)std::sqrt(map_width_ * map_width_ + map_height_ * map_height_));
+            uint t = rand() % ((int)std::sqrt(map_width_ * map_width_ + map_height_ * map_height_));
             first_control_point = start_point_ + direction * t;
             // DLOG(INFO) << "first control point is " << first_control_point.x() << " " << first_control_point.y();
             int flag = Utility::IsInsidePolygon(polygon, first_control_point);
@@ -144,7 +144,7 @@ namespace CubicBezier
     {
         Eigen::Vector3f out;
         out = geometrical_constraint_matrix_ * basis_matrix_ * CalculateCoefficient(t);
-
+        // DLOG(INFO) << "out is " << out.x() << " " << out.y() << " " << out.z();
         return out;
     }
 
@@ -164,15 +164,15 @@ namespace CubicBezier
         }
         // DLOG(INFO) << "length is " << length_;
     }
-    std::vector<Eigen::Vector3f> CubicBezier::ConvertCubicBezierToVector3f(const int &number_of_points)
+    std::vector<Eigen::Vector3f> CubicBezier::ConvertCubicBezierToVector3f(const uint &number_of_points)
     {
         std::vector<Eigen::Vector3f> out;
-        uint i = 0;
+
         CalculateLength();
         // uint size = GetLength() / 2;
         uint size = number_of_points;
-        // DLOG_IF(WARNING, size == 0) << "path size is zero!!!";
-        for (i = 0; i < size + 1; ++i)
+        DLOG_IF(WARNING, size == 0) << "path size is zero!!!";
+        for (uint i = 0; i < size + 1; ++i)
         {
             Eigen::Vector3f point3d;
             // DLOG(INFO) << " i/size = " << (float)i / size;

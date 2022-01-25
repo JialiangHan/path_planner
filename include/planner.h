@@ -1,5 +1,4 @@
-#ifndef PLANNER_H
-#define PLANNER_H
+#pragma once
 
 #include <ctime>
 #include <tf/transform_listener.h>
@@ -94,4 +93,3 @@ class Planner {
   std::shared_ptr<HybridAStar> hybrid_a_star_ptr_;
 };
 }
-#endif // PLANNER_H

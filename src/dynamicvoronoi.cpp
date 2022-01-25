@@ -113,8 +113,8 @@ void DynamicVoronoi::clearCell(int x, int y) {
 void DynamicVoronoi::setObstacle(int x, int y) {
   dataCell c = data[x][y];
   if(isOccupied(x,y,c)) return;
-  
-  addList.push_back(INTPOINT(x,y));
+
+  addList.emplace_back(INTPOINT(x, y));
   c.obstX = x;
   c.obstY = y;
   data[x][y] = c;
@@ -124,7 +124,7 @@ void DynamicVoronoi::removeObstacle(int x, int y) {
   dataCell c = data[x][y];
   if(isOccupied(x,y,c) == false) return;
 
-  removeList.push_back(INTPOINT(x,y));
+  removeList.emplace_back(INTPOINT(x, y));
   c.obstX = invalidObstData;
   c.obstY  = invalidObstData;    
   c.queueing = bwQueued;
@@ -151,7 +151,7 @@ void DynamicVoronoi::exchangeObstacles(const std::vector<INTPOINT>& points) {
     bool v = gridMap[x][y];
     if (v) continue;
     setObstacle(x,y);
-    lastObstacles.push_back(points[i]);
+    lastObstacles.emplace_back(points[i]);
   }  
 }
 

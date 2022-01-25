@@ -1,5 +1,4 @@
-#ifndef NODE3D_H
-#define NODE3D_H
+#pragma once
 
 #include <cmath>
 #include <memory>
@@ -36,11 +35,11 @@ class Node3D {
    /// get the heading theta
    float GetT() const { return t; }
    /// get the cost-so-far (real value)
-   float GetG() const { return g; }
+   float GetCostSofar() const { return g; }
    /// get the cost-to-come (heuristic value)
-   float GetH() const { return h; }
+   float GetCostToGo() const { return h; }
    /// get the total estimated cost
-   float GetC() const { return g + h; }
+   float GetTotalCost() const { return g + h; }
    /// get the index of the node in the 3D array
    int GetIdx() const { return idx; }
    /// get the number associated with the motion primitive of the node
@@ -117,4 +116,3 @@ class Node3D {
   std::shared_ptr<Node3D> pred_ptr_;
 };
 }
-#endif // NODE3D_H

@@ -1,5 +1,4 @@
-#ifndef _DYNAMICVORONOI_H_
-#define _DYNAMICVORONOI_H_
+#pragma once
 
 #include <eigen3/Eigen/Dense>
 
@@ -110,6 +109,3 @@ class DynamicVoronoi {
   //  dataCell** getData(){ return data; }
 };
 }
-
-#endif
-

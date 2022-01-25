@@ -1,5 +1,4 @@
-#ifndef COLLISIONLOOKUP
-#define COLLISIONLOOKUP
+#pragma once
 
 #include "dubins.h"
 #include "constants.h"
@@ -286,5 +285,3 @@ inline void collisionLookup(Constants::config* lookup) {
 
 }
 }
-#endif // LOOKUP
-

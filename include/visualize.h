@@ -1,5 +1,4 @@
-#ifndef VISUALIZE_H
-#define VISUALIZE_H
+#pragma once
 
 #include <tf/transform_datatypes.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -92,4 +91,3 @@ class Visualize {
   ParameterVisualize params_;
 };
 }
-#endif // VISUALIZE_H

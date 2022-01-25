@@ -1,5 +1,4 @@
-#ifndef SMOOTHER_H
-#define SMOOTHER_H
+#pragma once
 
 #include <vector>
 #include "dynamicvoronoi.h"
@@ -103,4 +102,3 @@ namespace HybridAStar
       std::shared_ptr<ParameterManager> param_manager_;
    };
 }
-#endif // SMOOTHER_H

@@ -8,8 +8,7 @@
  * @copyright Copyright (c) 2021
  * 
  */
-#ifndef UTILITY
-#define UTILITY
+#pragma once
 #include <nav_msgs/Path.h>
 #include <Eigen/Dense>
 #include "node2d.h"
@@ -290,5 +289,3 @@ namespace Utility
     float GetAngle(const HybridAStar::Node2D &start,
                    const HybridAStar::Node2D &goal);
 }
-
-#endif // UTILITY

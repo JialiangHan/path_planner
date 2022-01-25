@@ -1,5 +1,4 @@
-#ifndef GRADIENT
-#define GRADIENT
+#pragma once
 
 #include <vector>
 
@@ -36,7 +35,7 @@ class ColorGradient {
       }
     }
 
-    color.push_back(ColorPoint(red, green, blue, value));
+    color.emplace_back(ColorPoint(red, green, blue, value));
   }
 
   //-- Inserts a new color point into its correct position:
@@ -45,11 +44,11 @@ class ColorGradient {
   //-- Places a 5 color heapmap gradient into the "color" vector:
   void createDefaultHeatMapGradient() {
     color.clear();
-    color.push_back(ColorPoint(0, 0, 1,   0.0f));      // Blue.
-    color.push_back(ColorPoint(0, 1, 1,   0.25f));     // Cyan.
-    color.push_back(ColorPoint(0, 1, 0,   0.5f));      // Green.
-    color.push_back(ColorPoint(1, 1, 0,   0.75f));     // Yellow.
-    color.push_back(ColorPoint(1, 0, 0,   1.0f));      // Red.
+    color.emplace_back(ColorPoint(0, 0, 1, 0.0f));  // Blue.
+    color.emplace_back(ColorPoint(0, 1, 1, 0.25f)); // Cyan.
+    color.emplace_back(ColorPoint(0, 1, 0, 0.5f));  // Green.
+    color.emplace_back(ColorPoint(1, 1, 0, 0.75f)); // Yellow.
+    color.emplace_back(ColorPoint(1, 0, 0, 1.0f));  // Red.
   }
 
   //-- Inputs a (value) between 0 and 1 and outputs the (red), (green) and (blue)
@@ -79,5 +78,3 @@ class ColorGradient {
   }
 };
 }
-#endif // GRADIENT
-

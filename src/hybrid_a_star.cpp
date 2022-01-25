@@ -405,7 +405,7 @@ namespace HybridAStar
     // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
-      DLOG(INFO) << "adaptive steering angle and step size";
+      // DLOG(INFO) << "adaptive steering angle and step size";
       //steering angles are decided by angle to obstacle.
       //step size is determined by distance to obstacle.
       //TODO how to consider distance offset due to node3d is float
@@ -417,12 +417,12 @@ namespace HybridAStar
       distance_to_goal = Utility::GetDistance(pred, goal_);
       for (const auto &pair : available_steering_angle_and_step_size_vec)
       {
-        // DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(angle);
         steering_angle = pair.second;
         step_size = pair.first;
         turning_radius = step_size / abs(steering_angle);
         dt = steering_angle;
-
+        // DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle);
+        // DLOG(INFO) << "step size is " << step_size;
         //forward, checked
         //right
         if (steering_angle < 0)
@@ -891,7 +891,7 @@ namespace HybridAStar
     {
       if (pair.second == 0)
       {
-        DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
+        // DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
         steering_angle = Utility::RadNormalization(-(pair.first - pred.GetT()));
         out.emplace_back(steering_angle);
         continue;
@@ -920,7 +920,7 @@ namespace HybridAStar
     {
       if (pair.second.second == 0)
       {
-        DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
+        // DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
         steering_angle = Utility::RadNormalization(-(pair.second.first - pred.GetT()));
         out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
         continue;

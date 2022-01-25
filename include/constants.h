@@ -1,5 +1,4 @@
-#ifndef CONSTANTS
-#define CONSTANTS
+#pragma once
 /*!
    \file constants.h
    \brief This is a collection of constants that are used throughout the project.
@@ -75,6 +74,3 @@ namespace Constants
   };
 }
 }
-
-#endif // CONSTANTS
-
