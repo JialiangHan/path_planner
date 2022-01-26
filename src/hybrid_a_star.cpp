@@ -156,6 +156,7 @@ namespace HybridAStar
                 DLOG(INFO) << "Found path through anallytical expansion";
                 DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
                 TracePath(nPred);
+                analytical_expansion_index_ = path_.size();
                 path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
                 if (params_.piecewise_cubic_bezier_interpolation)
                 {
@@ -163,7 +164,7 @@ namespace HybridAStar
                   ConvertToPiecewiseCubicBezierPath();
                   piecewise_cubic_bezier_path_.insert(piecewise_cubic_bezier_path_.end(), analytical_path.begin(), analytical_path.end());
                   DLOG(INFO) << "piecewise cubic bezier interpolation.";
-                  DLOG(INFO) << "piecewise_cubic_bezier_path_ size is " << piecewise_cubic_bezier_path_.size();
+                  // DLOG(INFO) << "piecewise_cubic_bezier_path_ size is " << piecewise_cubic_bezier_path_.size();
 
                   return piecewise_cubic_bezier_path_;
                 }
@@ -955,22 +956,42 @@ namespace HybridAStar
     std::vector<Eigen::Vector3f> anchor_points_vec;
     piecewise_cubic_bezier_path_.clear();
     Node3D end_point;
+    // for (uint jj = 1; jj < path_.size() - 1; ++jj)
+    // {
+    //   DLOG(INFO) << "path point is " << path_[jj].GetX() << " " << path_[jj].GetY() << " " << path_[jj].GetT();
+    //   DLOG(INFO) << "distance to next point is " << Utility::GetDistance(path_[jj], path_[jj + 1]);
+    // }
+    // uint index = 0;
+    // while (index < path_.size() - 1)
+    float distance_to_prev, distance_to_succ;
     for (uint index = 1; index < path_.size() - 1; ++index)
     {
       DLOG(INFO) << "path point is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
-      if (Utility::GetDistance(path_[index], path_[index + 1]) > 1)
+      distance_to_prev = Utility::GetDistance(path_[index], path_[index - 1]);
+      distance_to_succ = Utility::GetDistance(path_[index], path_[index + 1]);
+      if (distance_to_succ >= 1 && distance_to_prev >= 1)
       {
         anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
         DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
       }
-      else
+      else if (distance_to_succ >= 1 && distance_to_prev < 1)
       {
-        DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
+        continue;
+      }
+      else if (distance_to_prev >= 1 && distance_to_succ < 1)
+      {
+        anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
+        DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+      }
+      if (index == analytical_expansion_index_)
+      {
+        // DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
         end_point.setX(path_[index].GetX());
         end_point.setY(path_[index].GetY());
         end_point.setT(path_[index].GetT());
         break;
       }
+      // index++;
     }
     DLOG(INFO) << "end point is " << end_point.GetX() << " " << end_point.GetY() << " " << end_point.GetT();
     PiecewiseCubicBezier pwcb(Utility::ConvertNode3DToVector3f(start_), Utility::ConvertNode3DToVector3f(end_point));
@@ -984,7 +1005,7 @@ namespace HybridAStar
     // {
     //   DLOG(INFO) << "all point is " << point.x() << " " << point.y() << " " << point.z();
     // }
-    std::vector<Eigen::Vector3f> path_vec = pwcb.ConvertPiecewiseCubicBezierToVector3f(100);
+    std::vector<Eigen::Vector3f> path_vec = pwcb.ConvertPiecewiseCubicBezierToVector3f(10);
     for (const auto &vector : path_vec)
     {
       // DLOG(INFO) << "vector is " << vector.x() << " " << vector.y();

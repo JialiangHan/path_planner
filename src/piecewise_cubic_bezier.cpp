@@ -342,7 +342,7 @@ namespace HybridAStar
     std::vector<Eigen::Vector3f> PiecewiseCubicBezier::ConvertPiecewiseCubicBezierToVector3f(const int &number_of_points)
     {
         CalculateCubicBezier();
-        DLOG(INFO) << "size cubic bezier vec is " << cubic_bezier_vec_.size();
+        // DLOG(INFO) << "size cubic bezier vec is " << cubic_bezier_vec_.size();
         std::vector<Eigen::Vector3f> out;
         int index = 0;
         for (auto &bezier : cubic_bezier_vec_)

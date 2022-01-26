@@ -94,5 +94,10 @@ namespace HybridAStar
       std::shared_ptr<AStar> a_star_ptr_;
       uint map_width_;
       uint map_height_;
+      /**
+       * @brief index of path_ which analytic expansion start.
+       * 
+       */
+      uint analytical_expansion_index_;
    };
 }
