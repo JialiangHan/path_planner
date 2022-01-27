@@ -22,7 +22,7 @@ void Smoother::Clear()
 //###################################################
 //                                SMOOTHING ALGORITHM
 //###################################################
-void Smoother::SmoothPath(DynamicVoronoi &voronoi)
+void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
 {
   // load the current voronoi diagram into the smoother
   this->voronoi_ = voronoi;
@@ -45,23 +45,23 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
       params_.weight_smoothness < 0 ||
       params_.weight_voronoi < 0)
   {
-    //DLOG(WARNING) << "one of weighting is smaller than 0!!";
+    DLOG(WARNING) << "one of weighting is smaller than 0!!";
   }
   else if (total_weight <= 0)
   {
-    //DLOG(WARNING) << "total weight is smaller or equal to 0!!!!";
+    DLOG(WARNING) << "total weight is smaller or equal to 0!!!!";
   }
   else
   {
-    //DLOG(INFO) << "preprocessed path size is: " << preprocessed_path_.size();
+    DLOG(INFO) << "preprocessed path size is: " << preprocessed_path_.size();
     if (path_before_smooth.size() < 5)
     {
-      //DLOG(INFO) << "no enough points!!";
+      DLOG(INFO) << "no enough points!!";
       return;
     }
     while (iterations < params_.max_iterations)
     {
-      //DLOG(INFO) << iterations << " starts!";
+      DLOG(INFO) << iterations << " starts!";
       // choose the first three nodes of the path
       for (uint i = 2; i < path_before_smooth.size() - 2; ++i)
       {
@@ -71,7 +71,7 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
         Eigen::Vector2f xi(path_before_smooth[i].GetX(), path_before_smooth[i].GetY());
         Eigen::Vector2f xip1(path_before_smooth[i + 1].GetX(), path_before_smooth[i + 1].GetY());
         Eigen::Vector2f xip2(path_before_smooth[i + 2].GetX(), path_before_smooth[i + 2].GetY());
-        Eigen::Vector2f correction;
+        Eigen::Vector2f correction(0, 0);
         // //DLOG(INFO) << "xim2: " << xim2(0,0) << " " << xim2(1,0)
         //  << "xim1: " << xim1(0,0) << " " << xim1(1,0)
         //  << "xi: " << xi(0,0) << " " << xi(1,0)
@@ -80,64 +80,70 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
 
         // the following points shall not be smoothed
         // keep these points fixed if they are a cusp point or adjacent to one
-        // //DLOG(INFO) << i << "th node before correction: x: " << xi(0,0) << " y: " << xi(1,0);
+        DLOG(INFO) << i << "th node before correction: x: " << xi(0, 0) << " y: " << xi(1, 0);
         if (isCusp(path_before_smooth, i))
         {
-          //DLOG(INFO) << "node is cusp,skip it!";
+          DLOG(INFO) << "node is cusp,skip it!";
           continue;
         }
-
+        // DLOG(INFO) << "correction is " << correction.x() << " " << correction.y();
         // ensure that it is on the grid
         correction = correction - CurvatureTerm(xim2, xim1, xi, xip1, xip2);
+        // DLOG(INFO) << "correction is " << correction.x() << " " << correction.y();
+        DLOG(INFO) << "node after curvature correction is " << (xi + correction).x() << " " << (xi + correction).y();
         if (!isOnGrid(xi + correction))
         {
-          //DLOG(INFO) << "node after curvature correction is not on grid!!";
+          DLOG(INFO) << "node after curvature correction is not on grid!!";
           continue;
         }
         // ensure that it is on the grid
         correction = correction - ObstacleTerm(xi);
+        // DLOG(INFO) << "node after curvature and obstacle correction is " << (xi + correction).x() << " " << (xi + correction).y();
         if (!isOnGrid(xi + correction))
         {
-          //DLOG(INFO) << "node after curvature and obstacle correction is not on grid!!";
+          DLOG(INFO) << "node after curvature and obstacle correction is not on grid!!";
           continue;
         }
 
         correction = correction - VoronoiTerm(xi);
+        // DLOG(INFO) << "node after curvature, obstacles and voronoi correction  is " << (xi + correction).x() << " " << (xi + correction).y();
         if (!isOnGrid(xi + correction))
         {
-          //DLOG(INFO) << "node after curvature, obstacles and voronoi correction is not on grid!!";
+          DLOG(INFO) << "node after curvature, obstacles and voronoi correction is not on grid!!";
           continue;
         }
         // ensure that it is on the grid
         correction = correction - SmoothnessTerm(xim2, xim1, xi, xip1, xip2);
+        // DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is " << (xi + correction).x() << " " << (xi + correction).y();
         if (!isOnGrid(xi + correction))
         {
-          //DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
+          DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
           continue;
         }
         correction = correction - PathLengthTerm(xim1, xi, xip1);
+        // DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is " << (xi + correction).x() << " " << (xi + correction).y();
         if (!isOnGrid(xi + correction))
         {
-          //DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
+          DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
           continue;
         }
 
         xi = xi + params_.alpha * correction / total_weight;
         if (correction(0, 0) == 0 && correction(1, 0) == 0)
         {
-          //DLOG(WARNING) << "correction is zero, no correction performed!!!";
+          DLOG(WARNING) << "correction is zero, no correction performed!!!";
         }
         smoothed_path[i].setX(xi(0, 0));
         smoothed_path[i].setY(xi(1, 0));
         Eigen::Vector2f Dxi = xi - xim1;
         smoothed_path[i - 1].setT(std::atan2(Dxi(1, 0), Dxi(0, 0)));
-        // //DLOG(INFO) << i << "th node after correction: x: " << xi(0,0) << " y: " << xi(1,0);
+        // DLOG(INFO) << i << "th node after correction: x: " << xi(0, 0) << " y: " << xi(1, 0);
       }
 
       //add termination for while loop
       if (GetPathDiff(smoothed_path, path_before_smooth) < params_.epsilon)
       {
-        //DLOG(INFO) << "path diff before and after is too small, terminate while loop!!";
+        DLOG(INFO) << "path diff before and after is too small, terminate while loop!!";
         break;
       }
       else
@@ -151,7 +157,7 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
   path_ = smoothed_path;
   // for (auto node : path_)
   // {
-  //   //DLOG(INFO) << "smoothed path is x: " << node.GetX() << " y: " << node.GetY() << " t: " << node.GetT();
+  //   DLOG(INFO) << "smoothed path is x: " << node.GetX() << " y: " << node.GetY() << " t: " << node.GetT();
   // }
 }
 
@@ -173,9 +179,9 @@ void Smoother::SmoothPath(DynamicVoronoi &voronoi)
 //###################################################
 //                                      OBSTACLE TERM
 //###################################################
-Eigen::Vector2f Smoother::ObstacleTerm(Eigen::Vector2f xi)
+Eigen::Vector2f Smoother::ObstacleTerm(const Eigen::Vector2f &xi)
 {
-  Eigen::Vector2f gradient;
+  Eigen::Vector2f gradient(0, 0);
   // the distance to the closest obstacle from the current node
   float obsDst = voronoi_.getDistance(xi(0, 0), xi(1, 0));
   // the vector determining where the obstacle is
@@ -199,9 +205,9 @@ Eigen::Vector2f Smoother::ObstacleTerm(Eigen::Vector2f xi)
 //###################################################
 //                                       VORONOI TERM
 //###################################################
-Eigen::Vector2f Smoother::VoronoiTerm(Eigen::Vector2f xi)
+Eigen::Vector2f Smoother::VoronoiTerm(const Eigen::Vector2f &xi)
 {
-  Eigen::Vector2f gradient;
+  Eigen::Vector2f gradient(0, 0);
 
   float obsDst = voronoi_.getDistance(xi(0, 0), xi(1, 0));
   // the vector determining where the obstacle is
@@ -240,10 +246,10 @@ Eigen::Vector2f Smoother::VoronoiTerm(Eigen::Vector2f xi)
 //###################################################
 //                                     CURVATURE TERM
 //###################################################
-Eigen::Vector2f Smoother::CurvatureTerm(Eigen::Vector2f xim2, Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1, Eigen::Vector2f xip2)
+Eigen::Vector2f Smoother::CurvatureTerm(const Eigen::Vector2f &xim2, const Eigen::Vector2f &xim1, const Eigen::Vector2f &xi, const Eigen::Vector2f &xip1, const Eigen::Vector2f &xip2)
 {
   //use curvature square as cost function for curvature term
-  Eigen::Vector2f gradient;
+  Eigen::Vector2f gradient(0, 0);
   // the vectors between the nodes
   Eigen::Vector2f Dxi = xi - xim1;
   Eigen::Vector2f Dxip1 = xip1 - xi;
@@ -259,14 +265,35 @@ Eigen::Vector2f Smoother::CurvatureTerm(Eigen::Vector2f xim2, Eigen::Vector2f xi
   if (norm_Dxi > 0 && norm_Dxim1 > 0 && norm_Dxip1 > 0)
   {
     // the angular change at the node
-    float Dphi = std::acos(Utility::Clamp(Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1), -1, 1));
-    float Dphip1 = std::acos(Utility::Clamp(Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2), -1, 1));
-    float Dphim1 = std::acos(Utility::Clamp(Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi), -1, 1));
+    float Dphi = std::acos(Utility::Clamp(Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1), 1, -1));
+    float Dphip1 = std::acos(Utility::Clamp(Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2), 1, -1));
+    float Dphim1 = std::acos(Utility::Clamp(Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi), 1, -1));
     if (Dphim1 == 0 || Dphi == 0 || Dphip1 == 0)
     {
-      //DLOG(INFO) << "one of the changing angle is 0!!!";
-      Eigen::Vector2f zeros(0, 0);
-      return zeros;
+      DLOG(INFO) << "one of the changing angle is 0!!!";
+      if (Dphi == 0)
+      {
+        DLOG(INFO) << "Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1) " << Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1);
+        DLOG(INFO) << "Utility::Clamp(Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1), 1, -1) " << Utility::Clamp(Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1), 1, -1);
+        DLOG(INFO) << "Dxi is " << Dxi.x() << " " << Dxi.y();
+        DLOG(INFO) << "Dxip1 is " << Dxip1.x() << " " << Dxip1.y();
+      }
+      if (Dphip1 == 0)
+      {
+        DLOG(INFO) << "Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2) " << Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2);
+        DLOG(INFO) << "Utility::Clamp(Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2), 1, -1) " << Utility::Clamp(Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2), 1, -1);
+        DLOG(INFO) << "Dxip1 is " << Dxip1.x() << " " << Dxip1.y();
+        DLOG(INFO) << "Dxip2 is " << Dxip2.x() << " " << Dxip2.y();
+      }
+      if (Dphim1 == 0)
+      {
+        DLOG(INFO) << "Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi) " << Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi);
+        DLOG(INFO) << "Utility::Clamp(Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi), 1, -1) " << Utility::Clamp(Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi), 1, -1);
+        DLOG(INFO) << "Dxim1 is " << Dxim1.x() << " " << Dxim1.y();
+        DLOG(INFO) << "Dxi is " << Dxi.x() << " " << Dxi.y();
+      }
+      return gradient;
+      ;
     }
     float absDxi1Inv = 1 / norm_Dxi;
     float absDxim1Inv = 1 / norm_Dxim1;
@@ -293,7 +320,7 @@ Eigen::Vector2f Smoother::CurvatureTerm(Eigen::Vector2f xim2, Eigen::Vector2f xi
 
     if (std::isnan(gradient(0, 0)) || std::isnan(gradient(1, 0)))
     {
-      //DLOG(WARNING) << "nan values in curvature term";
+      DLOG(WARNING) << "nan values in curvature term";
       //DLOG(INFO) << "gradient is: " << gradient(0, 0) << " " << gradient(1, 0);
       // //DLOG(INFO) << "weighting is " << params_.weight_curvature;
       // //DLOG(INFO) << "Pcurvature_m_Pxi is nan: x: " << Pcurvature_m_Pxi(0,0) << " y: " << Pcurvature_m_Pxi(1,0);
@@ -440,12 +467,12 @@ Eigen::Vector2f Smoother::CurvatureTerm(Eigen::Vector2f xim2, Eigen::Vector2f xi
 //###################################################
 //                                    SMOOTHNESS TERM
 //###################################################
-Eigen::Vector2f Smoother::SmoothnessTerm(Eigen::Vector2f xim2, Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1, Eigen::Vector2f xip2)
+Eigen::Vector2f Smoother::SmoothnessTerm(const Eigen::Vector2f &xim2, const Eigen::Vector2f &xim1, const Eigen::Vector2f &xi, const Eigen::Vector2f &xip1, const Eigen::Vector2f &xip2)
 {
   //this is correct, see https://zhuanlan.zhihu.com/p/118666410
   return params_.weight_smoothness * (xim2 - 4 * xim1 + 6 * xi - 4 * xip1 + xip2);
 }
-Eigen::Vector2f Smoother::PathLengthTerm(Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1)
+Eigen::Vector2f Smoother::PathLengthTerm(const Eigen::Vector2f &xim1, const Eigen::Vector2f &xi, const Eigen::Vector2f &xip1)
 {
   return params_.weight_length * 2 * (2 * xi - xim1 - xip1);
 }
@@ -484,6 +511,7 @@ float Smoother::GetPathDiff(const std::vector<Node3D> &path_before_smooth, const
       diff += (xi_after - xi_before).norm();
     }
     diff = diff / path_after_smooth.size();
+    // DLOG(INFO) << "path diff is " << diff;
     // //DLOG(INFO) << "path diff is : " << diff;
     return diff;
   }

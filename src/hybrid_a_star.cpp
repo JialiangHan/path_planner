@@ -966,13 +966,13 @@ namespace HybridAStar
     float distance_to_prev, distance_to_succ;
     for (uint index = 1; index < path_.size() - 1; ++index)
     {
-      DLOG(INFO) << "path point is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+      // DLOG(INFO) << "path point is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
       distance_to_prev = Utility::GetDistance(path_[index], path_[index - 1]);
       distance_to_succ = Utility::GetDistance(path_[index], path_[index + 1]);
       if (distance_to_succ >= 1 && distance_to_prev >= 1)
       {
         anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
-        DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+        // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
       }
       else if (distance_to_succ >= 1 && distance_to_prev < 1)
       {
@@ -981,7 +981,7 @@ namespace HybridAStar
       else if (distance_to_prev >= 1 && distance_to_succ < 1)
       {
         anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
-        DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+        // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
       }
       if (index == analytical_expansion_index_)
       {
@@ -993,7 +993,7 @@ namespace HybridAStar
       }
       // index++;
     }
-    DLOG(INFO) << "end point is " << end_point.GetX() << " " << end_point.GetY() << " " << end_point.GetT();
+    // DLOG(INFO) << "end point is " << end_point.GetX() << " " << end_point.GetY() << " " << end_point.GetT();
     PiecewiseCubicBezier pwcb(Utility::ConvertNode3DToVector3f(start_), Utility::ConvertNode3DToVector3f(end_point));
     pwcb.SetAnchorPoints(anchor_points_vec);
     // for (const auto &point : anchor_points_vec)

@@ -31,7 +31,7 @@ namespace HybridAStar
      smoothnessCost
      voronoiCost
   */
-      void SmoothPath(DynamicVoronoi &voronoi);
+      void SmoothPath(const DynamicVoronoi &voronoi);
 
       //       /*!
       //      \brief Given a node pointer the path to the root node will be traced recursively, output path is from goal to start.
@@ -43,22 +43,22 @@ namespace HybridAStar
       const std::vector<Node3D> &GetPath() { return path_; }
 
       /// obstacleCost - pushes the path away from obstacles
-      Eigen::Vector2f ObstacleTerm(Eigen::Vector2f xi);
+      Eigen::Vector2f ObstacleTerm(const Eigen::Vector2f &xi);
 
       /// curvatureCost - forces a maximum curvature of 1/R along the path ensuring drivability
-      Eigen::Vector2f CurvatureTerm(Eigen::Vector2f xim2, Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1, Eigen::Vector2f xip2);
+      Eigen::Vector2f CurvatureTerm(const Eigen::Vector2f &xim2, const Eigen::Vector2f &xim1, const Eigen::Vector2f &xi, const Eigen::Vector2f &xip1, const Eigen::Vector2f &xip2);
 
       /// smoothnessCost - attempts to spread nodes equidistantly and with the same orientation
-      Eigen::Vector2f SmoothnessTerm(Eigen::Vector2f xim2, Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1, Eigen::Vector2f xip2);
+      Eigen::Vector2f SmoothnessTerm(const Eigen::Vector2f &xim2, const Eigen::Vector2f &xim1, const Eigen::Vector2f &xi, const Eigen::Vector2f &xip1, const Eigen::Vector2f &xip2);
 
       /// voronoiCost - trade off between path length and closeness to obstacles
-      Eigen::Vector2f VoronoiTerm(Eigen::Vector2f xi);
+      Eigen::Vector2f VoronoiTerm(const Eigen::Vector2f &xi);
 
       // cost for path length, in order to minimize path length
-      Eigen::Vector2f PathLengthTerm(Eigen::Vector2f xim1, Eigen::Vector2f xi, Eigen::Vector2f xip1);
+      Eigen::Vector2f PathLengthTerm(const Eigen::Vector2f &xim1, const Eigen::Vector2f &xi, const Eigen::Vector2f &xip1);
 
       /// a boolean test, whether vector is on the grid or not
-      bool isOnGrid(Eigen::Vector2f vec)
+      bool isOnGrid(const Eigen::Vector2f &vec)
       {
          if (vec(0, 0) >= 0 && vec(0, 0) < map_width_ &&
              vec(1, 0) >= 0 && vec(1, 0) < map_height_)

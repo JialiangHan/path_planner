@@ -224,3 +224,12 @@ TEST(Utility, GetAngle)
 
     EXPECT_FLOAT_EQ(result, Utility::ConvertDegToRad(45));
 }
+
+// TEST(Utility, Clamp)
+// {
+//     float number, upper_bound, lower_bound;
+
+//     float result = Utility::GetAngle(start, goal);
+
+//     EXPECT_FLOAT_EQ(result, Utility::ConvertDegToRad(45));
+// }
