@@ -246,6 +246,15 @@ namespace Utility
  */
     AngleRange MinusAngleRange(const AngleRange &angle_range_1,
                                const AngleRange &angle_range_2);
+    /**
+    * @brief calculate curvature from three points
+    * 
+    * @param pre 
+    * @param current 
+    * @param succ 
+    * @return float 
+    */
+    float CalculateCurvature(const Eigen::Vector2f &pre, const Eigen::Vector2f &current, const Eigen::Vector2f &succ);
     //*************************other ***********************
 
     float Clamp(const float &number, const float &upper_bound,

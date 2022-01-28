@@ -48,6 +48,8 @@ namespace HybridAStar
       /// curvatureCost - forces a maximum curvature of 1/R along the path ensuring drivability
       Eigen::Vector2f CurvatureTerm(const Eigen::Vector2f &xim2, const Eigen::Vector2f &xim1, const Eigen::Vector2f &xi, const Eigen::Vector2f &xip1, const Eigen::Vector2f &xip2);
 
+      Eigen::Vector2f CurvatureTerm(const Eigen::Vector2f &xim1, const Eigen::Vector2f &xi, const Eigen::Vector2f &xip1);
+
       /// smoothnessCost - attempts to spread nodes equidistantly and with the same orientation
       Eigen::Vector2f SmoothnessTerm(const Eigen::Vector2f &xim2, const Eigen::Vector2f &xim1, const Eigen::Vector2f &xi, const Eigen::Vector2f &xip1, const Eigen::Vector2f &xip2);
 

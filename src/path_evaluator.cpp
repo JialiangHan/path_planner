@@ -33,52 +33,28 @@ namespace PathEvaluator
             Eigen::Vector2f xi(path[i + 1].x(), path[i + 1].y());
             // DLOG(INFO) << "xi x is :" << xi(0,0) << "y is: " << xi.y();
             Eigen::Vector2f xs(path[i + 2].x(), path[i + 2].y());
-            if (xp == xi || xi == xs)
-            {
-                DLOG(WARNING) << "In CalculateCurvature: some points are equal, skip these points for curvature calculation!!";
-                continue;
-            }
-            // DLOG(INFO) << "xs x is :" << xs(0,0) << "y is: " << xs.y();
-            //get two vector between these three nodes
-            Eigen::Vector2f pre_vector = xi - xp;
-            // DLOG(INFO) << "pre_vector x is :" << pre_vector(0,0) << "y is: " << pre_vector.y();
-            Eigen::Vector2f succ_vector = xs - xi;
-            // DLOG(INFO) << "succ_vector x is :" << succ_vector(0,0) << "y is: " << succ_vector.y();
-            //calculate delta distance and delta angle
-            float delta_distance = succ_vector.norm();
-            float pre_vector_length = pre_vector.norm();
-            // DLOG(INFO) << "delta_distance is:" << delta_distance;
-            // DLOG(INFO) << "pre_vector_length is: " << pre_vector_length;
-            // there would some calculation error here causing number inside acos greater than 1 or smaller than -1.
-            float temp = pre_vector.dot(succ_vector) / (delta_distance * pre_vector_length);
-            if (temp > 1 || temp < -1)
-            {
-                temp = round(temp);
-            }
-            float delta_angle = std::acos(temp);
-            // DLOG(INFO) << "delta_angle is: " << delta_angle;
-            //curvature = abs(delta_angle)/abs(delta_distance)
-            curvature = delta_angle / delta_distance;
+
+            curvature = Utility::CalculateCurvature(xp, xi, xs);
             curvature_vec.emplace_back(curvature);
             // DLOG(INFO) << "In CalculateCurvature:" << i << "th curvature is:" << curvature;
-            if (std::isnan(curvature))
-            {
-                DLOG(WARNING) << " curvature is NAN!!!";
-                if (std::isnan(delta_distance) || delta_distance == 0)
-                {
-                    DLOG(INFO) << "delta_distance is:" << delta_distance;
-                    DLOG(INFO) << "succ_vector x is :" << succ_vector(0, 0) << "y is: " << succ_vector(1, 0);
-                    DLOG(INFO) << "xp x is :" << xp(0, 0) << "y is: " << xp(1, 0);
-                    DLOG(INFO) << "xi x is :" << xi(0, 0) << "y is: " << xi(1, 0);
-                }
-                else if (std::isnan(delta_angle))
-                {
-                    DLOG(INFO) << "inside std::Cos is: " << temp;
-                    DLOG(INFO) << "pre_vector_length is: " << pre_vector_length;
-                    DLOG(INFO) << "xs x is :" << xs(0, 0) << "y is: " << xs(1, 0);
-                    DLOG(INFO) << "pre_vector x is :" << pre_vector(0, 0) << "y is: " << pre_vector(1, 0);
-                }
-            }
+            // if (std::isnan(curvature))
+            // {
+            //     DLOG(WARNING) << " curvature is NAN!!!";
+            //     if (std::isnan(delta_distance) || delta_distance == 0)
+            //     {
+            //         DLOG(INFO) << "delta_distance is:" << delta_distance;
+            //         DLOG(INFO) << "succ_vector x is :" << succ_vector(0, 0) << "y is: " << succ_vector(1, 0);
+            //         DLOG(INFO) << "xp x is :" << xp(0, 0) << "y is: " << xp(1, 0);
+            //         DLOG(INFO) << "xi x is :" << xi(0, 0) << "y is: " << xi(1, 0);
+            //     }
+            //     else if (std::isnan(delta_angle))
+            //     {
+            //         DLOG(INFO) << "inside std::Cos is: " << temp;
+            //         DLOG(INFO) << "pre_vector_length is: " << pre_vector_length;
+            //         DLOG(INFO) << "xs x is :" << xs(0, 0) << "y is: " << xs(1, 0);
+            //         DLOG(INFO) << "pre_vector x is :" << pre_vector(0, 0) << "y is: " << pre_vector(1, 0);
+            //     }
+            // }
             // DLOG(INFO) << " in curvature_vec is:" << curvature_vec.back();
         }
         if (curvature_map_.count(topic_name) > 0)

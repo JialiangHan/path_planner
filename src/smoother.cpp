@@ -53,7 +53,7 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
   }
   else
   {
-    DLOG(INFO) << "preprocessed path size is: " << preprocessed_path_.size();
+    // DLOG(INFO) << "preprocessed path size is: " << preprocessed_path_.size();
     if (path_before_smooth.size() < 5)
     {
       DLOG(INFO) << "no enough points!!";
@@ -88,7 +88,8 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
         }
         // DLOG(INFO) << "correction is " << correction.x() << " " << correction.y();
         // ensure that it is on the grid
-        correction = correction - CurvatureTerm(xim2, xim1, xi, xip1, xip2);
+        // correction = correction - CurvatureTerm(xim2, xim1, xi, xip1, xip2);
+        correction = correction - CurvatureTerm(xim1, xi, xip1);
         // DLOG(INFO) << "correction is " << correction.x() << " " << correction.y();
         DLOG(INFO) << "node after curvature correction is " << (xi + correction).x() << " " << (xi + correction).y();
         if (!isOnGrid(xi + correction))
@@ -161,21 +162,6 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
   // }
 }
 
-// void Smoother::TracePath(const Node3D *node)
-// {
-//   // if (node == nullptr)
-//   // {
-//   //   this->path_ = path;
-//   //   return;
-//   // }
-//   while (node != nullptr)
-//   {
-//     path_.emplace_back(*node);
-//     DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
-//     node = node->GetPred();
-//   }
-// }
-
 //###################################################
 //                                      OBSTACLE TERM
 //###################################################
@@ -242,7 +228,75 @@ Eigen::Vector2f Smoother::VoronoiTerm(const Eigen::Vector2f &xi)
   }
   return gradient;
 }
+/***************original curvature term**************/
+Eigen::Vector2f Smoother::CurvatureTerm(const Eigen::Vector2f &xim1, const Eigen::Vector2f &xi, const Eigen::Vector2f &xip1)
+{
+  Eigen::Vector2f gradient(0, 0);
+  // the vectors between the nodes
+  Eigen::Vector2f Dxi = xi - xim1;
+  Eigen::Vector2f Dxip1 = xip1 - xi;
+  // orthogonal complements vector
+  Eigen::Vector2f p1, p2;
 
+  // the distance of the vectors
+  float absDxi = Dxi.norm();
+  float absDxip1 = Dxip1.norm();
+
+  // ensure that the absolute values are not null
+  if (absDxi > 0 && absDxip1 > 0)
+  {
+    // the angular change at the node
+    float Dphi = std::acos(Utility::Clamp(Dxi.dot(Dxip1) / (absDxi * absDxip1), 1, -1));
+    float kappa = Dphi / absDxi;
+
+    // if the curvature is smaller then the maximum do nothing
+    if (kappa <= 1 / params_.min_turning_radius)
+    {
+      return gradient;
+    }
+    else
+    {
+      //代入原文公式(2)与(3)之间的公式
+      //参考：
+      // Dolgov D, Thrun S, Montemerlo M, et al. Practical search techniques in path planning for
+      //  autonomous driving[J]. Ann Arbor, 2008, 1001(48105): 18-80.
+      float absDxi1Inv = 1 / absDxi;
+      float PDphi_PcosDphi = -1 / std::sqrt(1 - std::pow(std::cos(Dphi), 2));
+      float u = -absDxi1Inv * PDphi_PcosDphi;
+      // calculate the p1 and p2 terms
+      p1 = OrthogonalComplements(xi, -xip1) / (absDxi * absDxip1); //公式(4)
+      p2 = OrthogonalComplements(-xip1, xi) / (absDxi * absDxip1);
+      // calculate the last terms
+      float s = Dphi / (absDxi * absDxi);
+      Eigen::Vector2f ones(1, 1);
+      Eigen::Vector2f ki = u * (-p1 - p2) - (s * ones);
+      Eigen::Vector2f kim1 = u * p2 - (s * ones);
+      Eigen::Vector2f kip1 = u * p1;
+
+      // calculate the gradient
+      gradient = params_.weight_curvature * (0.25 * kim1 + 0.5 * ki + 0.25 * kip1);
+
+      if (std::isnan(gradient.x()) || std::isnan(gradient.y()))
+      {
+        std::cout << "nan values in curvature term" << std::endl;
+        Eigen::Vector2f zeros(0, 0);
+        return zeros;
+      }
+      // return gradient of 0
+      else
+      {
+        return gradient;
+      }
+    }
+  }
+  // return gradient of 0
+  else
+  {
+    std::cout << "abs values not larger than 0" << std::endl;
+    Eigen::Vector2f zeros(0, 0);
+    return zeros;
+  }
+}
 //###################################################
 //                                     CURVATURE TERM
 //###################################################
@@ -268,29 +322,36 @@ Eigen::Vector2f Smoother::CurvatureTerm(const Eigen::Vector2f &xim2, const Eigen
     float Dphi = std::acos(Utility::Clamp(Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1), 1, -1));
     float Dphip1 = std::acos(Utility::Clamp(Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2), 1, -1));
     float Dphim1 = std::acos(Utility::Clamp(Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi), 1, -1));
+    float curvature = abs(Dphi) / norm_Dxi;
+    DLOG(INFO) << "curvature is " << curvature;
+    //only optimize some points which have curvature greater than 1/min_turning_radius
+    if (curvature < 1 / params_.min_turning_radius)
+    {
+      return gradient;
+    }
     if (Dphim1 == 0 || Dphi == 0 || Dphip1 == 0)
     {
-      DLOG(INFO) << "one of the changing angle is 0!!!";
+      // DLOG(INFO) << "one of the changing angle is 0!!!";
       if (Dphi == 0)
       {
-        DLOG(INFO) << "Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1) " << Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1);
-        DLOG(INFO) << "Utility::Clamp(Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1), 1, -1) " << Utility::Clamp(Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1), 1, -1);
-        DLOG(INFO) << "Dxi is " << Dxi.x() << " " << Dxi.y();
-        DLOG(INFO) << "Dxip1 is " << Dxip1.x() << " " << Dxip1.y();
+        // DLOG(INFO) << "Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1) " << Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1);
+        // DLOG(INFO) << "Utility::Clamp(Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1), 1, -1) " << Utility::Clamp(Dxi.dot(Dxip1) / (norm_Dxi * norm_Dxip1), 1, -1);
+        // DLOG(INFO) << "Dxi is " << Dxi.x() << " " << Dxi.y();
+        // DLOG(INFO) << "Dxip1 is " << Dxip1.x() << " " << Dxip1.y();
       }
       if (Dphip1 == 0)
       {
-        DLOG(INFO) << "Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2) " << Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2);
-        DLOG(INFO) << "Utility::Clamp(Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2), 1, -1) " << Utility::Clamp(Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2), 1, -1);
-        DLOG(INFO) << "Dxip1 is " << Dxip1.x() << " " << Dxip1.y();
-        DLOG(INFO) << "Dxip2 is " << Dxip2.x() << " " << Dxip2.y();
+        //   DLOG(INFO) << "Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2) " << Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2);
+        //   DLOG(INFO) << "Utility::Clamp(Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2), 1, -1) " << Utility::Clamp(Dxip1.dot(Dxip2) / (norm_Dxip1 * norm_Dxip2), 1, -1);
+        //   DLOG(INFO) << "Dxip1 is " << Dxip1.x() << " " << Dxip1.y();
+        //   DLOG(INFO) << "Dxip2 is " << Dxip2.x() << " " << Dxip2.y();
       }
       if (Dphim1 == 0)
       {
-        DLOG(INFO) << "Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi) " << Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi);
-        DLOG(INFO) << "Utility::Clamp(Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi), 1, -1) " << Utility::Clamp(Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi), 1, -1);
-        DLOG(INFO) << "Dxim1 is " << Dxim1.x() << " " << Dxim1.y();
-        DLOG(INFO) << "Dxi is " << Dxi.x() << " " << Dxi.y();
+        // DLOG(INFO) << "Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi) " << Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi);
+        // DLOG(INFO) << "Utility::Clamp(Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi), 1, -1) " << Utility::Clamp(Dxim1.dot(Dxi) / (norm_Dxim1 * norm_Dxi), 1, -1);
+        // DLOG(INFO) << "Dxim1 is " << Dxim1.x() << " " << Dxim1.y();
+        // DLOG(INFO) << "Dxi is " << Dxi.x() << " " << Dxi.y();
       }
       return gradient;
       ;
