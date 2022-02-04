@@ -2,7 +2,7 @@
 
 using namespace HybridAStar;
 
-bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr) const
+bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr)
 {
   if (!IsOnGrid(node2d_ptr))
   {
@@ -27,45 +27,15 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr
   {
     cost = configurationTest(x, y, t) ? 0 : 1;
   }
-  else
-  {
-    cost = configurationCost(x, y, t);
-  }
+
   return cost <= 0;
 };
-bool CollisionDetection::IsTraversable(const std::shared_ptr<Node3D> &node3d_ptr) const
+bool CollisionDetection::IsTraversable(const std::shared_ptr<Node3D> &node3d_ptr)
 {
-  if (!IsOnGrid(node3d_ptr))
-  {
-    return false;
-  }
-  /* Depending on the used collision checking mechanism this needs to be adjusted
-       standard: collision checking using the spatial occupancy enumeration
-       other: collision checking using the 2d costmap and the navigation stack
-    */
-  float cost = 0;
-  float x;
-  float y;
-  float t;
-  // assign values to the configuration
-  getConfiguration(node3d_ptr, x, y, t);
-  // 2D collision test
-  if (t == 99)
-  {
-    return !grid_ptr_->data[node3d_ptr->GetIdx()];
-  }
-  if (true)
-  {
-    cost = configurationTest(x, y, t) ? 0 : 1;
-  }
-  else
-  {
-    cost = configurationCost(x, y, t);
-  }
-  return cost <= 0;
+  return IsTraversable(*node3d_ptr);
 };
 
-bool CollisionDetection::IsTraversable(const Node3D &node3d) const
+bool CollisionDetection::IsTraversable(const Node3D &node3d)
 {
   if (!IsOnGrid(node3d))
   {
@@ -88,14 +58,15 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d) const
   }
   if (true)
   {
+    //TODO add configurationTest for a segment
     cost = configurationTest(x, y, t) ? 0 : 1;
-  }
-  else
-  {
-    cost = configurationCost(x, y, t);
   }
 
   return cost <= 0;
+}
+bool CollisionDetection::IsOnGrid(const Eigen::Vector2f &point) const
+{
+  return IsOnGrid(point.x(), point.y());
 }
 bool CollisionDetection::IsOnGrid(const Node3D &node3d) const
 {
@@ -122,39 +93,74 @@ bool CollisionDetection::IsOnGrid(const float &x, const float &y) const
   return x >= 0 && x < (int)grid_ptr_->info.width &&
          y >= 0 && y < (int)grid_ptr_->info.height;
 }
-
-bool CollisionDetection::configurationTest(float x, float y, float t) const
+bool CollisionDetection::configurationTest(const float &x, const float &y, const float &t)
 {
-  const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
-  int X = (int)x;
-  int Y = (int)y;
-  int iX = (int)((x - (long)x) * params_.position_resolution);
-  iX = iX > 0 ? iX : 0;
-  int iY = (int)((y - (long)y) * params_.position_resolution);
-  iY = iY > 0 ? iY : 0;
-  int iT = (int)(t / delta_heading_in_rad);
-  iT = iT > 0 ? iT : 0;
-  int idx = iY * params_.position_resolution * params_.headings + iX * params_.headings + iT;
-  int cX;
-  int cY;
-
-  for (int i = 0; i < collisionLookup[idx].length; ++i)
+  if (params_.enable_collision_lookup)
   {
-    cX = (X + collisionLookup[idx].pos[i].x);
-    cY = (Y + collisionLookup[idx].pos[i].y);
-
-    // make sure the configuration coordinates are actually on the grid
-    if (cX >= 0 && (unsigned int)cX < grid_ptr_->info.width && cY >= 0 && (unsigned int)cY < grid_ptr_->info.height)
+    //1. find index in the collision lookup map
+    uint index = GetNode3DIndexOnGridMap(x, y);
+    //2. check collision lookup table
+    if (collision_lookup_.find(index) != collision_lookup_.end())
     {
-      if (grid_ptr_->data[cY * grid_ptr_->info.width + cX])
+      uint fine_index = CalculateFineIndex(x, y, t);
+      DLOG(INFO) << "index is " << index << " fine index is " << fine_index;
+      Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length, params_.vehicle_width, t);
+      bool collision_result;
+      collision_result = CollsionCheck(polygon);
+      return collision_result;
+      if (collision_lookup_[index].find(fine_index) != collision_lookup_[index].end())
       {
-        return false;
+        DLOG(INFO) << "collision result is " << collision_lookup_[index][fine_index];
+        return collision_lookup_[index][fine_index];
       }
+      DLOG(WARNING) << "fine index can`t be found in the collision lookup map, coordinate is " << x << " " << y << " " << Utility::ConvertRadToDeg(t);
+    }
+    else
+    {
+      DLOG(WARNING) << "index can`t be found in the collision lookup map, coordinate is " << x << " " << y << " " << Utility::ConvertRadToDeg(t);
     }
   }
-
-  return true;
+  else
+  {
+    Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length, params_.vehicle_width, t);
+    bool collision_result;
+    collision_result = CollsionCheck(polygon);
+    return collision_result;
+  }
+  return false;
 }
+
+// bool CollisionDetection::configurationTest(const float &x, const float &y, const float &t) const
+// {
+//   const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
+//   int X = (int)x;
+//   int Y = (int)y;
+//   int iX = (int)((x - (long)x) * params_.position_resolution);
+//   iX = iX > 0 ? iX : 0;
+//   int iY = (int)((y - (long)y) * params_.position_resolution);
+//   iY = iY > 0 ? iY : 0;
+//   int iT = (int)(t / delta_heading_in_rad);
+//   iT = iT > 0 ? iT : 0;
+//   int idx = iY * params_.position_resolution * params_.headings + iX * params_.headings + iT;
+//   int cX, cY;
+
+//   for (int i = 0; i < collisionLookup[idx].length; ++i)
+//   {
+//     cX = (X + collisionLookup[idx].pos[i].x);
+//     cY = (Y + collisionLookup[idx].pos[i].y);
+
+//     // make sure the configuration coordinates are actually on the grid
+//     if (cX >= 0 && (unsigned int)cX < grid_ptr_->info.width && cY >= 0 && (unsigned int)cY < grid_ptr_->info.height)
+//     {
+//       if (grid_ptr_->data[cY * grid_ptr_->info.width + cX])
+//       {
+//         return false;
+//       }
+//     }
+//   }
+
+//   return true;
+// }
 
 void CollisionDetection::getConfiguration(const Node3D &node, float &x, float &y, float &t) const
 {
@@ -371,7 +377,15 @@ void CollisionDetection::SetInRangeObstacle(const float &range)
 
 uint CollisionDetection::GetNode3DIndexOnGridMap(const Node3D &node3d)
 {
-  return (uint)node3d.GetY() * grid_ptr_->info.width + (uint)node3d.GetX();
+
+  return (uint)node3d.GetY() * map_width_ + (uint)node3d.GetX();
+}
+
+uint CollisionDetection::GetNode3DIndexOnGridMap(const float &x, const float &y)
+{
+  // DLOG(INFO) << "coordinate is " << x << " " << y << " "
+  //  << " final index is " << (uint)y * map_width_ + (uint)x;
+  return (uint)y * map_width_ + (uint)x;
 }
 //checked, it`s correct.
 Utility::AngleRange CollisionDetection::GetNode3DAvailableAngleRange(const Node3D &node3d)
@@ -433,5 +447,166 @@ std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::GetDistan
   {
     out = distance_angle_range_map_.at(current_index);
   }
+  return out;
+}
+
+// uint CollisionDetection::CalculateNode3DIndex(const float &x, const float &y, const float &theta) const
+// {
+//   uint out;
+//   const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
+//   float angle;
+//   if (abs(theta) < 1e-4)
+//   {
+//     angle = 0;
+//   }
+//   else
+//   {
+//     angle = theta;
+//   }
+//   // DLOG(INFO) << "angle is " << angle;
+//   // DLOG(INFO) << "delta heading in rad is " << delta_heading_in_rad;
+//   // DLOG(INFO) << "(int)(theta / delta_heading_in_rad) " << (int)(theta / delta_heading_in_rad);
+//   out = (int)(angle / delta_heading_in_rad) * map_width_ * map_height_ * params_.position_resolution * params_.position_resolution + (int)(y * params_.position_resolution) * map_width_ + (int)(x * params_.position_resolution);
+
+//   return out;
+// }
+
+//where to put this collision table in lookup_table.cpp or collisiondetection..cpp?
+void CollisionDetection::BuildCollisionLookupTable()
+{
+  DLOG(INFO) << "BuildCollisionLookupTable start:";
+  collision_lookup_.clear();
+  //0. three for loop to loop every point in the map, similar to lookup_table.cpp
+  uint index, fine_index;
+  int x_count, y_count;
+  bool collision_result;
+  std::unordered_map<uint, bool> collision_result_map;
+  float x = 0, y = 0, theta = 0;
+
+  const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
+  while (x < map_width_)
+  {
+    y = 0;
+    // theta = 0;
+    while (y < map_height_)
+    {
+      // theta = 0;
+      index = GetNode3DIndexOnGridMap(x, y);
+      x_count = 0;
+      while (x_count < params_.position_resolution)
+      {
+        // theta = 0;
+        y_count = 0;
+        while (y_count < params_.position_resolution)
+        {
+          theta = 0;
+          while (theta < 2 * M_PI)
+          {
+            fine_index = CalculateFineIndex(x, y, theta);
+            DLOG(INFO) << "current index is " << index << " , fine index is " << fine_index << " coordinate is " << x << " " << y << " " << theta;
+            //1. create polygon accord to its coordinate(x,y), then rotate according to heading angle t.
+            // case: some certain case this polygon is outside map
+            if ((x <= params_.vehicle_length / 2 && y <= params_.vehicle_width / 2) ||
+                (x >= map_width_ - params_.vehicle_length / 2 && y <= params_.vehicle_width / 2) ||
+                (x <= params_.vehicle_length / 2 && y >= map_height_ - params_.vehicle_width / 2) ||
+                (x >= map_width_ - params_.vehicle_length / 2 && y >= map_height_ - params_.vehicle_width / 2))
+            {
+              DLOG(INFO) << "vehicle is outside map";
+              collision_result = false;
+            }
+            else
+            {
+              Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length, params_.vehicle_width, theta);
+              // for (const auto &point : polygon)
+              // {
+              //   DLOG(INFO) << "point is " << point.x() << " " << point.y();
+              // }
+              collision_result = CollsionCheck(polygon);
+            }
+
+            collision_result_map.emplace(fine_index, collision_result);
+            // DLOG(INFO) << "collision result is " << collision_result;
+            theta += delta_heading_in_rad;
+          }
+          y += 1.0f / params_.position_resolution;
+          y_count++;
+        }
+        y--;
+        x_count++;
+        x += 1.0f / params_.position_resolution;
+      }
+      x--;
+
+      collision_lookup_.emplace(index, collision_result_map);
+      y++;
+    }
+    x++;
+  }
+  DLOG(INFO) << "BuildCollisionLookupTable done.";
+}
+
+bool CollisionDetection::CollsionCheck(const Utility::Polygon &polygon)
+{
+  DLOG(INFO) << "CollisionCheck in.";
+  for (const auto &point : polygon)
+  {
+    if (!IsOnGrid(point))
+    {
+      DLOG(INFO) << "polygon is not on grid: point is " << point.x() << " " << point.y();
+      return false;
+    }
+  }
+  // should be convert to int for x and y;
+  uint current_point_index = polygon[0].y() * grid_ptr_->info.width + polygon[0].x();
+  //check if this polygon inside map or outside map
+  Utility::Polygon map_boundary = Utility::CreatePolygon(map_width_, map_height_);
+  // DLOG(INFO) << "current polygon start is " << polygon[0].x() << " " << polygon[0].y() << " index is " << current_point_index;
+
+  if (Utility::IsPolygonIntersectWithPolygon(polygon, map_boundary))
+  {
+    DLOG(INFO) << "intersect with map boundary.";
+    return false;
+  }
+  //check with in range obstacle
+  if (in_range_obstacle_map_.find(current_point_index) != in_range_obstacle_map_.end())
+  {
+    for (const auto &in_range_polygon : in_range_obstacle_map_[current_point_index])
+    {
+      if (Utility::IsPolygonIntersectWithPolygon(polygon, in_range_polygon))
+      {
+        DLOG(INFO) << "intersect with obstacle.";
+        return false;
+      }
+    }
+    DLOG(INFO) << " not intersect.";
+  }
+  else
+  {
+    DLOG(INFO) << "current polygon can`t be found in in_range_obstacle_map.";
+  }
+  return true;
+  //2. find obstacle in a certain range, this range is determined be vehicle parameter
+}
+uint CollisionDetection::CalculateFineIndex(const float &x, const float &y, const float &t)
+{
+  uint out, x_int, y_int, t_index, x_index, y_index;
+  const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
+  float angle;
+  if (abs(t) < 1e-4)
+  {
+    angle = 0;
+  }
+  else
+  {
+    angle = t;
+  }
+  x_int = (uint)x;
+  y_int = (uint)y;
+  t_index = (uint)(angle / delta_heading_in_rad);
+  x_index = (x - x_int) * params_.position_resolution;
+  y_index = (y - y_int) * params_.position_resolution;
+  out = t_index * params_.position_resolution * params_.position_resolution + y_index * params_.position_resolution + x_index;
+  // DLOG(INFO) << "coordinate is " << x << " " << y << " " << t << " x_int is " << x_int << " y_int is " << y_int << " x_index is " << x_index << " y_index is " << y_index << " t_index is " << t_index << " final index is " << out;
+
   return out;
 }

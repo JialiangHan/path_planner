@@ -225,11 +225,26 @@ TEST(Utility, GetAngle)
     EXPECT_FLOAT_EQ(result, Utility::ConvertDegToRad(45));
 }
 
-// TEST(Utility, Clamp)
-// {
-//     float number, upper_bound, lower_bound;
+TEST(Utility, CreatePolygon)
+{
+    Eigen::Vector2f center(1, 2);
+    float width = 2, height = 4, heading = M_PI / 2;
 
-//     float result = Utility::GetAngle(start, goal);
+    Utility::Polygon result = Utility::CreatePolygon(center, width, height, heading);
+    for (const auto &point : result)
+    {
+        DLOG(INFO) << "point is " << point.x() << " " << point.y();
+    }
+    EXPECT_FLOAT_EQ(2, result[0].x());
+}
 
-//     EXPECT_FLOAT_EQ(result, Utility::ConvertDegToRad(45));
-// }
+TEST(Utility, IsPolygonIntersectWithPolygon)
+{
+    Eigen::Vector2f origin1(0, 0), origin2(2, 0);
+    Utility::Polygon polygon1, polygon2;
+    polygon1 = Utility::CreatePolygon(origin1);
+    polygon2 = Utility::CreatePolygon(origin2);
+    bool result = Utility::IsPolygonIntersectWithPolygon(polygon1, polygon2);
+
+    EXPECT_TRUE(!result);
+}

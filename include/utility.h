@@ -125,6 +125,17 @@ namespace Utility
  */
     Polygon CreatePolygon(const Eigen::Vector2f &origin, const float &width = 1,
                           const float &height = 1);
+    /**
+ * @brief Create a Polygon object according to its center cooridnate x,y, and rotate it according to its headings
+ * 
+ * @param center : polygon centter
+ * @param width : polygon width in x direction
+ * @param height :polygon height in y direction
+ * @param heading :vehicle heading
+ * @return Polygon 
+ */
+    Polygon CreatePolygon(const Eigen::Vector2f &center, const float &width,
+                          const float &height, const float &heading);
 
     float GetDistanceFromPointToPoint(const Eigen::Vector3f &vector_3d,
                                       const Eigen::Vector2f &vector_2d);
@@ -255,6 +266,15 @@ namespace Utility
     * @return float 
     */
     float CalculateCurvature(const Eigen::Vector2f &pre, const Eigen::Vector2f &current, const Eigen::Vector2f &succ);
+    /**
+       * @brief determine if polygon1 is intersect with polygon2, 
+       * 
+       * @param polygon1 
+       * @param polygon2 
+       * @return true: intersect
+       * @return false: not intersect
+       */
+    bool IsPolygonIntersectWithPolygon(const Polygon &polygon1, const Polygon &polygon2);
     //*************************other ***********************
 
     float Clamp(const float &number, const float &upper_bound,

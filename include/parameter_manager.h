@@ -23,6 +23,13 @@ namespace HybridAStar
     float obstacle_detection_range = 50;
 
     float free_step_size = 1;
+
+    /// [m] --- The width of the vehicle
+    float vehicle_width = 1.75;
+    /// [m] --- The length of the vehicle
+    float vehicle_length = 2.65;
+
+    bool enable_collision_lookup = false;
   };
 
   //this struct contains some used parameters in visualize class
@@ -109,7 +116,7 @@ namespace HybridAStar
   {
     //****************************** smoother parameter************************************
     // max iterations for smoother
-    int max_iterations = 10000;
+    int max_iterations = 1000;
     // the small number which will terminate loop if path difference smaller than this number.
     float epsilon = 1e-6;
     /// maximum possible curvature of the non-holonomic vehicle

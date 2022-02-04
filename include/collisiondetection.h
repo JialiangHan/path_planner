@@ -31,19 +31,22 @@ namespace HybridAStar
       Lookup::collisionLookup(collisionLookup);
     };
 
-    bool IsTraversable(const std::shared_ptr<Node2D> &nod2d_ptr) const;
-    bool IsTraversable(const std::shared_ptr<Node3D> &nod3d_ptr) const;
-    bool IsTraversable(const Node3D &nod3d_ptr) const;
+    bool IsTraversable(const std::shared_ptr<Node2D> &nod2d_ptr);
+    bool IsTraversable(const std::shared_ptr<Node3D> &nod3d_ptr);
+    bool IsTraversable(const Node3D &nod3d_ptr);
 
     /*!
      \brief updates the grid with the world map
   */
-    void UpdateGrid(nav_msgs::OccupancyGrid::Ptr map)
+    void UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map)
     {
       grid_ptr_ = map;
+      map_height_ = map->info.height;
+      map_width_ = map->info.width;
       SetObstacleVec();
       SetInRangeObstacle(params_.obstacle_detection_range);
       SetDistanceAngleRangeMap();
+      // BuildCollisionLookupTable();
     }
     /**
      * @brief find a list of angle range which has no obstacle in a certain radius, note for forward and backward, steering angle is the same
@@ -69,15 +72,8 @@ namespace HybridAStar
     bool IsOnGrid(const std::shared_ptr<Node2D> &node2d_ptr) const;
     bool IsOnGrid(const std::shared_ptr<Node3D> &node3d_ptr) const;
     bool IsOnGrid(const float &x, const float &y) const;
-    /*!
-     \brief Calculates the cost of the robot taking a specific configuration q int the World W
-     \param x the x position
-     \param y the y position
-     \param t the theta angle
-     \return the cost of the configuration q of W(q)
-     \todo needs to be implemented correctly
-  */
-    float configurationCost(float x, float y, float t) const { return 0; }
+    bool IsOnGrid(const Eigen::Vector2f &point) const;
+
     /*!
      \brief Tests whether the configuration q of the robot is in C_free
      \param x the x position
@@ -85,7 +81,7 @@ namespace HybridAStar
      \param t the theta angle
      \return true if it is in C_free, else false
   */
-    bool configurationTest(float x, float y, float t) const;
+    bool configurationTest(const float &x, const float &y, const float &t);
 
     void getConfiguration(const std::shared_ptr<Node2D> &node2d_ptr, float &x, float &y, float &t) const;
 
@@ -98,6 +94,18 @@ namespace HybridAStar
     void SetInRangeObstacle(const float &range);
 
     uint GetNode3DIndexOnGridMap(const Node3D &node3d);
+
+    uint GetNode3DIndexOnGridMap(const float &x, const float &y);
+    /**
+     * @brief this function is only for collision detection
+     * 
+     * @param x 
+     * @param y 
+     * @param theta 
+     * @return uint 
+     */
+    // uint CalculateNode3DIndex(const float &x, const float &y, const float &theta) const;
+
     /**
      * @brief Get the Node 3 D Available Angle Range object
      * 
@@ -108,12 +116,33 @@ namespace HybridAStar
 
     void SetDistanceAngleRangeMap();
 
+    void BuildCollisionLookupTable();
+    /**
+     * @brief check if this polygon is intersect with obstacle
+     * 
+     * @param polygon 
+     * @return true free
+     * @return false collsion 
+     */
+    bool CollsionCheck(const Utility::Polygon &polygon);
+
+    uint CalculateFineIndex(const float &x, const float &y, const float &t);
+
   private:
+    ParameterCollisionDetection params_;
     /// The occupancy grid
     nav_msgs::OccupancyGrid::Ptr grid_ptr_;
+    uint map_width_;
+    uint map_height_;
     /// The collision lookup table
     Constants::config collisionLookup[Constants::headings * Constants::positions];
-    ParameterCollisionDetection params_;
+    //collision lookup table, use array instead of vector, temporally use vector
+    /**
+     * @brief key is location index(y*width+x) in the map, value is unordered map for fine index, key is fine index related to params.position resolution, value is collision or not, true for free, false for collision.
+     * 
+     */
+    std::unordered_map<uint, std::unordered_map<uint, bool>> collision_lookup_;
+
     /**
      * @brief all obstacle, in a vector format
      * 

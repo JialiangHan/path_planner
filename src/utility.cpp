@@ -587,6 +587,53 @@ namespace Utility
         // DLOG(INFO) << "delta_angle is: " << delta_angle;
         return curvature;
     }
+    Polygon CreatePolygon(const Eigen::Vector2f &center, const float &width,
+                          const float &height, const float &heading)
+    {
+        Polygon polygon;
+        Eigen::Vector2f first_point(-width / 2, -height / 2);
+        Eigen::Vector2f second_point(+width / 2, -height / 2);
+        Eigen::Vector2f third_point(+width / 2, +height / 2);
+        Eigen::Vector2f fourth_point(-width / 2, +height / 2);
+        // DLOG(INFO) << "first point is " << first_point.x() << " " << first_point.y();
+        // DLOG(INFO) << "second_point is " << second_point.x() << " " << second_point.y();
+        // DLOG(INFO) << "third_point is " << third_point.x() << " " << third_point.y();
+        // DLOG(INFO) << "fourth_point is " << fourth_point.x() << " " << fourth_point.y();
+        //rotation
+        Eigen::Matrix2f rotation_matrix;
+        rotation_matrix(0, 0) = cos(heading);
+        rotation_matrix(0, 1) = -sin(heading);
+        rotation_matrix(1, 0) = sin(heading);
+        rotation_matrix(1, 1) = cos(heading);
+        first_point = center + rotation_matrix * first_point;
+        second_point = center + rotation_matrix * second_point;
+        third_point = center + rotation_matrix * third_point;
+        fourth_point = center + rotation_matrix * fourth_point;
+        // DLOG(INFO) << "first point is " << first_point.x() << " " << first_point.y();
+        // DLOG(INFO) << "second_point is " << second_point.x() << " " << second_point.y();
+        // DLOG(INFO) << "third_point is " << third_point.x() << " " << third_point.y();
+        // DLOG(INFO) << "fourth_point is " << fourth_point.x() << " " << fourth_point.y();
+        //push back
+        polygon.emplace_back(first_point);
+        polygon.emplace_back(second_point);
+        polygon.emplace_back(third_point);
+        polygon.emplace_back(fourth_point);
+        polygon.emplace_back(first_point);
+
+        return polygon;
+    }
+
+    bool IsPolygonIntersectWithPolygon(const Polygon &polygon1, const Polygon &polygon2)
+    {
+        for (uint index = 0; index < polygon1.size() - 1; ++index)
+        {
+            if (IsSegmentIntersectWithPolygon(polygon2, polygon1[index], polygon1[index + 1]))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
     //*************************other ***********************
     float Clamp(const float &number, const float &upper_bound,
                 const float &lower_bound)
