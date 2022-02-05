@@ -74,8 +74,8 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.reverse);
     ros_param_name = "curve_type";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.curve_type);
-    ros_param_name = "obstacle_detection_range";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.obstacle_detection_range);
+    // ros_param_name = "obstacle_detection_range";
+    // GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.obstacle_detection_range);
 
     ros_param_name = "vehicle_width";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.vehicle_width);
@@ -87,6 +87,9 @@ namespace HybridAStar
   {
     std::string ros_param_name;
     std::string node_prefix = "/hybrid_astar/";
+
+    ros_param_name = "smooth";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.smooth);
 
     ros_param_name = "headings";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.headings);
@@ -101,6 +104,9 @@ namespace HybridAStar
   {
     std::string ros_param_name;
     std::string node_prefix = "/hybrid_astar/";
+
+    ros_param_name = "number_of_successors";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.number_of_successors);
 
     ros_param_name = "piecewise_cubic_bezier_interpolation";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.piecewise_cubic_bezier_interpolation);

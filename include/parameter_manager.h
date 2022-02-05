@@ -20,7 +20,7 @@ namespace HybridAStar
 
     bool reverse = true;
 
-    float obstacle_detection_range = 50;
+    // float obstacle_detection_range = 50;
 
     float free_step_size = 1;
 
@@ -42,6 +42,8 @@ namespace HybridAStar
   //this struct contains some used parameters in algorithm class
   struct ParameterHybridAStar
   {
+
+    int number_of_successors = 10;
     bool piecewise_cubic_bezier_interpolation = false;
     bool adaptive_steering_angle_and_step_size = false;
     //for create successor
@@ -110,6 +112,8 @@ namespace HybridAStar
     float cell_size = 1;
     /// [m] --- The number of discretizations in heading,used in planner.cpp
     int headings = 72;
+
+    bool smooth = false;
   };
 
   struct ParameterSmoother

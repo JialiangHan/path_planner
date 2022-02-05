@@ -44,7 +44,8 @@ namespace HybridAStar
       map_height_ = map->info.height;
       map_width_ = map->info.width;
       SetObstacleVec();
-      SetInRangeObstacle(params_.obstacle_detection_range);
+      float obstacle_detection_range = 3 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
+      SetInRangeObstacle(obstacle_detection_range);
       SetDistanceAngleRangeMap();
       // BuildCollisionLookupTable();
     }
@@ -82,6 +83,16 @@ namespace HybridAStar
      \return true if it is in C_free, else false
   */
     bool configurationTest(const float &x, const float &y, const float &t);
+    /**
+     * @brief Tests whether the segment start to end of the robot is in C_free
+     * 
+     * @param start 
+     * @param end 
+     * @return true free
+     * @return false collision
+     */
+    bool configurationTest(const Eigen::Vector2f &start, const Eigen::Vector2f &end);
+    bool configurationTest(const Node3D &start, const Node3D &end);
 
     void getConfiguration(const std::shared_ptr<Node2D> &node2d_ptr, float &x, float &y, float &t) const;
 
@@ -125,6 +136,15 @@ namespace HybridAStar
      * @return false collsion 
      */
     bool CollsionCheck(const Utility::Polygon &polygon);
+    /**
+     * @brief check if this segment is intersect with obstacle
+     * 
+     * @param start 
+     * @param end 
+     * @return true 
+     * @return false 
+     */
+    bool CollsionCheck(const Eigen::Vector2f &start, const Eigen::Vector2f &end);
 
     uint CalculateFineIndex(const float &x, const float &y, const float &t);
 
