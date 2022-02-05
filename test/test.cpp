@@ -248,3 +248,13 @@ TEST(Utility, IsPolygonIntersectWithPolygon)
 
     EXPECT_TRUE(!result);
 }
+TEST(Utility, GetDistanceFromPolygonToSegment)
+{
+    Eigen::Vector2f origin1(0, 0), start(2, 0), end(3, 0);
+    Utility::Polygon polygon1;
+    polygon1 = Utility::CreatePolygon(origin1);
+    float result = Utility::GetDistanceFromPolygonToSegment(polygon1, start, end);
+    float expect = 1;
+
+    EXPECT_FLOAT_EQ(result, expect);
+}

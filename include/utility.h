@@ -171,6 +171,17 @@ namespace Utility
  */
     float GetDistanceFromPolygonToPoint(const Polygon &polygon,
                                         const Eigen::Vector2f &point);
+    /**
+    * @brief Get the Distance From Polygon To Segment 
+    * 
+    * @param polygon 
+    * @param start segment start
+    * @param end segment end
+    * @return float distance
+    */
+    float GetDistanceFromPolygonToSegment(const Polygon &polygon,
+                                          const Eigen::Vector2f &start,
+                                          const Eigen::Vector2f &end);
     float GetDistanceFromPointToPoint(const Eigen::Vector2f &p1,
                                       const Eigen::Vector2f &p2);
     /**
@@ -239,15 +250,6 @@ namespace Utility
     bool IsAngleRangeInclude(const AngleRange &angle_range_1,
                              const AngleRange &angle_range_2);
 
-    // /**
-    // * @brief if these two angle range are overlapped, combine them into one angle range
-    // *
-    // * @param angle_range_1
-    // * @param angle_range_2
-    // * @return AngleRange
-    // */
-    // AngleRange CombineAngleRange(const AngleRange &angle_range_1,
-    //                              const AngleRange &angle_range_2);
     /**
  * @brief angle range 1 minus angle range 2,only for overlap condition, fully included is not considered
  * 

@@ -634,6 +634,37 @@ namespace Utility
         }
         return false;
     }
+    float GetDistanceFromPolygonToSegment(const Polygon &polygon,
+                                          const Eigen::Vector2f &start,
+                                          const Eigen::Vector2f &end)
+    {
+        float out = 100000;
+        if (IsSegmentIntersectWithPolygon(polygon, start, end))
+        {
+            return -1;
+        }
+        //get distance from point to polygon
+        float temp_distance = GetDistanceFromPolygonToPoint(polygon, start);
+        if (out > temp_distance)
+        {
+            out = temp_distance;
+        }
+        temp_distance = GetDistanceFromPolygonToPoint(polygon, end);
+        if (out > temp_distance)
+        {
+            out = temp_distance;
+        }
+        //get distance from segment to vertex of polygon
+        for (const auto &vertex : polygon)
+        {
+            temp_distance = GetDistanceFromSegmentToPoint(start, end, vertex);
+            if (out > temp_distance)
+            {
+                out = temp_distance;
+            }
+        }
+        return out;
+    }
     //*************************other ***********************
     float Clamp(const float &number, const float &upper_bound,
                 const float &lower_bound)
