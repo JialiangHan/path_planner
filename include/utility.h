@@ -11,6 +11,8 @@
 #pragma once
 #include <nav_msgs/Path.h>
 #include <Eigen/Dense>
+#include <set>
+#include <algorithm>
 #include "node2d.h"
 #include "node3d.h"
 #include "glog/logging.h"
@@ -277,6 +279,25 @@ namespace Utility
        * @return false: not intersect
        */
     bool IsPolygonIntersectWithPolygon(const Polygon &polygon1, const Polygon &polygon2);
+    /**
+     * @brief determine if these two polygon are share edges, in another words, they are in neighbor
+     *
+     * @param polygon1
+     * @param polygon2
+     * @return true in neighbor
+     * @return false
+     */
+    bool IsPolygonInNeighbor(const Polygon &polygon1, const Polygon &polygon2);
+
+    //  FindCommonEdge(const Polygon &polygon1, const Polygon &polygon2);
+    /**
+     * @brief combine these two polygon which are in neighbor
+     *
+     * @param polygon1
+     * @param polygon2
+     * @return Polygon
+     */
+    Polygon CombinePolyon(const Polygon &polygon1, const Polygon &polygon2);
     //*************************other ***********************
 
     float Clamp(const float &number, const float &upper_bound,

@@ -44,7 +44,9 @@ namespace HybridAStar
       map_height_ = map->info.height;
       map_width_ = map->info.width;
       SetObstacleVec();
-      float obstacle_detection_range = 3 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
+      CombineInNeighborObstacles();
+      float obstacle_detection_range = 6 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
+      DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range;
       SetInRangeObstacle(obstacle_detection_range);
       SetDistanceAngleRangeMap();
       // BuildCollisionLookupTable();
@@ -147,6 +149,8 @@ namespace HybridAStar
     bool CollsionCheck(const Eigen::Vector2f &start, const Eigen::Vector2f &end);
 
     uint CalculateFineIndex(const float &x, const float &y, const float &t);
+
+    void CombineInNeighborObstacles();
 
   private:
     ParameterCollisionDetection params_;

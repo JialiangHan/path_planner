@@ -258,3 +258,21 @@ TEST(Utility, GetDistanceFromPolygonToSegment)
 
     EXPECT_FLOAT_EQ(result, expect);
 }
+
+TEST(Utility, CombinePolyon)
+{
+    Eigen::Vector2f origin1(0, 0), origin2(1, 0), origin3(2, 0);
+
+    Utility::Polygon result = Utility::CombinePolyon(Utility::CreatePolygon(origin1), Utility::CreatePolygon(origin3));
+    EXPECT_FLOAT_EQ(result.size(), 0);
+    // EXPECT_FLOAT_EQ(result[0].x(), 0);
+    // EXPECT_FLOAT_EQ(result[1].x(), 2);
+    // EXPECT_FLOAT_EQ(result[2].x(), 2);
+    // EXPECT_FLOAT_EQ(result[3].x(), 0);
+    // EXPECT_FLOAT_EQ(result[4].x(), 0);
+    // EXPECT_FLOAT_EQ(result[0].y(), 0);
+    // EXPECT_FLOAT_EQ(result[1].y(), 0);
+    // EXPECT_FLOAT_EQ(result[2].y(), 1);
+    // EXPECT_FLOAT_EQ(result[3].y(), 1);
+    // EXPECT_FLOAT_EQ(result[4].y(), 0);
+}

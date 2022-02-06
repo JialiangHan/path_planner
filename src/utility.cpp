@@ -665,6 +665,77 @@ namespace Utility
         }
         return out;
     }
+
+    bool IsPolygonInNeighbor(const Polygon &polygon1, const Polygon &polygon2)
+    {
+        for (const auto &vertex1 : polygon1)
+        {
+            for (const auto &vertex2 : polygon2)
+            {
+                if (vertex1 == vertex2)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    Polygon CombinePolyon(const Polygon &polygon1, const Polygon &polygon2)
+    {
+        Polygon out;
+        if (!IsPolygonInNeighbor(polygon1, polygon2))
+        {
+            return out;
+        }
+        // // put all vertex in out
+        // out.insert(out.end(), polygon1.begin(), polygon1.end());
+        // out.insert(out.end(), polygon2.begin(), polygon2.end());
+
+        // // sort by x and then y
+        // std::sort(out.begin(), out.end(), [](Eigen::Vector2f a, Eigen::Vector2f b) -> bool
+        //           { return a.x() < b.x() ? a.x() < b.x() : a.y() < b.y(); });
+        // // remove duplicates
+        // out.erase(unique(out.begin(), out.end()), out.end());
+        // out.insert(out.end(), out[0]);
+        // if polygon2 is on top of polygon1
+        if (polygon2[0].y() > polygon1[0].y())
+        {
+            out.emplace_back(polygon1[0]);
+            out.emplace_back(polygon1[1]);
+            out.emplace_back(polygon2[2]);
+            out.emplace_back(polygon2[3]);
+            out.emplace_back(polygon1[0]);
+        }
+        // if polygon2 is at left of polygon1
+        else if (polygon2[0].x() < polygon1[0].x())
+        {
+            out.emplace_back(polygon2[0]);
+            out.emplace_back(polygon1[1]);
+            out.emplace_back(polygon1[2]);
+            out.emplace_back(polygon2[3]);
+            out.emplace_back(polygon2[0]);
+        }
+        // if polygon2 is at bottom of polygon1
+        else if (polygon2[0].y() < polygon1[0].y())
+        {
+            out.emplace_back(polygon2[0]);
+            out.emplace_back(polygon2[1]);
+            out.emplace_back(polygon1[2]);
+            out.emplace_back(polygon1[3]);
+            out.emplace_back(polygon2[0]);
+        }
+        // if polygon2 is at right of polygon1
+        else if (polygon2[0].x() > polygon1[0].x())
+        {
+            out.emplace_back(polygon1[0]);
+            out.emplace_back(polygon2[1]);
+            out.emplace_back(polygon2[2]);
+            out.emplace_back(polygon1[3]);
+            out.emplace_back(polygon1[0]);
+        }
+        return out;
+    }
     //*************************other ***********************
     float Clamp(const float &number, const float &upper_bound,
                 const float &lower_bound)
