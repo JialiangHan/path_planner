@@ -60,7 +60,6 @@ namespace HybridAStar
         std::unordered_map<int, float> dubins_lookup_;
         std::unordered_map<int, float> reeds_shepp_lookup_;
         std::unordered_map<int, float> cubic_bezier_lookup_;
-
         std::mutex map_access_;
     };
 }

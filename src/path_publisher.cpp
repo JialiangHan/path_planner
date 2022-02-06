@@ -112,7 +112,7 @@ void PathPublisher::AddVehicle(const Node3D &node, int i)
     pathVehicle.color.g = 0;
     pathVehicle.color.b = 0;
   }
-
+  //need to figure what pose stand for a cube, should be center of cube
   pathVehicle.pose.position.x = node.GetX() * params_.cell_size;
   pathVehicle.pose.position.y = node.GetY() * params_.cell_size;
   pathVehicle.pose.orientation = tf::createQuaternionMsgFromYaw(node.GetT());

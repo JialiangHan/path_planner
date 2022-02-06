@@ -61,7 +61,7 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
     }
     while (iterations < params_.max_iterations)
     {
-      DLOG(INFO) << iterations << " starts!";
+      // DLOG(INFO) << iterations << " starts!";
       // choose the first three nodes of the path
       for (uint i = 2; i < path_before_smooth.size() - 2; ++i)
       {
@@ -80,7 +80,7 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
 
         // the following points shall not be smoothed
         // keep these points fixed if they are a cusp point or adjacent to one
-        DLOG(INFO) << i << "th node before correction: x: " << xi(0, 0) << " y: " << xi(1, 0);
+        // DLOG(INFO) << i << "th node before correction: x: " << xi(0, 0) << " y: " << xi(1, 0);
         if (isCusp(path_before_smooth, i))
         {
           DLOG(INFO) << "node is cusp,skip it!";
@@ -91,7 +91,7 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
         // correction = correction - CurvatureTerm(xim2, xim1, xi, xip1, xip2);
         correction = correction - CurvatureTerm(xim1, xi, xip1);
         // DLOG(INFO) << "correction is " << correction.x() << " " << correction.y();
-        DLOG(INFO) << "node after curvature correction is " << (xi + correction).x() << " " << (xi + correction).y();
+        // DLOG(INFO) << "node after curvature correction is " << (xi + correction).x() << " " << (xi + correction).y();
         if (!isOnGrid(xi + correction))
         {
           DLOG(INFO) << "node after curvature correction is not on grid!!";
