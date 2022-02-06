@@ -28,6 +28,9 @@ namespace PathEvaluator
             sub_map_ = nh_.subscribe("/map", 1, &PathEvaluator::CallbackSetMap, this);
             sub_path_ = nh_.subscribe<nav_msgs::Path>(path_topic, 1, boost::bind(&PathEvaluator::CallbackPath, this, _1, path_topic));
             sub_smoothed_path_ = nh_.subscribe<nav_msgs::Path>(smoothed_path_topic, 1, boost::bind(&PathEvaluator::CallbackPath, this, _1, smoothed_path_topic));
+
+            nh_.getParam("/hybrid_astar/vehicle_width", vehicle_width_);
+            nh_.getParam("/hybrid_astar/vehicle_length", vehicle_length_);
         };
         void CallbackPath(const nav_msgs::Path::ConstPtr &path, const std::string &topic_name);
         /**
@@ -76,6 +79,10 @@ namespace PathEvaluator
         std::unordered_map<std::string, std::vector<float>> curvature_map_;
 
         std::unordered_map<std::string, std::vector<float>> smoothness_map_;
+
+        float vehicle_width_;
+
+        float vehicle_length_;
 
         // /some kind of map is need for the clearacne
     };

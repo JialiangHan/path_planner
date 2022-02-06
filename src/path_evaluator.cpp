@@ -121,7 +121,6 @@ namespace PathEvaluator
             return 0;
         }
         // for clearance, node2d is enough, here clearance is the distance for current point to nearest obstacle.
-        // TODO: maybe in future, we can change that to distance from vehicle to nearest obstacle.
         std::vector<float> clearance_vec;
         float clearance = INFINITY;
         int map_width = map_->info.width;
@@ -134,7 +133,9 @@ namespace PathEvaluator
                 if (map_->data[index])
                 {
                     Eigen::Vector2f obstacle_2d = Utility::ConvertIndexToEigenVector2f(index, map_width);
-                    float distance = Utility::GetDistanceFromPointToPoint(vector_3d, obstacle_2d);
+                    Utility::Polygon obstacle = Utility::CreatePolygon(obstacle_2d);
+                    Utility::Polygon vehicle = Utility::CreatePolygon(Utility::ConvertVector3fToVector2f(vector_3d), vehicle_width_, vehicle_length_, vector_3d.z());
+                    float distance = Utility::GetDistanceFromPolygonToPolygon(vehicle, obstacle);
                     if (distance < clearance)
                     {
                         clearance = distance;

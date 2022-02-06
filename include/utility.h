@@ -186,6 +186,9 @@ namespace Utility
                                           const Eigen::Vector2f &end);
     float GetDistanceFromPointToPoint(const Eigen::Vector2f &p1,
                                       const Eigen::Vector2f &p2);
+
+    float GetDistanceFromPolygonToPolygon(const Polygon &polygon1,
+                                          const Polygon &polygon2);
     /**
  * @brief Get the Angle Between Two Vector , sign is determined by crossproduct,
  * CCW is positive

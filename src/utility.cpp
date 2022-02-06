@@ -736,6 +736,19 @@ namespace Utility
         }
         return out;
     }
+
+    float GetDistanceFromPolygonToPolygon(const Polygon &polygon1,
+                                          const Polygon &polygon2)
+    {
+        float out = 10000;
+        for (uint index = 0; index < polygon1.size() - 1; ++index)
+        {
+            float temp = GetDistanceFromPolygonToSegment(polygon2, polygon1[index], polygon1[index + 1]);
+            out = out >= temp ? temp : out;
+        }
+        return out;
+    }
+
     //*************************other ***********************
     float Clamp(const float &number, const float &upper_bound,
                 const float &lower_bound)
