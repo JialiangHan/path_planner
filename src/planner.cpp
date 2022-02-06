@@ -34,7 +34,7 @@ Planner::Planner() {
 
   sub_goal_ = nh_.subscribe("/move_base_simple/goal", 1, &Planner::SetGoal, this);
   sub_start_ = nh_.subscribe("/initialpose", 1, &Planner::SetStart, this);
-  DLOG(INFO) << "Initialized finished planner!!";
+  // DLOG(INFO) << "Initialized finished planner!!";
 };
 
 //###################################################
@@ -195,10 +195,11 @@ void Planner::MakePlan()
     y = start_.pose.pose.position.y / params_.cell_size;
     t = tf::getYaw(start_.pose.pose.orientation);
     // set theta to a value (0,2PI]
+
+    x = 24;
+    y = 34;
+    t = Utility::ConvertDegToRad(-90);
     t = Utility::RadToZeroTo2P(t);
-    x = 5;
-    y = 45;
-    t = 0;
     Node3D nStart(x, y, t, 0, 0, nullptr);
 
     Clear();
@@ -217,10 +218,13 @@ void Planner::MakePlan()
     path_publisher_ptr_->UpdatePath(smoother_ptr_->GetPath());
     // DLOG(INFO) << "path before smooth size is " << smoother_ptr_->GetPath().size();
     // SMOOTH THE PATH
-    smoother_ptr_->SmoothPath(voronoi_diagram_);
-    // CREATE THE UPDATED PATH
-    // DLOG(INFO) << "smoothed path size is " << smoother_ptr_->GetPath().size();
-    smoothed_path_publisher_ptr_->UpdatePath(smoother_ptr_->GetPath());
+    if (params_.smooth)
+    {
+      smoother_ptr_->SmoothPath(voronoi_diagram_);
+      // CREATE THE UPDATED PATH
+      // DLOG(INFO) << "smoothed path size is " << smoother_ptr_->GetPath().size();
+      smoothed_path_publisher_ptr_->UpdatePath(smoother_ptr_->GetPath());
+    }
     ros::Time t1 = ros::Time::now();
     ros::Duration d(t1 - t0);
     LOG(INFO) << "TIME in ms: " << d * 1000;
