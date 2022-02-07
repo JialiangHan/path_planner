@@ -48,7 +48,7 @@ namespace HybridAStar
   //###################################################
   Path3D HybridAStar::GetPath(Node3D &start, Node3D &goal, Node3D *nodes3D, Node2D *nodes2D)
   {
-
+    path_.clear();
     DLOG(INFO) << "Hybrid A star start!!";
     start_ = start;
     goal_ = goal;
@@ -406,12 +406,13 @@ namespace HybridAStar
   //###################################################
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred)
   {
+    // TODO need consider vehicle size
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
 
     float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, distance_to_goal, step_size;
     int prem;
-    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
       // DLOG(INFO) << "adaptive steering angle and step size";
@@ -461,7 +462,7 @@ namespace HybridAStar
         xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
         ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
         tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
-        // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+        DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
         std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
         out.emplace_back(temp);
         if (params_.reverse)
@@ -929,20 +930,18 @@ namespace HybridAStar
     {
       if (pair.second.second == 0)
       {
-        // DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
+        DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
         steering_angle = Utility::RadNormalization(-(pair.second.first - pred.GetT()));
         out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
         continue;
       }
-      // DLOG(INFO) << "pair first " << Utility::ConvertRadToDeg(pair.first) << " pair second is " << Utility::ConvertRadToDeg(pair.second) << " pred angle is " << Utility::ConvertRadToDeg(pred.GetT());
-      steering_angle = Utility::RadNormalization(-(pair.second.first + pair.second.second / 4 - pred.GetT()));
-      out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
+      for (int index = 0; index < params_.number_of_successors + 1; ++index)
+      {
 
-      steering_angle = Utility::RadNormalization(-(pair.second.first + 2 * pair.second.second / 4 - pred.GetT()));
-      out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
-
-      steering_angle = Utility::RadNormalization(-(pair.second.first + 3 * pair.second.second / 4 - pred.GetT()));
-      out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
+        steering_angle = Utility::RadNormalization(-(pair.second.first + index * pair.second.second / params_.number_of_successors - pred.GetT()));
+        out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
+        DLOG(INFO) << "step size " << Utility::ConvertRadToDeg(pair.first) << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+      }
     }
     // for (const auto &angle : out)
     // {

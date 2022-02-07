@@ -331,7 +331,6 @@ int dubins_path_sample_many(DubinsPath *path, DubinsPathSamplingCallback cb, flo
 
 int dubins_path_endpoint(DubinsPath *path, float q[3])
 {
-    // TODO - introduce a new constant rather than just using EPSILON
     return dubins_path_sample( path, dubins_path_length(path) - EPSILON, q );
 }
 

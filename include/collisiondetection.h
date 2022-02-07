@@ -46,7 +46,7 @@ namespace HybridAStar
       SetObstacleVec();
       CombineInNeighborObstacles();
       float obstacle_detection_range = 6 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
-      DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range;
+      // DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range;
       SetInRangeObstacle(obstacle_detection_range);
       SetDistanceAngleRangeMap();
       // BuildCollisionLookupTable();

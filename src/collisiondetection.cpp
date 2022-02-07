@@ -484,6 +484,7 @@ void CollisionDetection::SetDistanceAngleRangeMap()
           std::pair<float, Utility::AngleRange> temp = std::make_pair(distance, angle_range);
           distance_angle_range_vec.emplace_back(temp);
         }
+        // TODO only consider obstacle in node3d steering angle range
         distance_angle_range_map_.emplace(current_point_index, distance_angle_range_vec);
       }
     }
