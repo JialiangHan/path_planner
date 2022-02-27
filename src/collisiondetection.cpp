@@ -547,24 +547,24 @@ void CollisionDetection::BuildCollisionLookupTable()
 
 bool CollisionDetection::CollsionCheck(const Utility::Polygon &polygon)
 {
-  DLOG(INFO) << "CollisionCheck in.";
+  // DLOG(INFO) << "CollisionCheck in.";
   for (const auto &point : polygon)
   {
     if (!IsOnGrid(point))
     {
-      DLOG(INFO) << "polygon is not on grid: point is " << point.x() << " " << point.y();
+      // DLOG(INFO) << "polygon is not on grid: point is " << point.x() << " " << point.y();
       return false;
     }
   }
   // should be convert to int for x and y;
-  uint current_point_index = polygon[0].y() * grid_ptr_->info.width + polygon[0].x();
+  uint current_point_index = GetNode3DIndexOnGridMap(polygon[0].x(), polygon[0].y());
   //check if this polygon inside map or outside map
   Utility::Polygon map_boundary = Utility::CreatePolygon(map_width_, map_height_);
   // DLOG(INFO) << "current polygon start is " << polygon[0].x() << " " << polygon[0].y() << " index is " << current_point_index;
 
   if (Utility::IsPolygonIntersectWithPolygon(polygon, map_boundary))
   {
-    DLOG(INFO) << "intersect with map boundary.";
+    // DLOG(INFO) << "intersect with map boundary.";
     return false;
   }
   //check with in range obstacle
@@ -574,11 +574,11 @@ bool CollisionDetection::CollsionCheck(const Utility::Polygon &polygon)
     {
       if (Utility::IsPolygonIntersectWithPolygon(polygon, in_range_polygon))
       {
-        DLOG(INFO) << "intersect with obstacle.";
+        // DLOG(INFO) << "intersect with obstacle.";
         return false;
       }
     }
-    DLOG(INFO) << " not intersect.";
+    // DLOG(INFO) << " not intersect.";
   }
   else
   {
