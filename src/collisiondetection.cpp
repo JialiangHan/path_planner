@@ -107,9 +107,9 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
 {
   if (params_.enable_collision_lookup)
   {
-    //1. find index in the collision lookup map
+    // 1. find index in the collision lookup map
     uint index = GetNode3DIndexOnGridMap(x, y);
-    //2. check collision lookup table
+    // 2. check collision lookup table
     if (collision_lookup_.find(index) != collision_lookup_.end())
     {
       uint fine_index = CalculateFineIndex(x, y, t);
@@ -210,7 +210,7 @@ void CollisionDetection::getConfiguration(const std::shared_ptr<Node3D> &node3d_
   t = node3d_ptr->GetT();
 }
 
-//checked
+// checked
 void CollisionDetection::SetObstacleVec()
 {
   // DLOG(INFO) << "SetObstacleVec in:";
@@ -483,7 +483,7 @@ bool CollisionDetection::CollisionCheck(const Utility::Polygon &polygon)
 
   if (Utility::IsPolygonIntersectWithPolygon(polygon, map_boundary))
   {
-    DLOG(INFO) << "intersect with map boundary.";
+    // DLOG(INFO) << "intersect with map boundary.";
     return false;
   }
   // check with in range obstacle
@@ -861,7 +861,7 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
     }
   }
 
-    // for (const auto &pair : out)
+  // for (const auto &pair : out)
   // {
   //   DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
   // }

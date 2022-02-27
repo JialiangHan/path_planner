@@ -396,7 +396,7 @@ namespace HybridAStar
       Node3D node3d = Utility::ConvertVector3fToNode3D(cubic_bezier.GetValueAt(x / length));
       float curvature = cubic_bezier.GetCurvatureAt(x / length);
       node3d.setT(cubic_bezier.GetAngleAt(x / length));
-
+      // DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY();
       // collision check
       if (configuration_space_ptr_->IsTraversable(node3d))
       {
@@ -428,7 +428,7 @@ namespace HybridAStar
     {
       path_vec.emplace_back(goal);
       // std::string out = params_.reverse == true ? "cubic bezier" : "dubins";
-      // DLOG(INFO) << "Analytical expansion connected, returning " << out << " path";
+      DLOG(INFO) << "Analytical expansion connected, returning path";
     }
     return path_vec;
   }
