@@ -748,7 +748,34 @@ namespace Utility
         }
         return out;
     }
-
+    // checked in test.cpp
+    float GetDistanceFromPolygonToPointAtAngle(const Polygon &polygon, const Eigen::Vector2f &point, const float &angle)
+    {
+        // DLOG(INFO) << "GetDistanceFromPolygonToPointAtAngle in:";
+        float out = 10000;
+        ComputationalGeometry::Segment segment(point, 10000, angle);
+        if (!Utility::IsSegmentIntersectWithPolygon(polygon, segment.GetStart(), segment.GetEnd()))
+        {
+            return out;
+        }
+        // 1. check if polygon and segment start at point intersect?
+        for (uint index = 0; index < polygon.size() - 1; ++index)
+        {
+            ComputationalGeometry::Segment segment_on_polygon(polygon[index], polygon[index + 1]);
+            if (segment.IsIntersect(segment_on_polygon))
+            {
+                float distance = (segment.FindIntersectionPoint(segment_on_polygon) - point).norm();
+                // DLOG(INFO) << "distance is " << distance;
+                if (out > distance)
+                {
+                    out = distance;
+                }
+            }
+        }
+        // 2. if so, find segment in polygon which is intersect with segment start at point
+        // 3. from intersect point, calculate distance
+        return out;
+    }
     //*************************other ***********************
     float Clamp(const float &number, const float &upper_bound,
                 const float &lower_bound)

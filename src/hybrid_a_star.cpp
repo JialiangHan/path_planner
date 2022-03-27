@@ -406,13 +406,12 @@ namespace HybridAStar
   //###################################################
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred)
   {
-    // TODO need consider vehicle size
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
 
     float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, distance_to_goal, step_size;
     int prem;
-    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
       // DLOG(INFO) << "adaptive steering angle and step size";
@@ -940,7 +939,7 @@ namespace HybridAStar
 
         steering_angle = Utility::RadNormalization(-(pair.second.first + index * pair.second.second / params_.number_of_successors - pred.GetT()));
         out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
-        DLOG(INFO) << "step size " << Utility::ConvertRadToDeg(pair.first) << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+        DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
       }
     }
     // for (const auto &angle : out)

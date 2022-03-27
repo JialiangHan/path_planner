@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <cmath>
+#include "computational_geometry.h"
 namespace HybridAStar
 {
 
@@ -35,6 +36,7 @@ namespace HybridAStar
     bool IsTraversable(const std::shared_ptr<Node3D> &nod3d_ptr);
     bool IsTraversable(const Node3D &nod3d_ptr);
 
+    // TODO need a function to convert occupancygrid to a configuration space map
     /*!
      \brief updates the grid with the world map
   */
@@ -45,24 +47,25 @@ namespace HybridAStar
       map_width_ = map->info.width;
       SetObstacleVec();
       CombineInNeighborObstacles();
-      float obstacle_detection_range = 6 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
+      obstacle_detection_range_ = 6 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
       // DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range;
-      SetInRangeObstacle(obstacle_detection_range);
+      SetInRangeObstacle(obstacle_detection_range_);
       SetDistanceAngleRangeMap();
       // BuildCollisionLookupTable();
     }
+
     /**
      * @brief find a list of angle range which has no obstacle in a certain radius, note for forward and backward, steering angle is the same
      * 
      * @param node3d 
      * @return Utility::AngleRangeVec ,pair: first is min angle, second is max angle ,all in rads
      */
-    Utility::AngleRangeVec FindFreeAngleRange(const Node3D &node3d);
+    // Utility::AngleRangeVec FindFreeAngleRange(const Node3D &node3d);
     /**
      * @brief find a list of angle range which has no obstacle in a certain radius, note for forward and backward, steering angle is the same, and its step size
-     * 
-     * @param node3d 
-     * @return std::vector<std::pair<float,AngleRange>> first is step size 
+     *
+     * @param node3d
+     * @return std::vector<std::pair<float,AngleRange>> first is step size
      */
     std::vector<std::pair<float, Utility::AngleRange>> FindFreeAngleRangeAndStepSize(const Node3D &node3d);
     nav_msgs::OccupancyGrid::Ptr GetMap() const { return grid_ptr_; };
@@ -137,7 +140,7 @@ namespace HybridAStar
      * @return true free
      * @return false collsion 
      */
-    bool CollsionCheck(const Utility::Polygon &polygon);
+    bool CollisionCheck(const Utility::Polygon &polygon);
     /**
      * @brief check if this segment is intersect with obstacle
      * 
@@ -146,11 +149,46 @@ namespace HybridAStar
      * @return true 
      * @return false 
      */
-    bool CollsionCheck(const Eigen::Vector2f &start, const Eigen::Vector2f &end);
+    bool CollisionCheck(const Eigen::Vector2f &start, const Eigen::Vector2f &end);
+    /**
+     * @brief check if this segment is intersect with obstacle
+     *
+     * @param segment
+     * @return true
+     * @return false
+     */
+    bool CollisionCheck(const ComputationalGeometry::Segment &segment);
 
-    uint CalculateFineIndex(const float &x, const float &y, const float &t);
+    uint
+    CalculateFineIndex(const float &x, const float &y, const float &t);
 
     void CombineInNeighborObstacles();
+
+    std::vector<std::pair<float, Utility::AngleRange>> GetObstacleInAvailableSteeringAngleRangle(const Node3D &node3d);
+    /**
+     * @brief sweep from 0-360deg(too much, just sweep steering angle range) at center node3d, get angle and their distance which has no collision
+     *
+     * @param node3d
+     * @param radius
+     * @return std::vector<std::pair<float, float>>
+     */
+    std::vector<std::pair<float, float>> SweepDistanceAndAngle(const Node3D &node3d, const float &radius);
+    /**
+     * @brief   find max distance which has no collision on current map in certain range, range is equal to in range obstacle map
+     *
+     * @param node3d
+     * @param radius in this range find max distance
+     * @param angle in rad, start at 3 o`clock, CCW is positive
+     * @return float
+     */
+    float FindNoCollisionDistance(const Node3D &node3d, const float &radius, const float &angle);
+    /**
+     * @brief find free angle range(no obstacle in the range) in node3d steering angle range.
+     *
+     * @param node3d
+     * @return Utility::AngleRangeVec
+     */
+    Utility::AngleRangeVec FindFreeAngleRange(const Node3D &node3d);
 
   private:
     ParameterCollisionDetection params_;
@@ -182,5 +220,6 @@ namespace HybridAStar
      * 
      */
     std::unordered_map<uint, std::vector<std::pair<float, Utility::AngleRange>>> distance_angle_range_map_;
+    float obstacle_detection_range_;
   };
 }

@@ -43,6 +43,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/src/a_star.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/hybrid_a_star.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bucketedqueue.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/src/collisiondetection.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/computational_geometry.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/cubic_bezier.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dubins.cpp #Andrew Walker
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dynamicvoronoi.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
@@ -61,6 +62,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/hybrid_a_star.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/bucketedqueue.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/include/collisiondetection.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/computational_geometry.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/constants.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cubic_bezier.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/dubins.h #Andrew Walker

@@ -17,6 +17,7 @@
 #include "node3d.h"
 #include "glog/logging.h"
 #include "gflags/gflags.h"
+#include "computational_geometry.h"
 namespace Utility
 {
     //******************typedef****************
@@ -93,12 +94,12 @@ namespace Utility
                                           const Eigen::Vector2f &p3,
                                           const Eigen::Vector2f &p4);
     /**
- * @brief this is only work for vector2d, for 3d please cross in eigen
- *
- * @param p1
- * @param p2
- * @return float
- */
+     * @brief this is only work for vector2d, for 3d please use cross in eigen
+     *
+     * @param p1
+     * @param p2
+     * @return float
+     */
     float CrossProduct(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2);
     /**
  * @brief determine if a point is inside a polygon
@@ -189,20 +190,23 @@ namespace Utility
 
     float GetDistanceFromPolygonToPolygon(const Polygon &polygon1,
                                           const Polygon &polygon2);
+
+    float GetDistanceFromPolygonToPointAtAngle(const Polygon &polygon, const Eigen::Vector2f &point, const float &angle);
     /**
- * @brief Get the Angle Between Two Vector , sign is determined by crossproduct,
- * CCW is positive
- *
- * @param p1_start
- * @param p1_end
- * @param p2_start
- * @param p2_end
- * @return float angle  all the angle are in range[0,Pi]
- */
-    float GetAngleBetweenTwoVector(const Eigen::Vector2f &p1_start,
-                                   const Eigen::Vector2f &p1_end,
-                                   const Eigen::Vector2f &p2_start,
-                                   const Eigen::Vector2f &p2_end);
+     * @brief Get the Angle Between Two Vector , sign is determined by crossproduct,
+     * CCW is positive
+     *
+     * @param p1_start
+     * @param p1_end
+     * @param p2_start
+     * @param p2_end
+     * @return float angle  all the angle are in range[0,Pi]
+     */
+    float
+    GetAngleBetweenTwoVector(const Eigen::Vector2f &p1_start,
+                             const Eigen::Vector2f &p1_end,
+                             const Eigen::Vector2f &p2_start,
+                             const Eigen::Vector2f &p2_end);
     /**
  * @brief Get the Angle Range From Point To Segment object, start at point to
  * start vector.
@@ -224,14 +228,15 @@ namespace Utility
  */
     AngleRange GetAngleRangeFromPointToPolygon(const Polygon &polygon,
                                                const Eigen::Vector2f &point);
+
     /**
- * @brief find visible vertex of a polygon from a point view, current this
- * function only work for rectangle
- *
- * @param polygon
- * @param point
- * @return std::vector<Eigen::Vector2f>
- */
+     * @brief find visible vertex of a polygon from a point view, current this
+     * function only work for rectangle
+     *
+     * @param polygon
+     * @param point
+     * @return std::vector<Eigen::Vector2f>
+     */
     std::vector<Eigen::Vector2f>
     FindVisibleVertexFromNode(const Polygon &polygon, const Eigen::Vector2f &point);
     /**
@@ -301,6 +306,7 @@ namespace Utility
      * @return Polygon
      */
     Polygon CombinePolyon(const Polygon &polygon1, const Polygon &polygon2);
+
     //*************************other ***********************
 
     float Clamp(const float &number, const float &upper_bound,

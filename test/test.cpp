@@ -276,3 +276,12 @@ TEST(Utility, CombinePolyon)
     // EXPECT_FLOAT_EQ(result[3].y(), 1);
     // EXPECT_FLOAT_EQ(result[4].y(), 0);
 }
+
+TEST(Utility, GetDistanceFromPolygonToPointAtAngle)
+{
+    Eigen::Vector2f point(0, 0), origin(1, 0);
+    float angle = Utility::ConvertDegToRad(45);
+
+    float result = Utility::GetDistanceFromPolygonToPointAtAngle(Utility::CreatePolygon(origin), point, angle);
+    EXPECT_FLOAT_EQ(result, 1);
+}
