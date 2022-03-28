@@ -293,6 +293,7 @@ void CollisionDetection::getConfiguration(const std::shared_ptr<Node3D> &node3d_
 
 std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeAngleRangeAndStepSize(const Node3D &node3d)
 {
+  DLOG(INFO) << "FindFreeAngleRangeAndStepSize in:";
   std::vector<std::pair<float, Utility::AngleRange>> out;
   bool flag = true;
   if (flag)
@@ -370,7 +371,7 @@ std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeA
       }
     }
   }
-
+  DLOG(INFO) << "FindFreeAngleRangeAndStepSize out.";
   return out;
 }
 //checked
@@ -436,13 +437,13 @@ void CollisionDetection::SetInRangeObstacle(const float &range)
     }
   }
 }
-
+// checked,it`s correct.
 uint CollisionDetection::GetNode3DIndexOnGridMap(const Node3D &node3d)
 {
 
   return GetNode3DIndexOnGridMap(node3d.GetX(), node3d.GetY());
 }
-
+// checked,it`s correct.
 uint CollisionDetection::GetNode3DIndexOnGridMap(const float &x, const float &y)
 {
   // DLOG(INFO) << "coordinate is " << x << " " << y << " "
@@ -452,7 +453,7 @@ uint CollisionDetection::GetNode3DIndexOnGridMap(const float &x, const float &y)
 // checked, it`s correct.
 Utility::AngleRange CollisionDetection::GetNode3DAvailableAngleRange(const Node3D &node3d)
 {
-  // DLOG(INFO) << "GetNode3DAvailableAngleRange in:";
+  DLOG(INFO) << "GetNode3DAvailableAngleRange in:";
   Utility::AngleRange out;
   float current_heading = Utility::RadNormalization(node3d.GetT());
   const float max_steering_angle = Utility::ConvertDegToRad(30);
@@ -470,9 +471,9 @@ Utility::AngleRange CollisionDetection::GetNode3DAvailableAngleRange(const Node3
   //  }
   starting_angle = Utility::RadToZeroTo2P(current_heading - max_steering_angle);
   range = (2 * max_steering_angle);
-  // DLOG(INFO) << "starting angle is :" << Utility::ConvertRadToDeg(starting_angle) << " range is " << Utility::ConvertRadToDeg(range);
+  DLOG(INFO) << "starting angle is :" << Utility::ConvertRadToDeg(starting_angle) << " range is " << Utility::ConvertRadToDeg(range);
   out = std::make_pair(starting_angle, range);
-  // DLOG(INFO) << "GetNode3DAvailableAngleRange out.";
+  DLOG(INFO) << "GetNode3DAvailableAngleRange out.";
   return out;
 }
 
@@ -833,12 +834,15 @@ std::vector<std::pair<float, float>> CollisionDetection::SweepDistanceAndAngle(c
     out.emplace_back(std::pair<float, float>(angle, distance));
     // DLOG(INFO) << "angle is " << Utility::ConvertRadToDeg(angle) << " distance is " << distance;
   }
+  DLOG(INFO) << "SweepDistanceAndAngle out;";
   return out;
 }
-
+// this function seems ok, not fully checked
 float CollisionDetection::FindNoCollisionDistance(const Node3D &node3d, const float &radius, const float &angle)
 {
-  // DLOG(INFO) << "FindNoCollisionDistance in:";
+  DLOG(INFO) << "FindNoCollisionDistance in:";
+  DLOG(INFO) << "node3d is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT() << " radius is " << radius << " angle is " << Utility::ConvertRadToDeg(angle);
+  // set out to value of radius, if no obstacle in the angle direction, then return radius;
   float out = radius;
   // 1. calculate node3d index
   uint current_index = GetNode3DIndexOnGridMap(node3d);
@@ -849,25 +853,24 @@ float CollisionDetection::FindNoCollisionDistance(const Node3D &node3d, const fl
     // 5. get distance from node3d to nearest obstacle in this direction
     for (const auto &in_range_polygon : in_range_obstacle_map_[current_index])
     {
-
-      // DLOG(INFO) << "node3d is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
       float temp = Utility::GetDistanceFromPolygonToPointAtAngle(in_range_polygon, Utility::ConvertNod3DToVector2f(node3d), angle);
       // DLOG(INFO) << "temp is " << temp;
+      if (temp < 0)
+      {
+        DLOG(INFO) << "current in range polygon does not intersect with segment start at node3d along angle direction.";
+        continue;
+      }
       if (out > temp)
       {
-
         out = temp;
-        // DLOG(INFO) << "out is " << out;
+        DLOG(INFO) << "out is " << out;
       }
     }
-    // DLOG(INFO) << " not intersect.";
+    DLOG(INFO) << "for in range obstacle of node, not intersect.";
   }
-  // 3. if no in range obstacles, set distance to obstacle_detection_range_
-  else
-  {
-    out = radius;
-  }
-  // DLOG(INFO) << "no collision distance is " << out;
+
+  DLOG(INFO) << "no collision distance is " << out;
+  DLOG(INFO) << "FindNoCollisionDistance out.";
   return out;
 }
 
@@ -880,7 +883,8 @@ Utility::AngleRangeVec CollisionDetection::FindFreeAngleRange(const Node3D &node
   bool free_range_flag = false;
   for (const auto &pair : angle_distance_vec)
   {
-    // DLOG(INFO) << "in for looop;";
+    // DLOG(INFO) << "in for loop;";
+    // DLOG(INFO) << "angle is " << Utility::ConvertRadToDeg(pair.first) << " distance is " << pair.second;
     if (pair.second == obstacle_detection_range_)
     {
       if (!free_range_flag)
@@ -906,11 +910,24 @@ Utility::AngleRangeVec CollisionDetection::FindFreeAngleRange(const Node3D &node
         range_end = -1;
       }
     }
+    // if this pair is last pair in angle distance vec, then push range to out
+    if (pair.first == angle_distance_vec.back().first)
+    {
+      free_range_flag = false;
+      if (range_start != -1 && range_end != -1)
+      {
+        out.emplace_back(std::pair<float, float>(range_start, range_end));
+        // DLOG(INFO) << "push back angle range.";
+        range_start = -1;
+        range_end = -1;
+      }
+    }
   }
-  // for (const auto &angle_range : out)
-  // {
-  //   DLOG(INFO) << "angle range start is " << angle_range.first << " range is " << angle_range.second;
-  // }
+  for (const auto &angle_range : out)
+  {
+    DLOG(INFO) << "angle range start is " << Utility::ConvertRadToDeg(angle_range.first) << " range is " << Utility::ConvertRadToDeg(angle_range.second);
+  }
+  DLOG_IF(WARNING, out.size() == 0) << "WARNING: Free angle range size is zero!!!!";
   DLOG(INFO) << "FindFreeAngleRange out.";
   return out;
 }
