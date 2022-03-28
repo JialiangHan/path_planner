@@ -752,7 +752,7 @@ namespace Utility
     float GetDistanceFromPolygonToPointAtAngle(const Polygon &polygon, const Eigen::Vector2f &point, const float &angle)
     {
         // DLOG(INFO) << "GetDistanceFromPolygonToPointAtAngle in:";
-        float out = 10000;
+        float out = -1;
         ComputationalGeometry::Segment segment(point, 10000, angle);
         if (!Utility::IsSegmentIntersectWithPolygon(polygon, segment.GetStart(), segment.GetEnd()))
         {
