@@ -108,9 +108,19 @@ namespace HybridAStar
     void SetObstacleVec();
 
     void SetInRangeObstacle(const float &range);
-
+    /**
+     * @brief Get the Node3D Index On Grid Map, index=y*map width+x;
+     *
+     * @param node3d
+     * @return uint index
+     */
     uint GetNode3DIndexOnGridMap(const Node3D &node3d);
-
+    /**
+     * @brief Get the Node3D Index On Grid Map, index=y*map width+x;
+     *
+     * @param node3d
+     * @return uint index
+     */
     uint GetNode3DIndexOnGridMap(const float &x, const float &y);
     /**
      * @brief this function is only for collision detection
@@ -170,7 +180,7 @@ namespace HybridAStar
      *
      * @param node3d
      * @param radius
-     * @return std::vector<std::pair<float, float>>
+     * @return std::vector<std::pair<float, float>>, first is angle, second is distance.
      */
     std::vector<std::pair<float, float>> SweepDistanceAndAngle(const Node3D &node3d, const float &radius);
     /**
@@ -186,7 +196,7 @@ namespace HybridAStar
      * @brief find free angle range(no obstacle in the range) in node3d steering angle range.
      *
      * @param node3d
-     * @return Utility::AngleRangeVec
+     * @return Utility::AngleRangeVec,angle range is pair of start and end angle
      */
     Utility::AngleRangeVec FindFreeAngleRange(const Node3D &node3d);
 

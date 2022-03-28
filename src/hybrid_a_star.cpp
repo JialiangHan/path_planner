@@ -34,8 +34,8 @@ namespace HybridAStar
 
   void HybridAStar::Initialize(nav_msgs::OccupancyGrid::Ptr map)
   {
-    //update the configuration space with the current map
-    // DLOG(INFO) << "hybrid a star initializing";
+    // update the configuration space with the current map
+    //  DLOG(INFO) << "hybrid a star initializing";
     configuration_space_ptr_->UpdateGrid(map);
     map_width_ = configuration_space_ptr_->GetMap()->info.width;
     map_height_ = configuration_space_ptr_->GetMap()->info.height;
@@ -52,7 +52,7 @@ namespace HybridAStar
     DLOG(INFO) << "Hybrid A star start!!";
     start_ = start;
     goal_ = goal;
-    //number of nodes explored
+    // number of nodes explored
     int number_nodes_explored = 0;
     // PREDECESSOR AND SUCCESSOR INDEX
     int iPred, iSucc;
@@ -67,7 +67,7 @@ namespace HybridAStar
     priorityQueue openlist;
     // update h value
     UpdateHeuristic(start, goal, nodes2D);
-    //this N is for analytic expansion
+    // this N is for analytic expansion
     int N = start.GetCostToGo();
     // mark start as open
     start.open();
@@ -143,7 +143,7 @@ namespace HybridAStar
           if (params_.analytical_expansion)
           {
             // _______________________
-            //analytical expansion
+            // analytical expansion
             // DLOG(INFO) << "analytical_expansion_counter is " << analytical_expansion_counter << " N is " << N;
             if (analytical_expansion_counter == N)
             {
@@ -201,18 +201,18 @@ namespace HybridAStar
                 {
                   // calculate H value
                   UpdateHeuristic(*nSucc, goal, nodes2D);
-                  //same cell expansion
+                  // same cell expansion
                   if (iPred == iSucc)
                   {
                     DLOG(INFO) << "successor total cost is " << nSucc->GetTotalCost();
                     DLOG(INFO) << "pred total cost is " << nPred->GetTotalCost();
-                    //no need to reset tie-breaker
-                    // if the successor is in the same cell but the C value is larger
+                    // no need to reset tie-breaker
+                    //  if the successor is in the same cell but the C value is larger
                     if (nSucc->GetTotalCost() > nPred->GetTotalCost() + params_.tie_breaker)
                     {
                       continue;
                     }
-                  // if successor is in the same cell and the C value is lower, set predecessor to predecessor of predecessor
+                    // if successor is in the same cell and the C value is lower, set predecessor to predecessor of predecessor
                     else if (nSucc->GetTotalCost() <= nPred->GetTotalCost() + params_.tie_breaker)
                     {
                       DLOG(INFO) << "same cell expansion, but successor has lower cost.";
@@ -392,7 +392,7 @@ namespace HybridAStar
       // DLOG(INFO) << "goal point is " << vector3d_goal.x() << " " << vector3d_goal.y();
     }
 
-    //Some kind of collision detection for all curves
+    // Some kind of collision detection for all curves
     if (path_vec.size() != 0)
     {
       path_vec.emplace_back(goal);
@@ -409,21 +409,22 @@ namespace HybridAStar
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
 
-    float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, distance_to_goal, step_size;
+    // float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, distance_to_goal, step_size;
+    float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, step_size;
     int prem;
-    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
       // DLOG(INFO) << "adaptive steering angle and step size";
-      //steering angles are decided by angle to obstacle.
-      //step size is determined by distance to obstacle.
-      //TODO how to consider distance offset due to node3d is float
+      // steering angles are decided by angle to obstacle.
+      // step size is determined by distance to obstacle.
+      // TODO how to consider distance offset due to node3d is float
       // float distance_offset=sqrt()
-      //1. decide steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
-      //2. decide step size
+      // 1. decide steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
+      // 2. decide step size
       std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndStepSize(pred);
       std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec = SelectAvailableSteeringAngle(available_angle_range_vec, pred);
-      distance_to_goal = Utility::GetDistance(pred, goal_);
+      // distance_to_goal = Utility::GetDistance(pred, goal_);
       for (const auto &pair : available_steering_angle_and_step_size_vec)
       {
         steering_angle = pair.second;
@@ -432,8 +433,8 @@ namespace HybridAStar
         dt = steering_angle;
         // DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle);
         // DLOG(INFO) << "step size is " << step_size;
-        //forward, checked
-        //right
+        // forward, checked
+        // right
         if (steering_angle < 0)
         {
           dx = turning_radius * sin(abs(steering_angle));
@@ -441,7 +442,7 @@ namespace HybridAStar
           prem = 1;
           // DLOG(INFO) << "forward right, dx " << dx << " dy " << dy;
         }
-        //left
+        // left
         else if (steering_angle > 1e-3)
         {
           dx = turning_radius * sin(abs(steering_angle));
@@ -449,7 +450,7 @@ namespace HybridAStar
           prem = 2;
           // DLOG(INFO) << "forward left, dx " << dx << " dy " << dy;
         }
-        //straight forward,checked
+        // straight forward,checked
         else
         {
           dx = step_size;
@@ -466,20 +467,20 @@ namespace HybridAStar
         out.emplace_back(temp);
         if (params_.reverse)
         {
-          //backward,checked
-          //right
+          // backward,checked
+          // right
           if (steering_angle > 1e-3)
           {
             prem = 5;
             // DLOG(INFO) << "backward left";
           }
-          //left
+          // left
           else if (steering_angle < 0)
           {
             prem = 4;
             // DLOG(INFO) << "backward right";
           }
-          //straight backward
+          // straight backward
           else
           {
             prem = 3;
@@ -654,7 +655,7 @@ namespace HybridAStar
     else
     {
       // DLOG(INFO) << "fixed steering angle and step size";
-      //assume constant speed.
+      // assume constant speed.
       float theta = Utility::ConvertDegToRad(params_.steering_angle);
       // float step_size = params_.step_size;
       step_size = params_.min_turning_radius * theta;
@@ -667,8 +668,8 @@ namespace HybridAStar
         turning_radius = params_.min_turning_radius;
         dt = steering_angle;
 
-        //forward, checked
-        //right
+        // forward, checked
+        // right
         if (steering_angle < 0)
         {
           dx = turning_radius * sin(abs(steering_angle));
@@ -676,7 +677,7 @@ namespace HybridAStar
           prem = 1;
           // DLOG(INFO) << "forward right, dx " << dx << " dy " << dy;
         }
-        //left
+        // left
         else if (steering_angle > 1e-3)
         {
           dx = turning_radius * sin(abs(steering_angle));
@@ -684,7 +685,7 @@ namespace HybridAStar
           prem = 2;
           // DLOG(INFO) << "forward left, dx " << dx << " dy " << dy;
         }
-        //straight forward,checked
+        // straight forward,checked
         else
         {
           dx = step_size;
@@ -701,20 +702,20 @@ namespace HybridAStar
         out.emplace_back(temp);
         if (params_.reverse)
         {
-          //backward,checked
-          //right
+          // backward,checked
+          // right
           if (steering_angle > 1e-3)
           {
             prem = 5;
             // DLOG(INFO) << "backward left";
           }
-          //left
+          // left
           else if (steering_angle < 0)
           {
             prem = 4;
             // DLOG(INFO) << "backward right";
           }
-          //straight backward
+          // straight backward
           else
           {
             prem = 3;
@@ -891,7 +892,7 @@ namespace HybridAStar
     }
     std::reverse(path_.begin(), path_.end());
   }
-  //checked
+  // checked
   std::vector<float> HybridAStar::SelectAvailableSteeringAngle(const Utility::AngleRangeVec &available_angle_range_vec, const Node3D &pred)
   {
     std::vector<float> out;
@@ -936,7 +937,8 @@ namespace HybridAStar
       }
       for (int index = 0; index < params_.number_of_successors + 1; ++index)
       {
-
+        // target orientation=angle range start + (index/number of successor)* angle range range
+        //  current orientation=current node theta
         steering_angle = Utility::RadNormalization(-(pair.second.first + index * pair.second.second / params_.number_of_successors - pred.GetT()));
         out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
         DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);

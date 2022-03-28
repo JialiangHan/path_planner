@@ -190,7 +190,14 @@ namespace Utility
 
     float GetDistanceFromPolygonToPolygon(const Polygon &polygon1,
                                           const Polygon &polygon2);
-
+    /**
+     * @brief Get the Distance From Polygon To point along direction at angle.
+     *
+     * @param polygon
+     * @param point
+     * @param angle
+     * @return float -1: no intersection
+     */
     float GetDistanceFromPolygonToPointAtAngle(const Polygon &polygon, const Eigen::Vector2f &point, const float &angle);
     /**
      * @brief Get the Angle Between Two Vector , sign is determined by crossproduct,
