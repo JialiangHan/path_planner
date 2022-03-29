@@ -196,10 +196,10 @@ namespace HybridAStar
      * @brief find free angle range(no obstacle in the range) in node3d steering angle range.
      *
      * @param node3d
-     * @return Utility::AngleRangeVec,angle range is pair of start and end angle
+     * @return Utility::AngleRangeVec,angle range is pair of start angle and angle range
      */
     Utility::AngleRangeVec FindFreeAngleRange(const Node3D &node3d);
-
+    // TODO: change angle range in above function to start and range angle format
   private:
     ParameterCollisionDetection params_;
     /// The occupancy grid

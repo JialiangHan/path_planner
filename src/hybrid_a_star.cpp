@@ -404,6 +404,7 @@ namespace HybridAStar
   //###################################################
   //                                    create successor
   //###################################################
+
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred)
   {
     std::vector<std::shared_ptr<Node3D>> out;
@@ -922,8 +923,10 @@ namespace HybridAStar
     // }
     return out;
   }
+
   std::vector<std::pair<float, float>> HybridAStar::SelectAvailableSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred)
   {
+    DLOG(INFO) << "SelectAvailableSteeringAngle in:";
     std::vector<std::pair<float, float>> out;
     float steering_angle;
     for (const auto &pair : available_angle_range_vec)
@@ -940,14 +943,24 @@ namespace HybridAStar
         // target orientation=angle range start + (index/number of successor)* angle range range
         //  current orientation=current node theta
         steering_angle = Utility::RadNormalization(-(pair.second.first + index * pair.second.second / params_.number_of_successors - pred.GetT()));
+        // for steering angle, we should add a limit here to avoid too much steering angle.
+        if (steering_angle > Utility::ConvertDegToRad(5))
+        {
+          steering_angle = Utility::ConvertDegToRad(5);
+        }
+        if (steering_angle < Utility::ConvertDegToRad(-5))
+        {
+          steering_angle = Utility::ConvertDegToRad(-5);
+        }
         out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
-        DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+        // DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
       }
     }
-    // for (const auto &angle : out)
-    // {
-    //   DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle);
-    // }
+    for (const auto &pair : out)
+    {
+      DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+    }
+    DLOG(INFO) << "SelectAvailableSteeringAngle out.";
     return out;
   }
 
