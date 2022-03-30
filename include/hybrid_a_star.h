@@ -81,6 +81,13 @@ namespace HybridAStar
       void TracePath(std::shared_ptr<Node3D> node3d_ptr);
 
       void ConvertToPiecewiseCubicBezierPath();
+      /**
+       * @brief Get the Available Steering Range for current node, should be current orientation +-5deg
+       *
+       * @param current_node
+       * @return Utility::AngleRange
+       */
+      Utility::AngleRange GetAvailableSteeringRange(const Node3D &current_node);
 
    private:
       ParameterHybridAStar params_;
