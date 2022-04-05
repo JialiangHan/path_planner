@@ -13,15 +13,6 @@
 #include "utility.h"
 // #include "lookup_table.h"
 
-TEST(Utility, IsSegmentIntersectWithPolygon)
-{
-    Eigen::Vector2f start(0, 0), end(10, 0), origin(0, 0);
-    Utility::Polygon polygon = Utility::CreatePolygon(origin);
-
-    int expect = 1;
-    int result = Utility::IsSegmentIntersectWithPolygon(polygon, start, end);
-    EXPECT_EQ(expect, result);
-}
 TEST(Utility, DegNormalization)
 {
     float t1 = 361, t2 = -359, t3 = 721, t4 = -719;
@@ -284,4 +275,14 @@ TEST(Utility, GetDistanceFromPolygonToPointAtAngle)
 
     float result = Utility::GetDistanceFromPolygonToPointAtAngle(Utility::CreatePolygon(origin), point, angle);
     EXPECT_FLOAT_EQ(result, 1);
+}
+
+TEST(Utility, IsSegmentIntersectWithPolygon)
+{
+    Eigen::Vector2f start(0, 0), end(10, 0), origin(0, 0);
+    Utility::Polygon polygon = Utility::CreatePolygon(origin);
+
+    int expect = 1;
+    int result = Utility::IsSegmentIntersectWithPolygon(polygon, start, end);
+    EXPECT_EQ(expect, result);
 }

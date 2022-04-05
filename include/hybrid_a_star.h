@@ -48,20 +48,11 @@ namespace HybridAStar
 
    private:
       /**
-   * @brief select possible steering angle(relative angle) from available_angle_range_vec according vehicle setup
-   * 
-   * @param available_angle_range_vec 
-   * @param pred 
-   * @return std::vector<float> 
-   */
-      std::vector<float> SelectAvailableSteeringAngle(const Utility::AngleRangeVec &available_angle_range_vec, const Node3D &pred);
-      std::vector<std::pair<float, float>> SelectAvailableSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred);
-      /**
        * @brief update heuristic for hybrid a star
-       * 
-       * @param start 
-       * @param goal 
-       * @param nodes2D 
+       *
+       * @param start
+       * @param goal
+       * @param nodes2D
        */
       void UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D);
       /**
@@ -73,8 +64,37 @@ namespace HybridAStar
        * @return Node3D* 
        */
       Path3D AnalyticExpansions(const Node3D &start, Node3D &goal);
-
+      /**
+       * @brief Create Successor for node 3d
+       *
+       * @param pred
+       * @return std::vector<std::shared_ptr<Node3D>>
+       */
       std::vector<std::shared_ptr<Node3D>> CreateSuccessor(const Node3D &pred);
+      /**
+       * @brief Create successor for node3d according to step size and steering angle vector
+       *
+       * @param pred
+       * @param step_size_steering_angle_vec
+       * @return std::vector<std::shared_ptr<Node3D>>
+       */
+      std::vector<std::shared_ptr<Node3D>> CreateSuccessor(const Node3D &pred, const std::vector<std::pair<float, float>> &step_size_steering_angle_vec);
+      /**
+       * @brief find step size and steering angle for current node
+       *
+       * @param pred
+       * @return std::vector<std::pair<float, float>> first is step size, second is steering angle
+       */
+      std::vector<std::pair<float, float>> FindStepSizeAndSteeringAngle(const Node3D &pred);
+      /**
+       * @brief select possible steering angle(relative angle) from available_angle_range_vec according vehicle setup
+       *
+       * @param available_angle_range_vec
+       * @param pred
+       * @return std::vector<float>
+       */
+      std::vector<float> SelectAvailableSteeringAngle(const Utility::AngleRangeVec &available_angle_range_vec, const Node3D &pred);
+      std::vector<std::pair<float, float>> SelectAvailableSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred);
 
       void UpdateCostSoFar(Node3D &node, const float &weight_turning, const float &weight_change_of_direction, const float &weight_reverse);
 

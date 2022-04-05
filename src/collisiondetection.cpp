@@ -209,99 +209,19 @@ void CollisionDetection::getConfiguration(const std::shared_ptr<Node3D> &node3d_
   y = node3d_ptr->GetY();
   t = node3d_ptr->GetT();
 }
-// not used
-// Utility::AngleRangeVec CollisionDetection::FindFreeAngleRange(const Node3D &node3d)
-// {
-//   Utility::AngleRangeVec available_angle_range_vec;
-//   Utility::AngleRange available_angle_range = GetNode3DAvailableAngleRange(node3d);
-//   //find obstacle in range
-//   uint node_index = GetNode3DIndexOnGridMap(node3d);
-//   available_angle_range_vec.emplace_back(available_angle_range);
-//   // for (const auto &angle_range : available_angle_range_vec)
-//   // {
-//   //   DLOG(INFO) << "angle range start is " << angle_range.first << " " << angle_range.second;
-//   // }
-//   if (in_range_obstacle_map_.find(node_index) != in_range_obstacle_map_.end())
-//   {
-//     for (const auto &polygon : in_range_obstacle_map_.at(node_index))
-//     {
-//       // DLOG(INFO) << "polygon origin is " << polygon[0].x() << " " << polygon[0].y();
-//       //get obstacle angle range
-//       Utility::AngleRange obstacle_angle_range = Utility::GetAngleRangeFromPointToPolygon(polygon, Utility::ConvertNod3DToVector2f(node3d));
-//       // DLOG(INFO) << "obstacle angle range start: " << Utility::ConvertRadToDeg(obstacle_angle_range.first) << " range is " << Utility::ConvertRadToDeg(obstacle_angle_range.second);
-//       for (uint index = 0; index < available_angle_range_vec.size(); ++index)
-//       {
-//         // DLOG(INFO) << "angle range start is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].first) << " range is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].second);
-//         //see if it is overlap with node3d steering range
-//         if (Utility::IsOverlap(obstacle_angle_range, available_angle_range_vec[index]))
-//         {
-
-//           available_angle_range_vec[index] = Utility::MinusAngleRange(available_angle_range_vec[index], obstacle_angle_range);
-//           DLOG(INFO) << "two angle range are overlapped";
-//           // DLOG(INFO) << "new angle range start is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].first) << " range is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].second);
-//         }
-//         //obstacle angle range is larger and include the steering angle range,set steering angle range to zero
-//         else if (Utility::IsAngleRangeInclude(obstacle_angle_range, available_angle_range_vec[index]))
-//         {
-//           if (available_angle_range_vec[index].first - obstacle_angle_range.first > obstacle_angle_range.second + obstacle_angle_range.first - (available_angle_range_vec[index].first + available_angle_range_vec[index].second))
-//           {
-//             DLOG(INFO) << "angle range end is more close to obstacle range end, set angle range start to end and range to zero.";
-//             available_angle_range_vec[index].first = available_angle_range_vec[index].first + available_angle_range_vec[index].second;
-//           }
-//           available_angle_range_vec[index].second = 0;
-//           DLOG(INFO) << "obstacle range is including the available angle range";
-//         }
-//         //checked
-//         //obstacle angle range is smaller and included by the steering angle range,generate two steering angle range
-//         else if (Utility::IsAngleRangeInclude(available_angle_range_vec[index], obstacle_angle_range))
-//         {
-//           // DLOG(INFO) << "angle range start is " << Utility::ConvertRadToDeg(angle_range.first) << " range is " << Utility::ConvertRadToDeg(angle_range.second);
-//           // DLOG(INFO) << "obstacle angle range start: " << Utility::ConvertRadToDeg(obstacle_angle_range.first) << " range is " << Utility::ConvertRadToDeg(obstacle_angle_range.second);
-//           // DLOG(INFO) << "angle range start is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].first) << " range is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].second);
-//           // DLOG(INFO) << "obstacle angle range start: " << Utility::ConvertRadToDeg(obstacle_angle_range.first) << " range is " << Utility::ConvertRadToDeg(obstacle_angle_range.second);
-//           // DLOG(INFO) << "angle range start is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].first) << " range is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].second);
-//           // DLOG(INFO) << "obstacle angle range start: " << Utility::ConvertRadToDeg(obstacle_angle_range.first) << " range is " << Utility::ConvertRadToDeg(obstacle_angle_range.second);
-//           float new_angle_range_start = obstacle_angle_range.first + obstacle_angle_range.second;
-//           float new_angle_range_range = available_angle_range_vec[index].first + available_angle_range_vec[index].second - (obstacle_angle_range.first + obstacle_angle_range.second) > 2 * M_PI ? available_angle_range_vec[index].first + available_angle_range_vec[index].second - (obstacle_angle_range.first + obstacle_angle_range.second) - 2 * M_PI : available_angle_range_vec[index].first + available_angle_range_vec[index].second - (obstacle_angle_range.first + obstacle_angle_range.second);
-
-//           Utility::AngleRange new_angle_range(new_angle_range_start, new_angle_range_range);
-//           available_angle_range_vec.emplace_back(new_angle_range);
-
-//           available_angle_range_vec[index].second = obstacle_angle_range.first - available_angle_range_vec[index].first > 0 ? obstacle_angle_range.first - available_angle_range_vec[index].first : obstacle_angle_range.first - available_angle_range_vec[index].first + 2 * M_PI;
-//           // DLOG(INFO) << "angle range start is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].first) << " range is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].second);
-//           // DLOG(INFO) << "obstacle angle range start: " << Utility::ConvertRadToDeg(obstacle_angle_range.first) << " range is " << Utility::ConvertRadToDeg(obstacle_angle_range.second);
-//           DLOG(INFO) << "available range is including the obstacle angle range";
-//           // DLOG(INFO) << "new angle range start is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].first) << " range is " << Utility::ConvertRadToDeg(available_angle_range_vec[index].second) << " another one start is " << Utility::ConvertRadToDeg(available_angle_range_vec.back().first) << " range is " << Utility::ConvertRadToDeg(available_angle_range_vec.back().second);
-//           // for (const auto &pair : available_angle_range_vec)
-//           // {
-//           //   DLOG(INFO) << "pair first " << Utility::ConvertRadToDeg(pair.first) << " " << Utility::ConvertRadToDeg(pair.second);
-//           // }
-//         }
-//         else
-//         {
-//           // DLOG(INFO) << "these two ranges are far away.";
-//         }
-//       }
-//     }
-//   }
-//   // for (const auto &angle_range : available_angle_range_vec)
-//   // {
-//   //   DLOG(INFO) << "angle range start is " << Utility::ConvertRadToDeg(angle_range.first) << " " << Utility::ConvertRadToDeg(angle_range.second);
-//   // }
-//   return available_angle_range_vec;
-// }
 
 //checked
 void CollisionDetection::SetObstacleVec()
 {
   // DLOG(INFO) << "SetObstacleVec in:";
+  Utility::Polygon current_polygon;
   for (uint x = 0; x < grid_ptr_->info.width; ++x)
   {
     for (uint y = 0; y < grid_ptr_->info.height; ++y)
     {
       if (grid_ptr_->data[GetNode3DIndexOnGridMap(x, y)])
       {
-        Utility::Polygon current_polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y));
+        current_polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y));
         if (obstacle_vec_.size() != 0)
         {
           if (Utility::IsPolygonInNeighbor(obstacle_vec_.back(), current_polygon))
@@ -324,6 +244,21 @@ void CollisionDetection::SetObstacleVec()
       }
     }
   }
+  // TODO need to add boundary obstacle
+
+  // // need to add map boundary to obstacle vec_ for other consideration
+  // // bottom obstacle as bottom boundary
+  // current_polygon = Utility::CreatePolygon(Eigen::Vector2f(0, -1), map_width_, 1);
+  // obstacle_vec_.emplace_back(current_polygon);
+  // // right obstacle as right boundary
+  // current_polygon = Utility::CreatePolygon(Eigen::Vector2f(map_width_, 0), 1, map_height_);
+  // obstacle_vec_.emplace_back(current_polygon);
+  // // top obstacle as top boundary
+  // current_polygon = Utility::CreatePolygon(Eigen::Vector2f(0, map_height_), map_width_, 1);
+  // obstacle_vec_.emplace_back(current_polygon);
+  // // left obstacle as left boundary
+  // current_polygon = Utility::CreatePolygon(Eigen::Vector2f(-1, 0), 1, map_height_);
+  // obstacle_vec_.emplace_back(current_polygon);
   // for (const auto &polygon : obstacle_vec_)
   // {
   //   DLOG(INFO) << "polygon size is " << polygon.size();
@@ -375,17 +310,7 @@ Utility::AngleRange CollisionDetection::GetNode3DAvailableAngleRange(const Node3
   float current_heading = Utility::RadNormalization(node3d.GetT());
   const float max_steering_angle = Utility::ConvertDegToRad(30);
   float starting_angle, range;
-  // for forward and backward, steering angle is the same. no need to distinguish these two condition, since angle range is in start angle and range format.
-  //  if (current_heading > Utility::ConvertDegToRad(150) || current_heading < Utility::ConvertDegToRad(-150))
-  //  {
-  //    starting_angle = Utility::RadToZeroTo2P(current_heading - max_steering_angle);
-  //    range = Utility::RadToZeroTo2P(2 * max_steering_angle);
-  //  }
-  //  else
-  //  {
-  //    starting_angle = Utility::RadNormalization(current_heading - max_steering_angle);
-  //    range = Utility::RadNormalization(2 * max_steering_angle);
-  //  }
+
   starting_angle = Utility::RadToZeroTo2P(current_heading - max_steering_angle);
   range = (2 * max_steering_angle);
   // DLOG(INFO) << "starting angle is :" << Utility::ConvertRadToDeg(starting_angle) << " range is " << Utility::ConvertRadToDeg(range);
@@ -890,6 +815,176 @@ Utility::AngleRangeVec CollisionDetection::FindFreeAngleRange(const Node3D &node
   return out;
 }
 
+std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeAngleRangeAndObstacleAngleRange(const Node3D &node3d)
+{
+  // DLOG(INFO) << "FindFreeAngleRangeAndObstacleAngleRange in:";
+  std::vector<std::pair<float, Utility::AngleRange>> out;
+  std::vector<std::pair<float, float>> angle_distance_vec = SweepDistanceAndAngle(node3d, obstacle_detection_range_);
+  float range_start = -1, range_range = -1, min_distance = obstacle_detection_range_;
+  bool range_start_flag = false, range_end_flag = false;
+  // use index here.
+  // for (const auto &pair : angle_distance_vec)
+  for (uint index = 0; index < angle_distance_vec.size() - 1; ++index)
+  {
+    // DLOG(INFO) << "in for loop;";
+    // DLOG(INFO) << "angle is " << Utility::ConvertRadToDeg(angle_distance_vec[index].first) << " distance is " << angle_distance_vec[index].second;
+    // this is a free angle range
+    if (angle_distance_vec[index].second == obstacle_detection_range_)
+    {
+      // DLOG(INFO) << "index is " << index << " angle distance vec size is " << angle_distance_vec.size();
+      if (!range_start_flag)
+      {
+        range_start_flag = true;
+        range_start = angle_distance_vec[index].first;
+        // DLOG(INFO) << "set free angle range start.";
+      }
+      // set last element to range end
+
+      else if (index == angle_distance_vec.size() - 2)
+      {
+        range_range = angle_distance_vec[index + 1].first - range_start;
+        range_end_flag = true;
+        // DLOG(INFO) << "set free angle range range.";
+      }
+      else if (angle_distance_vec[index + 1].second == obstacle_detection_range_)
+      {
+        continue;
+      }
+      else
+      {
+        range_range = angle_distance_vec[index].first - range_start;
+        range_end_flag = true;
+        // DLOG(INFO) << "set free angle range range.";
+      }
+      if (range_start_flag && range_end_flag)
+      {
+        out.emplace_back(std::pair<float, Utility::AngleRange>(obstacle_detection_range_, std::pair<float, float>(range_start, range_range)));
+        range_start_flag = false;
+        range_end_flag = false;
+        // DLOG(INFO) << "free range start and range is setted, push back to out.";
+      }
+    }
+    // this is a obstacle angle range
+    else
+    {
+      if (min_distance > angle_distance_vec[index].second)
+      {
+        min_distance = angle_distance_vec[index].second;
+      }
+      if (min_distance > angle_distance_vec[index + 1].second)
+      {
+        min_distance = angle_distance_vec[index + 1].second;
+      }
+      if (!range_start_flag)
+      {
+        range_start_flag = true;
+        range_start = angle_distance_vec[index].first;
+        // DLOG(INFO) << "set obstacle angle range start.";
+      }
+      // set last element to range end
+      else if (index == angle_distance_vec.size() - 2)
+      {
+        range_range = angle_distance_vec[index + 1].first - range_start;
+        range_end_flag = true;
+        // DLOG(INFO) << "set obstacle angle range range.";
+      }
+      else if (angle_distance_vec[index + 1].second != obstacle_detection_range_)
+      {
+        continue;
+      }
+
+      else
+      {
+        range_range = angle_distance_vec[index].first - range_start;
+        range_end_flag = true;
+        // DLOG(INFO) << "set obstacle angle range range.";
+      }
+      if (range_start_flag && range_end_flag)
+      {
+        out.emplace_back(std::pair<float, Utility::AngleRange>(min_distance, std::pair<float, float>(range_start, range_range)));
+        range_start_flag = false;
+        range_end_flag = false;
+        // DLOG(INFO) << "obstacle range start and range is setted, push bush to out.";
+      }
+    }
+  }
+  // for (const auto &pair : out)
+  // {
+  //   DLOG(INFO) << "min distance is " << pair.first << " angle range start is " << Utility::ConvertRadToDeg(pair.second.first) << " range is " << Utility::ConvertRadToDeg(pair.second.second);
+  // }
+  DLOG_IF(WARNING, out.size() == 0) << "WARNING: Free angle range size is zero!!!!";
+  // DLOG(INFO) << "FindFreeAngleRangeAndObstacleAngleRange out.";
+  return out;
+}
+
+// checked, it`s correct for free angle range.
+std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred, const int &number_of_successor)
+{
+  // DLOG(INFO) << "SelectStepSizeAndSteeringAngle in:";
+  std::vector<std::pair<float, float>> out;
+  float steering_angle, step_size = 10000;
+  // 1. for step size, it should be 1/n*(min distance to obstacle) for both free angle range and obstacle angle range
+  for (const auto &pair : available_angle_range_vec)
+  {
+    if (step_size > pair.first)
+    {
+      step_size = pair.first;
+      // DLOG(INFO) << "step size is " << step_size;
+    }
+  }
+  float weight_step_size = 0.5;
+  // if rest distance to obstacle is less than 1/2 vehicle length,
+  if ((step_size - 0.5 * params_.vehicle_length) > 0)
+  {
+    step_size = weight_step_size * step_size;
+  }
+  else
+  {
+    DLOG(INFO) << "min distance to obstacle is less then 1/2*vehicle_length, make step size 0!!!";
+    step_size = 0;
+  }
+
+  // DLOG(INFO) << "step size is " << step_size;
+  for (const auto &pair : available_angle_range_vec)
+  {
+    // DLOG(INFO) << "current pair second first is " << Utility::ConvertRadToDeg(pair.second.first) << " range is " << Utility::ConvertRadToDeg(pair.second.second);
+    // if steering angle range is zero, that means current node is blocked by obstacles
+    if (pair.second.second == 0)
+    {
+      // DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
+      steering_angle = Utility::RadNormalization(-(pair.second.first - pred.GetT()));
+      out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
+      continue;
+    }
+    // 2. for free angle range, steering angle is angle range start + 1/(number of successors+1) * angle range.
+    if (pair.first == obstacle_detection_range_)
+    {
+      for (int index = 1; index < number_of_successor + 1; ++index)
+      {
+        // target orientation=angle range start + (index/number of successor)* angle range range
+        //  current orientation=current node theta
+        steering_angle = Utility::RadNormalization(-(pair.second.first + index * pair.second.second / (number_of_successor + 1) - pred.GetT()));
+        out.emplace_back(std::pair<float, float>(step_size, steering_angle));
+      }
+    }
+    // 3. for obstacle angle range, two successors are created, first steering angle is range start, second steering angle is range end.
+    else
+    {
+      // steering angle is range start
+      steering_angle = Utility::RadNormalization(-(pair.second.first - pred.GetT()));
+      out.emplace_back(std::pair<float, float>(step_size, steering_angle));
+      // steering angle is range end
+      steering_angle = Utility::RadNormalization(-(pair.second.first + pair.second.second - pred.GetT()));
+      out.emplace_back(std::pair<float, float>(step_size, steering_angle));
+    }
+  }
+  // for (const auto &pair : out)
+  // {
+  //   DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+  // }
+  // DLOG(INFO) << "SelectAvailableSteeringAngle out.";
+  return out;
+}
 // checked, it`s correct.
 std::vector<std::pair<float, float>> CollisionDetection::SweepDistanceAndAngle(const Node3D &node3d, const float &radius)
 {
@@ -912,7 +1007,7 @@ std::vector<std::pair<float, float>> CollisionDetection::SweepDistanceAndAngle(c
   return out;
 }
 
-// this function seems ok for no obstacle, not fully checked
+// this function seems ok for both no obstacle and obstacle , fully checked
 float CollisionDetection::FindNoCollisionDistance(const Node3D &node3d, const float &radius, const float &angle)
 {
   // DLOG(INFO) << "FindNoCollisionDistance in:";

@@ -228,6 +228,10 @@ namespace HybridAStar
                 }
               }
             }
+            else
+            {
+              DLOG(INFO) << "current node is " << nSucc->GetX() << " " << nSucc->GetY() << " " << Utility::ConvertRadToDeg(nSucc->GetT()) << " is in collision!!";
+            }
           }
         }
       }
@@ -407,13 +411,14 @@ namespace HybridAStar
 
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred)
   {
+    // DLOG(INFO) << "CreateSuccessor in:";
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
 
     // float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, distance_to_goal, step_size;
     float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, step_size;
     int prem;
-    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
       // DLOG(INFO) << "adaptive steering angle and step size";
@@ -421,81 +426,13 @@ namespace HybridAStar
       // step size is determined by distance to obstacle.
       // TODO how to consider distance offset due to node3d is float
       // float distance_offset=sqrt()
-      // 1. decide steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
-      // 2. decide step size
-      std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndStepSize(pred);
-      std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec = SelectAvailableSteeringAngle(available_angle_range_vec, pred);
-      // distance_to_goal = Utility::GetDistance(pred, goal_);
-      for (const auto &pair : available_steering_angle_and_step_size_vec)
-      {
-        steering_angle = pair.second;
-        step_size = pair.first;
-        turning_radius = step_size / abs(steering_angle);
-        dt = steering_angle;
-        // DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle);
-        // DLOG(INFO) << "step size is " << step_size;
-        // forward, checked
-        // right
-        if (steering_angle < 0)
-        {
-          dx = turning_radius * sin(abs(steering_angle));
-          dy = -(turning_radius * (1 - cos(steering_angle)));
-          prem = 1;
-          // DLOG(INFO) << "forward right, dx " << dx << " dy " << dy;
-        }
-        // left
-        else if (steering_angle > 1e-3)
-        {
-          dx = turning_radius * sin(abs(steering_angle));
-          dy = (turning_radius * (1 - cos(steering_angle)));
-          prem = 2;
-          // DLOG(INFO) << "forward left, dx " << dx << " dy " << dy;
-        }
-        // straight forward,checked
-        else
-        {
-          dx = step_size;
-          dy = 0;
-          prem = 0;
-          // DLOG(INFO) << "forward straight";
-        }
+      // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
 
-        xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
-        ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
-        tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
-        DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-        std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
-        out.emplace_back(temp);
-        if (params_.reverse)
-        {
-          // backward,checked
-          // right
-          if (steering_angle > 1e-3)
-          {
-            prem = 5;
-            // DLOG(INFO) << "backward left";
-          }
-          // left
-          else if (steering_angle < 0)
-          {
-            prem = 4;
-            // DLOG(INFO) << "backward right";
-          }
-          // straight backward
-          else
-          {
-            prem = 3;
-            // DLOG(INFO) << "backward straight";
-          }
-          // DLOG(INFO) << "dx is " << dx << " dy " << dy << " dt " << dt;
-          xSucc = pred.GetX() - dx * cos(pred.GetT()) - dy * sin(pred.GetT());
-          ySucc = pred.GetY() - dx * sin(pred.GetT()) + dy * cos(pred.GetT());
-          tSucc = Utility::RadToZeroTo2P(pred.GetT() - dt);
-          DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-          std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
-          out.emplace_back(temp);
-        }
-      }
+      std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec = FindStepSizeAndSteeringAngle(pred);
+      // 2. create successor using step size and steering angle
+      out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
+      // DLOG(INFO) << "CreateSuccessor out.";
+      return out;
     }
 
     else
@@ -577,9 +514,103 @@ namespace HybridAStar
         }
       }
     }
+    // DLOG(INFO) << "CreateSuccessor out.";
     return out;
   }
 
+  std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred, const std::vector<std::pair<float, float>> &step_size_steering_angle_vec)
+  {
+    std::vector<std::shared_ptr<Node3D>> out;
+    float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, step_size;
+    int prem;
+    std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
+    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+    for (const auto &pair : step_size_steering_angle_vec)
+    {
+      steering_angle = pair.second;
+      step_size = pair.first;
+      turning_radius = step_size / abs(steering_angle);
+      dt = steering_angle;
+      // DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle);
+      // DLOG(INFO) << "step size is " << step_size;
+      // forward, checked
+      // right
+      if (steering_angle < 0)
+      {
+        dx = turning_radius * sin(abs(steering_angle));
+        dy = -(turning_radius * (1 - cos(steering_angle)));
+        prem = 1;
+        // DLOG(INFO) << "forward right, dx " << dx << " dy " << dy;
+      }
+      // left
+      else if (steering_angle > 1e-3)
+      {
+        dx = turning_radius * sin(abs(steering_angle));
+        dy = (turning_radius * (1 - cos(steering_angle)));
+        prem = 2;
+        // DLOG(INFO) << "forward left, dx " << dx << " dy " << dy;
+      }
+      // straight forward,checked
+      else
+      {
+        dx = step_size;
+        dy = 0;
+        prem = 0;
+        // DLOG(INFO) << "forward straight";
+      }
+
+      xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
+      ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
+      tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
+      // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+      std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
+      out.emplace_back(temp);
+      if (params_.reverse)
+      {
+        // backward,checked
+        // right
+        if (steering_angle > 1e-3)
+        {
+          prem = 5;
+          // DLOG(INFO) << "backward left";
+        }
+        // left
+        else if (steering_angle < 0)
+        {
+          prem = 4;
+          // DLOG(INFO) << "backward right";
+        }
+        // straight backward
+        else
+        {
+          prem = 3;
+          // DLOG(INFO) << "backward straight";
+        }
+        // DLOG(INFO) << "dx is " << dx << " dy " << dy << " dt " << dt;
+        xSucc = pred.GetX() - dx * cos(pred.GetT()) - dy * sin(pred.GetT());
+        ySucc = pred.GetY() - dx * sin(pred.GetT()) + dy * cos(pred.GetT());
+        tSucc = Utility::RadToZeroTo2P(pred.GetT() - dt);
+        // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+        std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
+        out.emplace_back(temp);
+      }
+    }
+    return out;
+  }
+
+  std::vector<std::pair<float, float>> HybridAStar::FindStepSizeAndSteeringAngle(const Node3D &pred)
+  {
+    // DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
+    std::vector<std::pair<float, float>> out;
+    // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
+    // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
+    std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred);
+    // 3. determine step size and steering angle from previous output
+    // std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndStepSize(pred);
+    out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, params_.number_of_successors);
+    // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
+    return out;
+  }
   //###################################################
   //                                    update cost so far
   //###################################################
@@ -699,6 +730,7 @@ namespace HybridAStar
         out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
         continue;
       }
+      // // get available steering angle range which is current orientation +- 5deg
       // get available steering angle range which is current orientation +- 5deg
       Utility::AngleRange available_steering_range = GetAvailableSteeringRange(pred);
       // DLOG(INFO) << "available steering angle range is " << Utility::ConvertRadToDeg(available_steering_range.first) << " range is " << Utility::ConvertRadToDeg(available_steering_range.second);

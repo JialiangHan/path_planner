@@ -313,6 +313,7 @@ namespace Utility
     {
         return (p1 - p2).norm();
     }
+
     int IsSegmentIntersectWithPolygon(const Polygon &polygon,
                                       const Eigen::Vector2f &start,
                                       const Eigen::Vector2f &end)
@@ -756,6 +757,8 @@ namespace Utility
         ComputationalGeometry::Segment segment(point, 10000, angle);
         if (!Utility::IsSegmentIntersectWithPolygon(polygon, segment.GetStart(), segment.GetEnd()))
         {
+            // DLOG(INFO) << "NO intersect with obstacles!!";
+            // DLOG(INFO) << "GetDistanceFromPolygonToPointAtAngle out.";
             return out;
         }
         // 1. check if polygon and segment start at point intersect?
@@ -766,7 +769,7 @@ namespace Utility
             {
                 float distance = (segment.FindIntersectionPoint(segment_on_polygon) - point).norm();
                 // DLOG(INFO) << "distance is " << distance;
-                if (out > distance)
+                if (out > distance || out < 0)
                 {
                     out = distance;
                 }
@@ -774,6 +777,7 @@ namespace Utility
         }
         // 2. if so, find segment in polygon which is intersect with segment start at point
         // 3. from intersect point, calculate distance
+        // DLOG(INFO) << "GetDistanceFromPolygonToPointAtAngle out.";
         return out;
     }
     //*************************other ***********************
