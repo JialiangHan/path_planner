@@ -24,7 +24,10 @@ analytical_expansion: true
 adaptive_steering_angle_and_step_size: true
 add_one_more_successor: false  
 
-piecewise_cubic_bezier_interpolation: false
+piecewise_cubic_bezier_interpolation: true
+obstacle_detection_range: 10
+
+
 # step size for create successor
 # step_size: 1
 #  COLLISION LOOKUP SPECIFIC
