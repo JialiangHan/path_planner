@@ -978,7 +978,8 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
       out.emplace_back(std::pair<float, float>(step_size, steering_angle));
     }
   }
-  // for (const auto &pair : out)
+
+    // for (const auto &pair : out)
   // {
   //   DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
   // }
