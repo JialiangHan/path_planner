@@ -414,7 +414,6 @@ namespace HybridAStar
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
 
-    // float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, distance_to_goal, step_size;
     float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, step_size;
     int prem;
     // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
@@ -449,7 +448,6 @@ namespace HybridAStar
         step_size = params_.min_turning_radius * abs(angle);
         turning_radius = params_.min_turning_radius;
         dt = steering_angle;
-
         // forward, checked
         // right
         if (steering_angle < 0)
@@ -475,7 +473,6 @@ namespace HybridAStar
           prem = 0;
           // DLOG(INFO) << "forward straight";
         }
-
         xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
         ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
         tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
@@ -607,7 +604,6 @@ namespace HybridAStar
     // 3. determine step size and steering angle from previous output
     // std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndStepSize(pred);
     out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, params_.number_of_successors);
-
     // 1. first find distance from current node to goal position
     float distance_to_goal = Utility::GetDistance(pred, goal_);
     // 2. if distance to goal is less than step size above. than make it new step size, otherwise use old one
@@ -621,7 +617,6 @@ namespace HybridAStar
       step_size = distance_to_goal;
     }
     // 3. find angle to goal
-
     float angle_to_goal = Utility::RadNormalization(pred.GetT() - goal_.GetT());
     // DLOG(INFO) << "current node orientation is " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
     // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
@@ -723,111 +718,7 @@ namespace HybridAStar
     }
     std::reverse(path_.begin(), path_.end());
   }
-  // checked
-  std::vector<float> HybridAStar::SelectAvailableSteeringAngle(const Utility::AngleRangeVec &available_angle_range_vec, const Node3D &pred)
-  {
-    std::vector<float> out;
-    float steering_angle;
-    for (const auto &pair : available_angle_range_vec)
-    {
-      if (pair.second == 0)
-      {
-        // DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
-        steering_angle = Utility::RadNormalization(-(pair.first - pred.GetT()));
-        out.emplace_back(steering_angle);
-        continue;
-      }
-      // DLOG(INFO) << "pair first " << Utility::ConvertRadToDeg(pair.first) << " pair second is " << Utility::ConvertRadToDeg(pair.second) << " pred angle is " << Utility::ConvertRadToDeg(pred.GetT());
-      steering_angle = Utility::RadNormalization(-(pair.first + pair.second / 4 - pred.GetT()));
-      out.emplace_back(steering_angle);
 
-      steering_angle = Utility::RadNormalization(-(pair.first + 2 * pair.second / 4 - pred.GetT()));
-      out.emplace_back(steering_angle);
-
-      steering_angle = Utility::RadNormalization(-(pair.first + 3 * pair.second / 4 - pred.GetT()));
-      out.emplace_back(steering_angle);
-    }
-    // for (const auto &angle : out)
-    // {
-    //   DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle);
-    // }
-    return out;
-  }
-  // checked, it`s correct.
-  std::vector<std::pair<float, float>> HybridAStar::SelectAvailableSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred)
-  {
-    // DLOG(INFO) << "SelectAvailableSteeringAngle in:";
-    // first is step size and second is steering angle
-    std::vector<std::pair<float, float>> out;
-    float steering_angle;
-    for (const auto &pair : available_angle_range_vec)
-    {
-      // DLOG(INFO) << "current pair second first is " << Utility::ConvertRadToDeg(pair.second.first) << " range is " << Utility::ConvertRadToDeg(pair.second.second);
-      // if steering angle range is zero, that means current node is blocked by obstacles
-      if (pair.second.second == 0)
-      {
-        DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
-        steering_angle = Utility::RadNormalization(-(pair.second.first - pred.GetT()));
-        out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
-        continue;
-      }
-      // // get available steering angle range which is current orientation +- 5deg
-      // get available steering angle range which is current orientation +- 5deg
-      Utility::AngleRange available_steering_range = GetAvailableSteeringRange(pred);
-      // DLOG(INFO) << "available steering angle range is " << Utility::ConvertRadToDeg(available_steering_range.first) << " range is " << Utility::ConvertRadToDeg(available_steering_range.second);
-      // compare with available angle range
-      Utility::AngleRange temp;
-      if (pair.second.first > available_steering_range.first)
-      {
-        temp.first = pair.second.first;
-      }
-      else
-      {
-        temp.first = available_steering_range.first;
-      }
-      if ((pair.second.second + pair.second.first) > (available_steering_range.first + available_steering_range.second))
-      {
-        temp.second = available_steering_range.second;
-      }
-      else
-      {
-        temp.second = pair.second.second;
-      }
-      // DLOG(INFO) << "temp first is " << Utility::ConvertRadToDeg(temp.first) << " range is " << Utility::ConvertRadToDeg(temp.second);
-      for (int index = 0; index < params_.number_of_successors + 1; ++index)
-      {
-        // target orientation=angle range start + (index/number of successor)* angle range range
-        //  current orientation=current node theta
-        steering_angle = Utility::RadNormalization(-(temp.first + index * temp.second / params_.number_of_successors - pred.GetT()));
-        // // for steering angle, we should add a limit here to avoid too much steering angle.
-        // float steering_angle_limit = Utility::ConvertDegToRad(5);
-        // if (steering_angle > steering_angle_limit)
-        // {
-        //   steering_angle = steering_angle_limit;
-        // }
-        // if (steering_angle < -steering_angle_limit)
-        // {
-        //   steering_angle = -steering_angle_limit;
-        // }
-        out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
-        // DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
-      }
-    }
-    // for (const auto &pair : out)
-    // {
-    //   DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-    // }
-    // DLOG(INFO) << "SelectAvailableSteeringAngle out.";
-    return out;
-  }
-  // checked,it`s correct.
-  Utility::AngleRange HybridAStar::GetAvailableSteeringRange(const Node3D &current_node)
-  {
-    Utility::AngleRange out;
-    out.first = current_node.GetT() - Utility::ConvertDegToRad(5);
-    out.second = Utility::ConvertDegToRad(10);
-    return out;
-  }
   void HybridAStar::ConvertToPiecewiseCubicBezierPath()
   {
     std::vector<Eigen::Vector3f> anchor_points_vec;

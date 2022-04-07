@@ -63,7 +63,6 @@ namespace HybridAStar
     std::vector<std::pair<float, Utility::AngleRange>> FindFreeAngleRangeAndStepSize(const Node3D &node3d);
     nav_msgs::OccupancyGrid::Ptr GetMap() const { return grid_ptr_; };
 
-    std::vector<std::pair<float, Utility::AngleRange>> GetDistanceAngleRangeVec(const HybridAStar::Node3D &current_node);
     /**
      * @brief find free angle range and obstacle angle range from a vector of <distance,angle> pair
      *
@@ -130,15 +129,6 @@ namespace HybridAStar
      * @return uint index
      */
     uint GetNode3DIndexOnGridMap(const float &x, const float &y);
-    /**
-     * @brief this function is only for collision detection
-     *
-     * @param x
-     * @param y
-     * @param theta
-     * @return uint
-     */
-    // uint CalculateNode3DIndex(const float &x, const float &y, const float &theta) const;
 
     /**
      * @brief Get the Node 3D Available steering Angle Range, current orientation +-30deg

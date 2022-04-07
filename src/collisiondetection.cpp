@@ -390,38 +390,6 @@ std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::GetObstac
   return out;
 }
 
-std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::GetDistanceAngleRangeVec(const HybridAStar::Node3D &current_node)
-{
-  std::vector<std::pair<float, Utility::AngleRange>> out;
-  uint current_index = GetNode3DIndexOnGridMap(current_node);
-  if (distance_angle_range_map_.find(current_index) != distance_angle_range_map_.end())
-  {
-    out = distance_angle_range_map_.at(current_index);
-  }
-  return out;
-}
-
-// uint CollisionDetection::CalculateNode3DIndex(const float &x, const float &y, const float &theta) const
-// {
-//   uint out;
-//   const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
-//   float angle;
-//   if (abs(theta) < 1e-4)
-//   {
-//     angle = 0;
-//   }
-//   else
-//   {
-//     angle = theta;
-//   }
-//   // DLOG(INFO) << "angle is " << angle;
-//   // DLOG(INFO) << "delta heading in rad is " << delta_heading_in_rad;
-//   // DLOG(INFO) << "(int)(theta / delta_heading_in_rad) " << (int)(theta / delta_heading_in_rad);
-//   out = (int)(angle / delta_heading_in_rad) * map_width_ * map_height_ * params_.position_resolution * params_.position_resolution + (int)(y * params_.position_resolution) * map_width_ + (int)(x * params_.position_resolution);
-
-//   return out;
-// }
-
 // where to put this collision table in lookup_table.cpp or collisiondetection..cpp?
 void CollisionDetection::BuildCollisionLookupTable()
 {
@@ -983,7 +951,7 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   // {
   //   DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
   // }
-  // DLOG(INFO) << "SelectAvailableSteeringAngle out.";
+  // DLOG(INFO) << "SelectStepSizeAndSteeringAngle out.";
   return out;
 }
 // checked, it`s correct.

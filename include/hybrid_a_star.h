@@ -86,28 +86,12 @@ namespace HybridAStar
        * @return std::vector<std::pair<float, float>> first is step size, second is steering angle
        */
       std::vector<std::pair<float, float>> FindStepSizeAndSteeringAngle(const Node3D &pred);
-      /**
-       * @brief select possible steering angle(relative angle) from available_angle_range_vec according vehicle setup
-       *
-       * @param available_angle_range_vec
-       * @param pred
-       * @return std::vector<float>
-       */
-      std::vector<float> SelectAvailableSteeringAngle(const Utility::AngleRangeVec &available_angle_range_vec, const Node3D &pred);
-      std::vector<std::pair<float, float>> SelectAvailableSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred);
 
       void UpdateCostSoFar(Node3D &node, const float &weight_turning, const float &weight_change_of_direction, const float &weight_reverse);
 
       void TracePath(std::shared_ptr<Node3D> node3d_ptr);
 
       void ConvertToPiecewiseCubicBezierPath();
-      /**
-       * @brief Get the Available Steering Range for current node, should be current orientation +-5deg
-       *
-       * @param current_node
-       * @return Utility::AngleRange
-       */
-      Utility::AngleRange GetAvailableSteeringRange(const Node3D &current_node);
 
    private:
       ParameterHybridAStar params_;
