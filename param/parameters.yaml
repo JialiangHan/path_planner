@@ -12,21 +12,20 @@ possible_direction : 8
 
 enable_collision_lookup: false
 # number of successors for hybrid a star
-number_of_successors: 2
+number_of_successors: 3
 # for heuristic in hybrid a, use dubins or reedshepp or cubic bezier
 # 0: dubins curve, 1: reedsshepp curve 2: cubic bezier
 curve_type : 2
 free_step_size: 4
 # obstacle_detection_range: 10
 analytical_expansion: true
-# adaptive_steering_angle: false
-# adaptive_step_size : false
+
 adaptive_steering_angle_and_step_size: true
-add_one_more_successor: false  
+
+
 
 piecewise_cubic_bezier_interpolation: false
-# step size for create successor
-# step_size: 1
+
 #  COLLISION LOOKUP SPECIFIC
 # [#] --- The sqrt of the number of discrete positions per cell
 position_resolution : 2

@@ -53,16 +53,7 @@ namespace HybridAStar
       SetDistanceAngleRangeMap();
       // BuildCollisionLookupTable();
     }
-
-    /**
-     * @brief find a list of angle range which has no obstacle in a certain radius, note for forward and backward, steering angle is the same, and its step size
-     *
-     * @param node3d
-     * @return std::vector<std::pair<float,AngleRange>> first is step size
-     */
-    std::vector<std::pair<float, Utility::AngleRange>> FindFreeAngleRangeAndStepSize(const Node3D &node3d);
     nav_msgs::OccupancyGrid::Ptr GetMap() const { return grid_ptr_; };
-
     /**
      * @brief find free angle range and obstacle angle range from a vector of <distance,angle> pair
      *
