@@ -586,7 +586,7 @@ namespace HybridAStar
       xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
       ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
       tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
-      // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+      DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
       std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
       out.emplace_back(temp);
       if (params_.reverse)
@@ -624,7 +624,7 @@ namespace HybridAStar
 
   std::vector<std::pair<float, float>> HybridAStar::FindStepSizeAndSteeringAngle(const Node3D &pred)
   {
-    // DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
+    DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
     std::vector<std::pair<float, float>> out;
     // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
     // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
@@ -633,32 +633,38 @@ namespace HybridAStar
     out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, params_.number_of_successors);
     // 1. first find distance from current node to goal position
     float distance_to_goal = Utility::GetDistance(pred, goal_);
+    // DLOG(INFO) << "distance to goal is " << distance_to_goal;
     // 2. if distance to goal is less than step size above. than make it new step size, otherwise use old one
-    float step_size, steering_angle;
+    float step_size = 0.5 * configuration_space_ptr_->GetObstacleDetectionRange(), steering_angle;
+    DLOG_IF(WARNING, out.size() == 0) << "Out size is zero!!!";
     if (out.size() != 0)
     {
       step_size = out.back().first;
     }
+
+    // DLOG(INFO) << "step size is " << step_size;
     if (distance_to_goal < step_size)
     {
       step_size = distance_to_goal;
     }
+    // DLOG(INFO) << "step size is " << step_size;
     // 3. find angle to goal
-    float angle_to_goal = Utility::RadNormalization(pred.GetT() - goal_.GetT());
-    // DLOG(INFO) << "current node orientation is " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
-    // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
+    float angle_to_goal = -Utility::RadNormalization(pred.GetT() - goal_.GetT());
+    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
+    DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
     // 4. if angle to goal is in the steering angle range(current orientation +-30deg), then make it steering angle, otherwise 30 or -30 to make angle to goal smaller
+    // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
     if (std::abs(angle_to_goal) > Utility::ConvertDegToRad(30))
     {
-      if (pred.GetT() > goal_.GetT() && pred.GetT() < (goal_.GetT() + Utility::ConvertDegToRad(180)))
+      if (pred.GetT() > Utility::RadNormalization(goal_.GetT()) && pred.GetT() < Utility::RadNormalization((goal_.GetT() + Utility::ConvertDegToRad(180))))
       {
-        // right is positive
-        steering_angle = Utility::ConvertDegToRad(30);
+        // right is negative
+        steering_angle = -Utility::ConvertDegToRad(30);
       }
       else
       {
-        // left is negative
-        steering_angle = -Utility::ConvertDegToRad(30);
+        // left is positive
+        steering_angle = Utility::ConvertDegToRad(30);
       }
     }
     else
@@ -667,11 +673,11 @@ namespace HybridAStar
     }
 
     out.emplace_back(std::pair<float, float>(step_size, steering_angle));
-    // for (const auto &pair : out)
-    // {
-    //   DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-    // }
-    // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
+    for (const auto &pair : out)
+    {
+      DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+    }
+    DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
     return out;
   }
   //###################################################

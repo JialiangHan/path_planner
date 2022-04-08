@@ -12,7 +12,7 @@ possible_direction : 8
 
 enable_collision_lookup: false
 # number of successors for hybrid a star
-number_of_successors: 1
+number_of_successors: 3
 # for heuristic in hybrid a, use dubins or reedshepp or cubic bezier
 # 0: dubins curve, 1: reedsshepp curve 2: cubic bezier
 curve_type : 2
