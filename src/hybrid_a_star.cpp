@@ -145,11 +145,9 @@ namespace HybridAStar
             // _______________________
             // analytical expansion
             // DLOG(INFO) << "analytical_expansion_counter is " << analytical_expansion_counter << " N is " << N;
-            if (analytical_expansion_counter == N)
+            if (params_.analytical_expansion_every_point)
             {
               // DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
-              N = nPred->GetCostToGo();
-              analytical_expansion_counter = 0;
               Path3D analytical_path = AnalyticExpansions(*nPred, goal);
               if (analytical_path.size() != 0)
               {
@@ -173,7 +171,37 @@ namespace HybridAStar
             }
             else
             {
-              analytical_expansion_counter++;
+
+              if (analytical_expansion_counter == N)
+              {
+                // DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
+                N = nPred->GetCostToGo();
+                analytical_expansion_counter = 0;
+                Path3D analytical_path = AnalyticExpansions(*nPred, goal);
+                if (analytical_path.size() != 0)
+                {
+                  DLOG(INFO) << "Found path through anallytical expansion";
+                  DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+                  TracePath(nPred);
+                  analytical_expansion_index_ = path_.size();
+                  path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
+                  if (params_.piecewise_cubic_bezier_interpolation)
+                  {
+
+                    ConvertToPiecewiseCubicBezierPath();
+                    piecewise_cubic_bezier_path_.insert(piecewise_cubic_bezier_path_.end(), analytical_path.begin(), analytical_path.end());
+                    DLOG(INFO) << "piecewise cubic bezier interpolation.";
+                    // DLOG(INFO) << "piecewise_cubic_bezier_path_ size is " << piecewise_cubic_bezier_path_.size();
+
+                    return piecewise_cubic_bezier_path_;
+                  }
+                  return path_;
+                }
+              }
+              else
+              {
+                analytical_expansion_counter++;
+              }
             }
           }
           std::vector<std::shared_ptr<Node3D>> successor_vec = CreateSuccessor(*nPred);

@@ -120,8 +120,12 @@ namespace HybridAStar
     ros_param_name = "adaptive_steering_angle";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_steering_angle);
 
+    ros_param_name = "analytical_expansion_every_point";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.analytical_expansion_every_point);
+
     ros_param_name = "analytical_expansion";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.analytical_expansion);
+
     ros_param_name = "penalty_turning";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.penalty_turning);
     ros_param_name = "penalty_reverse";
