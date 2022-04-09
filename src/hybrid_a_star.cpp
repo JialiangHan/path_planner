@@ -649,14 +649,23 @@ namespace HybridAStar
     }
     // DLOG(INFO) << "step size is " << step_size;
     // 3. find angle to goal
+    // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
     float angle_to_goal = -Utility::RadNormalization(pred.GetT() - goal_.GetT());
+    bool flag = true;
+    if (flag)
+    {
+      angle_to_goal = -Utility::RadNormalization(pred.GetT() - Utility::GetAngle(pred, goal_));
+      DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
+      DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
+    }
     DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
     DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
     // 4. if angle to goal is in the steering angle range(current orientation +-30deg), then make it steering angle, otherwise 30 or -30 to make angle to goal smaller
-    // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
+
     if (std::abs(angle_to_goal) > Utility::ConvertDegToRad(30))
     {
-      if (pred.GetT() > Utility::RadNormalization(goal_.GetT()) && pred.GetT() < Utility::RadNormalization((goal_.GetT() + Utility::ConvertDegToRad(180))))
+      // if (pred.GetT() > Utility::RadNormalization(goal_.GetT()) && pred.GetT() < Utility::RadNormalization((goal_.GetT() + Utility::ConvertDegToRad(180))))
+      if (angle_to_goal < -Utility::ConvertDegToRad(30))
       {
         // right is negative
         steering_angle = -Utility::ConvertDegToRad(30);
