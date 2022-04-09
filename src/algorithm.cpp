@@ -45,7 +45,8 @@ Node3D* Algorithm::hybridAStar(Node3D& start,
   int dir = Constants::reverse ? 6 : 3;
   // Number of iterations the algorithm has run for stopping based on Constants::iterations
   int iterations = 0;
-
+  // number of nodes explored
+  int number_nodes_explored = 0;
   // VISUALIZATION DELAY
   ros::Duration d(0.003);
 
@@ -73,57 +74,9 @@ Node3D* Algorithm::hybridAStar(Node3D& start,
   // continue until O empty
   while (!O.empty()) {
 
-    //    // DEBUG
-    //    Node3D* pre = nullptr;
-    //    Node3D* succ = nullptr;
-
-    //    std::cout << "\t--->>>" << std::endl;
-
-    //    for (priorityQueue::ordered_iterator it = O.ordered_begin(); it != O.ordered_end(); ++it) {
-    //      succ = (*it);
-    //      std::cout << "VAL"
-    //                << " | C:" << succ->getC()
-    //                << " | x:" << succ->getX()
-    //                << " | y:" << succ->getY()
-    //                << " | t:" << helper::toDeg(succ->getT())
-    //                << " | i:" << succ->getIdx()
-    //                << " | O:" << succ->isOpen()
-    //                << " | pred:" << succ->getPred()
-    //                << std::endl;
-
-    //      if (pre != nullptr) {
-
-    //        if (pre->getC() > succ->getC()) {
-    //          std::cout << "PRE"
-    //                    << " | C:" << pre->getC()
-    //                    << " | x:" << pre->getX()
-    //                    << " | y:" << pre->getY()
-    //                    << " | t:" << helper::toDeg(pre->getT())
-    //                    << " | i:" << pre->getIdx()
-    //                    << " | O:" << pre->isOpen()
-    //                    << " | pred:" << pre->getPred()
-    //                    << std::endl;
-    //          std::cout << "SCC"
-    //                    << " | C:" << succ->getC()
-    //                    << " | x:" << succ->getX()
-    //                    << " | y:" << succ->getY()
-    //                    << " | t:" << helper::toDeg(succ->getT())
-    //                    << " | i:" << succ->getIdx()
-    //                    << " | O:" << succ->isOpen()
-    //                    << " | pred:" << succ->getPred()
-    //                    << std::endl;
-
-    //          if (pre->getC() - succ->getC() > max) {
-    //            max = pre->getC() - succ->getC();
-    //          }
-    //        }
-    //      }
-
-    //      pre = succ;
-    //    }
-
-    // pop node with lowest cost from priority queue
+       // pop node with lowest cost from priority queue
     nPred = O.top();
+    number_nodes_explored++;
     // set index
     iPred = nPred->setIdx(width, height);
     iterations++;
@@ -155,6 +108,7 @@ Node3D* Algorithm::hybridAStar(Node3D& start,
       // GOAL TEST
       if (*nPred == goal || iterations > Constants::iterations) {
         // DEBUG
+        DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
         return nPred;
       }
 
@@ -169,6 +123,7 @@ Node3D* Algorithm::hybridAStar(Node3D& start,
           if (nSucc != nullptr && *nSucc == goal) {
             //DEBUG
             // std::cout << "max diff " << max << std::endl;
+            DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
             return nSucc;
           }
         }
@@ -225,9 +180,10 @@ Node3D* Algorithm::hybridAStar(Node3D& start,
   }
 
   if (O.empty()) {
+    DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
     return nullptr;
   }
-
+  DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
   return nullptr;
 }
 

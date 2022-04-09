@@ -169,11 +169,11 @@ void Planner::plan() {
     float t = tf::getYaw(goal.pose.orientation);
     // set theta to a value (0,2PI]
     t = Helper::normalizeHeadingRad(t);
+    x = 55;
+    y = 4;
+    t = 0;
     const Node3D nGoal(x, y, t, 0, 0, nullptr);
     // __________
-    // DEBUG GOAL
-    //    const Node3D nGoal(155.349, 36.1969, 0.7615936, 0, 0, nullptr);
-
 
     // _________________________
     // retrieving start position
@@ -182,11 +182,11 @@ void Planner::plan() {
     t = tf::getYaw(start.pose.pose.orientation);
     // set theta to a value (0,2PI]
     t = Helper::normalizeHeadingRad(t);
+    x = 7;
+    y = 45;
+    t = 0;
     Node3D nStart(x, y, t, 0, 0, nullptr);
     // ___________
-    // DEBUG START
-    //    Node3D nStart(108.291, 30.1081, 0, 0, 0, nullptr);
-
 
     // ___________________________
     // START AND TIME THE PLANNING
