@@ -59,13 +59,14 @@ namespace HybridAStar
     ros_param_name = "enable_collision_lookup";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.enable_collision_lookup);
 
-    ros_param_name = "free_step_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.free_step_size);
-
     ros_param_name = "position_resolution";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.position_resolution);
+
     ros_param_name = "headings";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.headings);
+
+    ros_param_name = "weight_step_size";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.weight_step_size);
 
     ros_param_name = "min_turning_radius";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.min_turning_radius);

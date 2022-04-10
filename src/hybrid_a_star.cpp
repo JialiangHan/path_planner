@@ -257,7 +257,7 @@ namespace HybridAStar
             }
             else
             {
-              DLOG(INFO) << "current node is " << nSucc->GetX() << " " << nSucc->GetY() << " " << Utility::ConvertRadToDeg(nSucc->GetT()) << " is in collision!!";
+              // DLOG(INFO) << "current node is " << nSucc->GetX() << " " << nSucc->GetY() << " " << Utility::ConvertRadToDeg(nSucc->GetT()) << " is in collision!!";
             }
           }
         }
@@ -442,8 +442,7 @@ namespace HybridAStar
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
 
-    float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, step_size;
-    int prem;
+    float step_size;
     // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
@@ -466,77 +465,18 @@ namespace HybridAStar
       // DLOG(INFO) << "fixed steering angle and step size";
       // assume constant speed.
       float theta = Utility::ConvertDegToRad(params_.steering_angle);
-      // float step_size = params_.step_size;
-      step_size = params_.min_turning_radius * theta;
+      step_size = params_.step_size;
+      // step_size = params_.min_turning_radius * theta;
       std::vector<float> available_steering_angle_vec = {theta, 0, -theta};
-      for (const auto &angle : available_steering_angle_vec)
+      std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec;
+      std::pair<float, float> pair;
+      pair.first = step_size;
+      for (const auto &element : available_steering_angle_vec)
       {
-        // DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(angle);
-        steering_angle = angle;
-        step_size = params_.min_turning_radius * abs(angle);
-        turning_radius = params_.min_turning_radius;
-        dt = steering_angle;
-        // forward, checked
-        // right
-        if (steering_angle < 0)
-        {
-          dx = turning_radius * sin(abs(steering_angle));
-          dy = -(turning_radius * (1 - cos(steering_angle)));
-          prem = 1;
-          // DLOG(INFO) << "forward right, dx " << dx << " dy " << dy;
-        }
-        // left
-        else if (steering_angle > 1e-3)
-        {
-          dx = turning_radius * sin(abs(steering_angle));
-          dy = (turning_radius * (1 - cos(steering_angle)));
-          prem = 2;
-          // DLOG(INFO) << "forward left, dx " << dx << " dy " << dy;
-        }
-        // straight forward,checked
-        else
-        {
-          dx = step_size;
-          dy = 0;
-          prem = 0;
-          // DLOG(INFO) << "forward straight";
-        }
-        xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
-        ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
-        tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
-        // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-        std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
-        out.emplace_back(temp);
-        if (params_.reverse)
-        {
-          // backward,checked
-          // right
-          if (steering_angle > 1e-3)
-          {
-            prem = 5;
-            // DLOG(INFO) << "backward left";
-          }
-          // left
-          else if (steering_angle < 0)
-          {
-            prem = 4;
-            // DLOG(INFO) << "backward right";
-          }
-          // straight backward
-          else
-          {
-            prem = 3;
-            // DLOG(INFO) << "backward straight";
-          }
-          // DLOG(INFO) << "dx is " << dx << " dy " << dy << " dt " << dt;
-          xSucc = pred.GetX() - dx * cos(pred.GetT()) - dy * sin(pred.GetT());
-          ySucc = pred.GetY() - dx * sin(pred.GetT()) + dy * cos(pred.GetT());
-          tSucc = Utility::RadToZeroTo2P(pred.GetT() - dt);
-          // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-          std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
-          out.emplace_back(temp);
-        }
+        pair.second = element;
+        available_steering_angle_and_step_size_vec.emplace_back(pair);
       }
+      out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
     }
     // DLOG(INFO) << "CreateSuccessor out.";
     return out;
@@ -586,7 +526,7 @@ namespace HybridAStar
       xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
       ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
       tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
-      DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+      // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
       std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
       out.emplace_back(temp);
       if (params_.reverse)
