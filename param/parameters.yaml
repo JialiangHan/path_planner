@@ -28,6 +28,11 @@ piecewise_cubic_bezier_interpolation: true
 # parameter which control the step size when has an obstacle
 weight_step_size : 0.6
 
+obstacle_detection_range: 10
+
+
+# step size for create successor
+# step_size: 1
 #  COLLISION LOOKUP SPECIFIC
 # [#] --- The sqrt of the number of discrete positions per cell
 position_resolution : 2

@@ -639,6 +639,92 @@ void CollisionDetection::CombineInNeighborObstacles()
   // DLOG(INFO) << "total obstacles after erase are " << count;
 }
 // checked, it`s correct.
+std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeAngleRangeAndStepSize(const Node3D &node3d)
+{
+  DLOG(INFO) << "FindFreeAngleRangeAndStepSize in:";
+  std::vector<std::pair<float, Utility::AngleRange>> out;
+  // TODO: here for step size, it is free step size, what if there is no free angle range???
+  bool flag = false;
+  // temporal output free angle range, no obstacle inside
+  if (flag)
+  {
+    Utility::AngleRangeVec available_angle_range_vec = FindFreeAngleRange(node3d);
+    for (const auto &angle_range : available_angle_range_vec)
+    {
+      out.emplace_back(std::pair<float, Utility::AngleRange>(params_.free_step_size, angle_range));
+    }
+    // for (const auto &pair : out)
+    // {
+    //   DLOG(INFO) << "step size is: " << pair.first << " angle range start is: " << Utility::ConvertRadToDeg(pair.second.first) << " range is:" << Utility::ConvertRadToDeg(pair.second.second);
+    // }
+    // DLOG(INFO) << "FindFreeAngleRangeAndStepSize out.";
+    return out;
+  }
+  Utility::AngleRange available_angle_range = GetNode3DAvailableAngleRange(node3d);
+  // find obstacle in range
+
+  float step_size_free = params_.free_step_size;
+  out.emplace_back(std::pair<float, Utility::AngleRange>(step_size_free, available_angle_range));
+  std::vector<std::pair<float, Utility::AngleRange>> distance_angle_range_vec = GetObstacleInAvailableSteeringAngleRangle(node3d);
+  DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
+
+  for (const auto &polygon_pair : distance_angle_range_vec)
+  {
+    // get obstacle angle range
+    Utility::AngleRange obstacle_angle_range = polygon_pair.second;
+    float distance_to_obstacle = polygon_pair.first;
+    DLOG(INFO) << "distance to obstacle is " << distance_to_obstacle;
+    for (uint index = 0; index < out.size(); ++index)
+    {
+      // see if it is overlap with node3d steering range
+      if (Utility::IsOverlap(obstacle_angle_range, out[index].second))
+      {
+        out[index].second = Utility::MinusAngleRange(out[index].second, obstacle_angle_range);
+        // since this range is free, we would go further
+        out[index].first = step_size_free;
+        DLOG(INFO) << "two angle range are overlapped";
+      }
+      // obstacle angle range is larger and include the steering angle range,set steering angle range to zero
+      else if (Utility::IsAngleRangeInclude(obstacle_angle_range, out[index].second))
+      {
+        if (out[index].second.first - obstacle_angle_range.first > obstacle_angle_range.second + obstacle_angle_range.first - (out[index].second.first + out[index].second.second))
+        {
+          DLOG(INFO) << "angle range end is more close to obstacle range end, set angle range start to end and range to zero.";
+          out[index].second.first = out[index].second.first + out[index].second.second;
+        }
+        out[index].second.second = 0;
+        // since this range is not free, step size should be 1/10 of obstacle distance
+        out[index].first = distance_to_obstacle / 10 < (distance_to_obstacle - params_.vehicle_length) ? distance_to_obstacle / 10 : (distance_to_obstacle - params_.vehicle_length);
+
+        DLOG(INFO) << "obstacle range is including the available angle range";
+      }
+      // checked
+      // obstacle angle range is smaller and included by the steering angle range,generate two steering angle range
+      else if (Utility::IsAngleRangeInclude(out[index].second, obstacle_angle_range))
+      {
+
+        float new_angle_range_start = obstacle_angle_range.first + obstacle_angle_range.second;
+        float new_angle_range_range = out[index].second.first + out[index].second.second - (obstacle_angle_range.first + obstacle_angle_range.second) > 2 * M_PI ? out[index].second.first + out[index].second.second - (obstacle_angle_range.first + obstacle_angle_range.second) - 2 * M_PI : out[index].second.first + out[index].second.second - (obstacle_angle_range.first + obstacle_angle_range.second);
+
+        Utility::AngleRange new_angle_range(new_angle_range_start, new_angle_range_range);
+
+        out.emplace_back(std::pair<float, Utility::AngleRange>(step_size_free, new_angle_range));
+
+        out[index].second.second = obstacle_angle_range.first - out[index].second.first > 0 ? obstacle_angle_range.first - out[index].second.first : obstacle_angle_range.first - out[index].second.first + 2 * M_PI;
+        out[index].first = step_size_free;
+        DLOG(INFO) << "available range is including the obstacle angle range";
+      }
+      else
+      {
+        out[index].first = step_size_free;
+        DLOG(INFO) << "these two ranges are far away.";
+      }
+    }
+  }
+  DLOG(INFO) << "FindFreeAngleRangeAndStepSize out.";
+  return out;
+}
+// checked, it`s correct.
 Utility::AngleRangeVec CollisionDetection::FindFreeAngleRange(const Node3D &node3d)
 {
   // DLOG(INFO) << "FindFreeAngleRange in:";
