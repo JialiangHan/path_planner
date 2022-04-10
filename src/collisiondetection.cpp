@@ -814,7 +814,7 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
       // DLOG(INFO) << "step size is " << step_size;
     }
   }
-  float weight_step_size = 0.5;
+  float weight_step_size = params_.weight_step_size;
   // if rest distance to obstacle is less than 1/2 vehicle length,
   if ((step_size - 0.5 * params_.vehicle_length) > 0)
   {

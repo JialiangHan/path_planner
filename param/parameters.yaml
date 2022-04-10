@@ -12,11 +12,11 @@ possible_direction : 8
 
 enable_collision_lookup: false
 # number of successors for hybrid a star
-number_of_successors: 1
+number_of_successors: 3
 # for heuristic in hybrid a, use dubins or reedshepp or cubic bezier
 # 0: dubins curve, 1: reedsshepp curve 2: cubic bezier
 curve_type : 2
-free_step_size: 4
+
 # obstacle_detection_range: 10
 analytical_expansion: true
 # this parameter determine the frequency of analytical expansion, false means the way in the original paper
@@ -24,14 +24,14 @@ analytical_expansion_every_point : true
 
 adaptive_steering_angle_and_step_size: true
 
-
-
 piecewise_cubic_bezier_interpolation: true
+# parameter which control the step size when has an obstacle
+weight_step_size : 0.6
+
 obstacle_detection_range: 10
 
-
-
-
+# step size for create successor
+# step_size: 1
 #  COLLISION LOOKUP SPECIFIC
 # [#] --- The sqrt of the number of discrete positions per cell
 position_resolution : 2
@@ -39,9 +39,9 @@ position_resolution : 2
 # [m] --- Uniformly adds a padding around the vehicle
 bloating : 0
 # [m] --- The width of the vehicle
-vehicle_width : 1.75 
+vehicle_width : 1
 # [m] --- The length of the vehicle
-vehicle_length : 2.65 
+vehicle_length : 2
 # smooth the path or not
 smooth : false 
 # **********************Search parameters*****************
@@ -59,13 +59,13 @@ penalty_turning : 1.05
 penalty_reverse : 1.2
 # [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
 penalty_change_of_direction : 1.1
-# steering angle , unit is deg
-steering_angle: 5
+# steering angle, unit is deg
+steering_angle: 8
 
 # [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
 curve_step_size : 1
 
-
+step_size : 1
 #  [m] --- The number of discretizations in heading
 headings : 72
 #  [m] --- The cell size of the 2D grid of the world

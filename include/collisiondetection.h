@@ -70,6 +70,8 @@ namespace HybridAStar
      */
     std::vector<std::pair<float, float>> SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred,const int& number_of_successor);
 
+    float GetObstacleDetectionRange() const { return obstacle_detection_range_; };
+
   private:
     bool IsOnGrid(const Node3D &node3d) const;
     bool IsOnGrid(const Node2D &node2d) const;

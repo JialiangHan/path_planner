@@ -257,7 +257,7 @@ namespace HybridAStar
             }
             else
             {
-              DLOG(INFO) << "current node is " << nSucc->GetX() << " " << nSucc->GetY() << " " << Utility::ConvertRadToDeg(nSucc->GetT()) << " is in collision!!";
+              // DLOG(INFO) << "current node is " << nSucc->GetX() << " " << nSucc->GetY() << " " << Utility::ConvertRadToDeg(nSucc->GetT()) << " is in collision!!";
             }
           }
         }
@@ -442,8 +442,7 @@ namespace HybridAStar
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
 
-    float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, step_size;
-    int prem;
+    float step_size;
     // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
@@ -466,77 +465,18 @@ namespace HybridAStar
       // DLOG(INFO) << "fixed steering angle and step size";
       // assume constant speed.
       float theta = Utility::ConvertDegToRad(params_.steering_angle);
-      // float step_size = params_.step_size;
-      step_size = params_.min_turning_radius * theta;
+      step_size = params_.step_size;
+      // step_size = params_.min_turning_radius * theta;
       std::vector<float> available_steering_angle_vec = {theta, 0, -theta};
-      for (const auto &angle : available_steering_angle_vec)
+      std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec;
+      std::pair<float, float> pair;
+      pair.first = step_size;
+      for (const auto &element : available_steering_angle_vec)
       {
-        // DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(angle);
-        steering_angle = angle;
-        step_size = params_.min_turning_radius * abs(angle);
-        turning_radius = params_.min_turning_radius;
-        dt = steering_angle;
-        // forward, checked
-        // right
-        if (steering_angle < 0)
-        {
-          dx = turning_radius * sin(abs(steering_angle));
-          dy = -(turning_radius * (1 - cos(steering_angle)));
-          prem = 1;
-          // DLOG(INFO) << "forward right, dx " << dx << " dy " << dy;
-        }
-        // left
-        else if (steering_angle > 1e-3)
-        {
-          dx = turning_radius * sin(abs(steering_angle));
-          dy = (turning_radius * (1 - cos(steering_angle)));
-          prem = 2;
-          // DLOG(INFO) << "forward left, dx " << dx << " dy " << dy;
-        }
-        // straight forward,checked
-        else
-        {
-          dx = step_size;
-          dy = 0;
-          prem = 0;
-          // DLOG(INFO) << "forward straight";
-        }
-        xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
-        ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
-        tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
-        // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-        std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
-        out.emplace_back(temp);
-        if (params_.reverse)
-        {
-          // backward,checked
-          // right
-          if (steering_angle > 1e-3)
-          {
-            prem = 5;
-            // DLOG(INFO) << "backward left";
-          }
-          // left
-          else if (steering_angle < 0)
-          {
-            prem = 4;
-            // DLOG(INFO) << "backward right";
-          }
-          // straight backward
-          else
-          {
-            prem = 3;
-            // DLOG(INFO) << "backward straight";
-          }
-          // DLOG(INFO) << "dx is " << dx << " dy " << dy << " dt " << dt;
-          xSucc = pred.GetX() - dx * cos(pred.GetT()) - dy * sin(pred.GetT());
-          ySucc = pred.GetY() - dx * sin(pred.GetT()) + dy * cos(pred.GetT());
-          tSucc = Utility::RadToZeroTo2P(pred.GetT() - dt);
-          // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-          std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
-          out.emplace_back(temp);
-        }
+        pair.second = element;
+        available_steering_angle_and_step_size_vec.emplace_back(pair);
       }
+      out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
     }
     // DLOG(INFO) << "CreateSuccessor out.";
     return out;
@@ -624,7 +564,7 @@ namespace HybridAStar
 
   std::vector<std::pair<float, float>> HybridAStar::FindStepSizeAndSteeringAngle(const Node3D &pred)
   {
-    // DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
+    DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
     std::vector<std::pair<float, float>> out;
     // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
     // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
@@ -633,32 +573,47 @@ namespace HybridAStar
     out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, params_.number_of_successors);
     // 1. first find distance from current node to goal position
     float distance_to_goal = Utility::GetDistance(pred, goal_);
+    // DLOG(INFO) << "distance to goal is " << distance_to_goal;
     // 2. if distance to goal is less than step size above. than make it new step size, otherwise use old one
-    float step_size, steering_angle;
+    float step_size = 0.5 * configuration_space_ptr_->GetObstacleDetectionRange(), steering_angle;
+    DLOG_IF(WARNING, out.size() == 0) << "Out size is zero!!!";
     if (out.size() != 0)
     {
       step_size = out.back().first;
     }
+
+    // DLOG(INFO) << "step size is " << step_size;
     if (distance_to_goal < step_size)
     {
       step_size = distance_to_goal;
     }
+    // DLOG(INFO) << "step size is " << step_size;
     // 3. find angle to goal
-    float angle_to_goal = Utility::RadNormalization(pred.GetT() - goal_.GetT());
-    // DLOG(INFO) << "current node orientation is " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
-    // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
+    // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
+    float angle_to_goal = -Utility::RadNormalization(pred.GetT() - goal_.GetT());
+    bool flag = true;
+    if (flag)
+    {
+      angle_to_goal = -Utility::RadNormalization(pred.GetT() - Utility::GetAngle(pred, goal_));
+      DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
+      DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
+    }
+    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
+    DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
     // 4. if angle to goal is in the steering angle range(current orientation +-30deg), then make it steering angle, otherwise 30 or -30 to make angle to goal smaller
+
     if (std::abs(angle_to_goal) > Utility::ConvertDegToRad(30))
     {
-      if (pred.GetT() > goal_.GetT() && pred.GetT() < (goal_.GetT() + Utility::ConvertDegToRad(180)))
+      // if (pred.GetT() > Utility::RadNormalization(goal_.GetT()) && pred.GetT() < Utility::RadNormalization((goal_.GetT() + Utility::ConvertDegToRad(180))))
+      if (angle_to_goal < -Utility::ConvertDegToRad(30))
       {
-        // right is positive
-        steering_angle = Utility::ConvertDegToRad(30);
+        // right is negative
+        steering_angle = -Utility::ConvertDegToRad(30);
       }
       else
       {
-        // left is negative
-        steering_angle = -Utility::ConvertDegToRad(30);
+        // left is positive
+        steering_angle = Utility::ConvertDegToRad(30);
       }
     }
     else
@@ -667,11 +622,11 @@ namespace HybridAStar
     }
 
     out.emplace_back(std::pair<float, float>(step_size, steering_angle));
-    // for (const auto &pair : out)
-    // {
-    //   DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-    // }
-    // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
+    for (const auto &pair : out)
+    {
+      DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+    }
+    DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
     return out;
   }
   //###################################################

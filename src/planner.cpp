@@ -177,30 +177,31 @@ void Planner::MakePlan()
     // define list pointers and initialize lists
     Node3D *nodes3D = new Node3D[length]();
     Node2D *nodes2D = new Node2D[width * height]();
-    // ________________________
-    // retrieving goal position
-    float x = goal_.pose.position.x / params_.cell_size;
-    float y = goal_.pose.position.y / params_.cell_size;
-    float t = tf::getYaw(goal_.pose.orientation);
-    // set theta to a value (0,2PI]
-    t = Utility::RadToZeroTo2P(t);
-    // x = 72;
-    // y = 5;
-    // t = 0;
-    Node3D nGoal(x, y, t, 0, 0, nullptr);
 
     // _________________________
     // retrieving start position
-    x = start_.pose.pose.position.x / params_.cell_size;
-    y = start_.pose.pose.position.y / params_.cell_size;
-    t = tf::getYaw(start_.pose.pose.orientation);
+    float x = start_.pose.pose.position.x / params_.cell_size;
+    float y = start_.pose.pose.position.y / params_.cell_size;
+    float t = tf::getYaw(start_.pose.pose.orientation);
     // set theta to a value (0,2PI]
 
-    // x = 24;
-    // y = 34;
-    // t = Utility::ConvertDegToRad(-90);
+    x = 7;
+    y = 45;
+    t = Utility::ConvertDegToRad(0);
     t = Utility::RadToZeroTo2P(t);
     Node3D nStart(x, y, t, 0, 0, nullptr);
+
+    // ________________________
+    // retrieving goal position
+    x = goal_.pose.position.x / params_.cell_size;
+    y = goal_.pose.position.y / params_.cell_size;
+    t = tf::getYaw(goal_.pose.orientation);
+    // set theta to a value (0,2PI]
+    t = Utility::RadToZeroTo2P(t);
+    x = 55;
+    y = 4;
+    t = Utility::ConvertDegToRad(0);
+    Node3D nGoal(x, y, t, 0, 0, nullptr);
 
     Clear();
     // ___________________________
