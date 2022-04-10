@@ -46,6 +46,8 @@ namespace HybridAStar
     int number_of_successors = 10;
     bool piecewise_cubic_bezier_interpolation = false;
     bool adaptive_steering_angle_and_step_size = false;
+    // this parameter determine the frequency of analytical expansion, false means the way in the original paper
+    bool analytical_expansion_every_point = true;
     //for create successor
     float step_size = 1;
     bool adaptive_steering_angle = false;
@@ -53,8 +55,8 @@ namespace HybridAStar
     bool adaptive_step_size = false;
     ParameterCollisionDetection collision_detection_params;
     // ParameterAStar a_star_params;
-    bool add_one_more_successor = true;
     bool analytical_expansion = true;
+
     /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
     float penalty_turning = 1.05;
     /// [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
