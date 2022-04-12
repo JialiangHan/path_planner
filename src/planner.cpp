@@ -4,8 +4,9 @@ using namespace HybridAStar;
 //###################################################
 //                                        CONSTRUCTOR
 //###################################################
-Planner::Planner() {
-  //load all params
+Planner::Planner()
+{
+  // load all params
   param_manager_.reset(new ParameterManager(nh_));
   param_manager_->LoadParams();
   params_ = param_manager_->GetPlannerParams();
@@ -45,17 +46,22 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
 
   grid_ = map;
   hybrid_a_star_ptr_->Initialize(map);
-  //create array for Voronoi diagram
-//  ros::Time t0 = ros::Time::now();
+  // create array for Voronoi diagram
+  //  ros::Time t0 = ros::Time::now();
   int height = map->info.height;
   int width = map->info.width;
-  bool** binMap;
-  binMap = new bool*[width];
+  bool **binMap;
+  binMap = new bool *[width];
 
-  for (int x = 0; x < width; x++) { binMap[x] = new bool[height]; }
+  for (int x = 0; x < width; x++)
+  {
+    binMap[x] = new bool[height];
+  }
 
-  for (int x = 0; x < width; ++x) {
-    for (int y = 0; y < height; ++y) {
+  for (int x = 0; x < width; ++x)
+  {
+    for (int y = 0; y < height; ++y)
+    {
       binMap[x][y] = map->data[y * width + x] ? true : false;
     }
   }
@@ -167,7 +173,7 @@ void Planner::MakePlan()
   {
     DLOG(INFO) << "valid start and valid goal, start to make plan!";
 
-       // ___________________________
+    // ___________________________
     // LISTS ALLOCATED ROW MAJOR ORDER
     int width = grid_->info.width;
     int height = grid_->info.height;
@@ -233,7 +239,7 @@ void Planner::MakePlan()
 
     delete[] nodes3D;
     delete[] nodes2D;
-    //set these two flag to false when finished planning to avoid unwanted planning
+    // set these two flag to false when finished planning to avoid unwanted planning
     valid_start_ = false;
     valid_goal_ = false;
   }
