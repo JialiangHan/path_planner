@@ -161,7 +161,7 @@ namespace HybridAStar
 
                   ConvertToPiecewiseCubicBezierPath();
                   piecewise_cubic_bezier_path_.insert(piecewise_cubic_bezier_path_.end(), analytical_path.begin(), analytical_path.end());
-                  DLOG(INFO) << "piecewise cubic bezier interpolation.";
+                  // DLOG(INFO) << "piecewise cubic bezier interpolation.";
                   // DLOG(INFO) << "piecewise_cubic_bezier_path_ size is " << piecewise_cubic_bezier_path_.size();
 
                   return piecewise_cubic_bezier_path_;

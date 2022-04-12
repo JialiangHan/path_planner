@@ -30,8 +30,6 @@ weight_step_size : 0.6
 
 obstacle_detection_range: 10
 
-# step size for create successor
-# step_size: 1
 #  COLLISION LOOKUP SPECIFIC
 # [#] --- The sqrt of the number of discrete positions per cell
 position_resolution : 2
@@ -43,7 +41,7 @@ vehicle_width : 1
 # [m] --- The length of the vehicle
 vehicle_length : 2
 # smooth the path or not
-smooth : false 
+smooth : true 
 # **********************Search parameters*****************
 #   \brief [m] --- The tie breaker breaks ties between nodes expanded in the same cell
 

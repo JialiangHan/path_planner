@@ -89,44 +89,63 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
         // DLOG(INFO) << "correction is " << correction.x() << " " << correction.y();
         // ensure that it is on the grid
         // correction = correction - CurvatureTerm(xim2, xim1, xi, xip1, xip2);
-        correction = correction - CurvatureTerm(xim1, xi, xip1);
-        // DLOG(INFO) << "correction is " << correction.x() << " " << correction.y();
-        // DLOG(INFO) << "node after curvature correction is " << (xi + correction).x() << " " << (xi + correction).y();
-        if (!isOnGrid(xi + correction))
+
+        if (params_.weight_curvature > 0)
         {
-          DLOG(INFO) << "node after curvature correction is not on grid!!";
-          continue;
-        }
-        // ensure that it is on the grid
-        correction = correction - ObstacleTerm(xi);
-        // DLOG(INFO) << "node after curvature and obstacle correction is " << (xi + correction).x() << " " << (xi + correction).y();
-        if (!isOnGrid(xi + correction))
-        {
-          DLOG(INFO) << "node after curvature and obstacle correction is not on grid!!";
-          continue;
+          correction = correction - CurvatureTerm(xim1, xi, xip1);
+          // DLOG(INFO) << "correction is " << correction.x() << " " << correction.y();
+          // DLOG(INFO) << "node after curvature correction is " << (xi + correction).x() << " " << (xi + correction).y();
+          if (!isOnGrid(xi + correction))
+          {
+            DLOG(INFO) << "node after curvature correction is not on grid!!";
+            continue;
+          }
         }
 
-        correction = correction - VoronoiTerm(xi);
-        // DLOG(INFO) << "node after curvature, obstacles and voronoi correction  is " << (xi + correction).x() << " " << (xi + correction).y();
-        if (!isOnGrid(xi + correction))
+        if (params_.weight_obstacle > 0)
         {
-          DLOG(INFO) << "node after curvature, obstacles and voronoi correction is not on grid!!";
-          continue;
+          // ensure that it is on the grid
+          correction = correction - ObstacleTerm(xi);
+          // DLOG(INFO) << "node after curvature and obstacle correction is " << (xi + correction).x() << " " << (xi + correction).y();
+          if (!isOnGrid(xi + correction))
+          {
+            DLOG(INFO) << "node after curvature and obstacle correction is not on grid!!";
+            continue;
+          }
         }
-        // ensure that it is on the grid
-        correction = correction - SmoothnessTerm(xim2, xim1, xi, xip1, xip2);
-        // DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is " << (xi + correction).x() << " " << (xi + correction).y();
-        if (!isOnGrid(xi + correction))
+
+        if (params_.weight_voronoi > 0)
         {
-          DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
-          continue;
+          correction = correction - VoronoiTerm(xi);
+          // DLOG(INFO) << "node after curvature, obstacles and voronoi correction  is " << (xi + correction).x() << " " << (xi + correction).y();
+          if (!isOnGrid(xi + correction))
+          {
+            DLOG(INFO) << "node after curvature, obstacles and voronoi correction is not on grid!!";
+            continue;
+          }
         }
-        correction = correction - PathLengthTerm(xim1, xi, xip1);
-        // DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is " << (xi + correction).x() << " " << (xi + correction).y();
-        if (!isOnGrid(xi + correction))
+
+        if (params_.weight_smoothness > 0)
         {
-          DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
-          continue;
+          // ensure that it is on the grid
+          correction = correction - SmoothnessTerm(xim2, xim1, xi, xip1, xip2);
+          // DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is " << (xi + correction).x() << " " << (xi + correction).y();
+          if (!isOnGrid(xi + correction))
+          {
+            DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
+            continue;
+          }
+        }
+
+        if (params_.weight_length > 0)
+        {
+          correction = correction - PathLengthTerm(xim1, xi, xip1);
+          // DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is " << (xi + correction).x() << " " << (xi + correction).y();
+          if (!isOnGrid(xi + correction))
+          {
+            DLOG(INFO) << "node after curvature, obstacles, voronoi and smoothness correction is not on grid!!";
+            continue;
+          }
         }
 
         xi = xi + params_.alpha * correction / total_weight;
@@ -278,7 +297,7 @@ Eigen::Vector2f Smoother::CurvatureTerm(const Eigen::Vector2f &xim1, const Eigen
 
       if (std::isnan(gradient.x()) || std::isnan(gradient.y()))
       {
-        std::cout << "nan values in curvature term" << std::endl;
+        DLOG(INFO) << "nan values in curvature term";
         Eigen::Vector2f zeros(0, 0);
         return zeros;
       }
@@ -292,7 +311,7 @@ Eigen::Vector2f Smoother::CurvatureTerm(const Eigen::Vector2f &xim1, const Eigen
   // return gradient of 0
   else
   {
-    std::cout << "abs values not larger than 0" << std::endl;
+    DLOG(INFO) << "abs values not larger than 0";
     Eigen::Vector2f zeros(0, 0);
     return zeros;
   }
