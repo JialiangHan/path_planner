@@ -93,7 +93,6 @@ namespace HybridAStar
             // DLOG(INFO) << "c3 control point is " << c3.x() << " " << c3.y();
             // DLOG(INFO) << "c4 control point is " << last_control_point.x() << " " << last_control_point.y();
         }
-
         else
         {
             //basically is Ax=b, x is the distance factor, its pre and succ control point is control point pre= anchor-distance_factor*direction.
@@ -113,7 +112,7 @@ namespace HybridAStar
             // DLOG(INFO) << "t_goal is " << t_goal;
             // for (const auto &point : anchor_points3d_vec_)
             // {
-            //     DLOG(INFO) << "points are " << point.x() << " " << point.y() << " " << point.z();
+            //     DLOG(INFO) << "anchor points are " << point.x() << " " << point.y() << " " << point.z();
             // }
             for (uint i = 0; i < anchor_points_vec_size; ++i)
             {
@@ -149,25 +148,30 @@ namespace HybridAStar
             }
             Eigen::VectorXf distance_factor(3 * anchor_points_vec_size);
             distance_factor = A.colPivHouseholderQr().solve(b);
-
+            // for (int i = 0; i < distance_factor.size(); ++i)
+            // {
+            //     DLOG(INFO) << i << " distance factor is " << distance_factor[i];
+            // }
             for (uint i = 0; i < anchor_points_vec_size; ++i)
             {
                 Eigen::Vector3f current_dir = anchor_points_dir_vec_[i];
 
-                Eigen::Vector3f pre_control_point = anchor_points3d_vec_[i] - current_dir * distance_factor[3 * i];
-                Eigen::Vector3f succ_control_point = anchor_points3d_vec_[i] + current_dir * distance_factor[3 * i];
-                // DLOG(INFO) << "anchor point is " << anchor_points3d_vec_[i].x() << " " << anchor_points3d_vec_[i].y() << " " << anchor_points3d_vec_[i].z();
-                // DLOG(INFO) << "current_dir is " << current_dir.x() << " " << current_dir.y() << " " << current_dir.z();
-                // DLOG(INFO) << "distance factor is " << distance_factor[3 * i];
+                Eigen::Vector3f pre_control_point = anchor_points3d_vec_[i] - current_dir * std::abs(distance_factor[3 * i]);
+                Eigen::Vector3f succ_control_point = anchor_points3d_vec_[i] + current_dir * std::abs(distance_factor[3 * i]);
+                // DLOG(INFO) << i << " anchor point is " << anchor_points3d_vec_[i].x() << " " << anchor_points3d_vec_[i].y() << " " << anchor_points3d_vec_[i].z();
+                // DLOG(INFO) << i << " current_dir is " << current_dir.x() << " " << current_dir.y() << " " << current_dir.z();
+                // DLOG(INFO) << i << " distance factor is " << distance_factor[3 * i];
                 control_points_vec_.emplace_back(pre_control_point);
                 control_points_vec_.emplace_back(succ_control_point);
             }
             control_points_vec_.emplace_back(last_control_point);
         }
         // DLOG(INFO) << "control_points_vec_ size is " << control_points_vec_.size();
+        // int index = 0;
         // for (const auto &point : control_points_vec_)
         // {
-        //     DLOG(INFO) << "points are " << point.x() << " " << point.y();
+        //     DLOG(INFO) << index << " control point is " << point.x() << " " << point.y();
+        //     index++;
         // }
         // DLOG(INFO) << "CalculateControlPoints out.";
     }
@@ -200,7 +204,6 @@ namespace HybridAStar
                 }
             }
         }
-
         points_vec_.emplace_back(goal_point_);
         // DLOG(INFO) << "CalculatePointsVec out.";
         // for (const auto &point : points_vec_)
@@ -341,6 +344,7 @@ namespace HybridAStar
 
     std::vector<Eigen::Vector3f> PiecewiseCubicBezier::ConvertPiecewiseCubicBezierToVector3f(const int &number_of_points)
     {
+        // DLOG(INFO) << "ConvertPiecewiseCubicBezierToVector3f in:";
         CalculateCubicBezier();
         // DLOG(INFO) << "size cubic bezier vec is " << cubic_bezier_vec_.size();
         std::vector<Eigen::Vector3f> out;
@@ -352,11 +356,12 @@ namespace HybridAStar
             // DLOG(INFO) << index << "th cubic bezier";
             // for (const auto &point : path)
             // {
-            //     DLOG(INFO) << "point x " << point.x() << " y " << point.y();
+            //     DLOG(INFO) << "point x " << point.x() << " y " << point.y() << " z " << Utility::ConvertRadToDeg(point.z());
             // }
             out.insert(out.end(), path.begin(), path.end());
             index++;
         }
+        // DLOG(INFO) << "ConvertPiecewiseCubicBezierToVector3f out.";
         return out;
     }
 }

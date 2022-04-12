@@ -171,7 +171,6 @@ namespace HybridAStar
             }
             else
             {
-
               if (analytical_expansion_counter == N)
               {
                 // DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
@@ -564,7 +563,7 @@ namespace HybridAStar
 
   std::vector<std::pair<float, float>> HybridAStar::FindStepSizeAndSteeringAngle(const Node3D &pred)
   {
-    DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
+    // DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
     std::vector<std::pair<float, float>> out;
     // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
     // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
@@ -595,11 +594,11 @@ namespace HybridAStar
     if (flag)
     {
       angle_to_goal = -Utility::RadNormalization(pred.GetT() - Utility::GetAngle(pred, goal_));
-      DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
-      DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
+      // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
+      // DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
     }
-    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
-    DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
+    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
+    // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
     // 4. if angle to goal is in the steering angle range(current orientation +-30deg), then make it steering angle, otherwise 30 or -30 to make angle to goal smaller
 
     if (std::abs(angle_to_goal) > Utility::ConvertDegToRad(30))
@@ -622,11 +621,11 @@ namespace HybridAStar
     }
 
     out.emplace_back(std::pair<float, float>(step_size, steering_angle));
-    for (const auto &pair : out)
-    {
-      DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-    }
-    DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
+    // for (const auto &pair : out)
+    // {
+    // DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+    // }
+    // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
     return out;
   }
   //###################################################
@@ -703,6 +702,7 @@ namespace HybridAStar
 
   void HybridAStar::ConvertToPiecewiseCubicBezierPath()
   {
+    // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath in:";
     std::vector<Eigen::Vector3f> anchor_points_vec;
     piecewise_cubic_bezier_path_.clear();
     Node3D end_point;
@@ -711,57 +711,80 @@ namespace HybridAStar
     //   DLOG(INFO) << "path point is " << path_[jj].GetX() << " " << path_[jj].GetY() << " " << path_[jj].GetT();
     //   DLOG(INFO) << "distance to next point is " << Utility::GetDistance(path_[jj], path_[jj + 1]);
     // }
-    // uint index = 0;
-    // while (index < path_.size() - 1)
     float distance_to_prev, distance_to_succ;
     for (uint index = 1; index < path_.size() - 1; ++index)
     {
       // DLOG(INFO) << "path point is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
-      distance_to_prev = Utility::GetDistance(path_[index], path_[index - 1]);
-      distance_to_succ = Utility::GetDistance(path_[index], path_[index + 1]);
-      if (distance_to_succ >= 1 && distance_to_prev >= 1)
+      // not necessary to do this check, greater than 1
+      bool flag = true;
+      if (flag)
       {
+        if (index == analytical_expansion_index_)
+        {
+          // DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
+          // DLOG(INFO) << "current path index is " << index;
+          end_point.setX(path_[index - 1].GetX());
+          end_point.setY(path_[index - 1].GetY());
+          end_point.setT(path_[index - 1].GetT());
+          break;
+        }
+        if (Utility::GetDistance(path_[index], path_[index + 1]) < 0.1)
+        {
+          continue;
+          // DLOG(INFO) << "points are too close to each other!!!!";
+        }
         anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
-        // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+        // DLOG(INFO) << "current path index is " << index;
       }
-      else if (distance_to_succ >= 1 && distance_to_prev < 1)
+      else
       {
-        continue;
+        distance_to_prev = Utility::GetDistance(path_[index], path_[index - 1]);
+        distance_to_succ = Utility::GetDistance(path_[index], path_[index + 1]);
+        if (distance_to_succ >= 1 && distance_to_prev >= 1)
+        {
+          anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
+          // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+        }
+        else if (distance_to_succ >= 1 && distance_to_prev < 1)
+        {
+          continue;
+        }
+        else if (distance_to_prev >= 1 && distance_to_succ < 1)
+        {
+          anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
+          // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+        }
+        if (index == analytical_expansion_index_)
+        {
+          DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
+          DLOG(INFO) << "current path index is " << index;
+          end_point.setX(path_[index].GetX());
+          end_point.setY(path_[index].GetY());
+          end_point.setT(path_[index].GetT());
+          break;
+        }
       }
-      else if (distance_to_prev >= 1 && distance_to_succ < 1)
-      {
-        anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
-        // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
-      }
-      if (index == analytical_expansion_index_)
-      {
-        // DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
-        end_point.setX(path_[index].GetX());
-        end_point.setY(path_[index].GetY());
-        end_point.setT(path_[index].GetT());
-        break;
-      }
-      // index++;
     }
-    // DLOG(INFO) << "end point is " << end_point.GetX() << " " << end_point.GetY() << " " << end_point.GetT();
+    // DLOG(INFO) << "end point is " << end_point.GetX() << " " << end_point.GetY() << " " << Utility::ConvertRadToDeg(end_point.GetT());
     PiecewiseCubicBezier pwcb(Utility::ConvertNode3DToVector3f(start_), Utility::ConvertNode3DToVector3f(end_point));
     pwcb.SetAnchorPoints(anchor_points_vec);
     // for (const auto &point : anchor_points_vec)
     // {
-    //   DLOG(INFO) << "anchor point is " << point.x() << " " << point.y() << " " << point.z();
+    //   DLOG(INFO) << "anchor point is " << point.x() << " " << point.y() << " " << Utility::ConvertRadToDeg(point.z());
     // }
     std::vector<Eigen::Vector3f> points_vec = pwcb.GetPointsVec();
     // for (const auto &point : points_vec)
     // {
-    //   DLOG(INFO) << "all point is " << point.x() << " " << point.y() << " " << point.z();
+    //   DLOG(INFO) << "all point is " << point.x() << " " << point.y() << " " << Utility::ConvertRadToDeg(point.z());
     // }
     std::vector<Eigen::Vector3f> path_vec = pwcb.ConvertPiecewiseCubicBezierToVector3f(10);
     for (const auto &vector : path_vec)
     {
-      // DLOG(INFO) << "vector is " << vector.x() << " " << vector.y();
+      // DLOG(INFO) << "vector is " << vector.x() << " " << vector.y() << " " << Utility::ConvertRadToDeg(vector.z());
       Node3D node3d = Utility::ConvertVector3fToNode3D(vector);
       piecewise_cubic_bezier_path_.emplace_back(node3d);
-      // DLOG(INFO) << "point is " << node3d.GetX() << " " << node3d.GetY();
+      // DLOG(INFO) << "point is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
     }
+    // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath out.";
   }
 }
