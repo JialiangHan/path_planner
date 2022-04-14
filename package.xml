@@ -1,11 +1,11 @@
 <?xml version="1.0"?>
 <package>
   <name>hybrid_astar</name>
-  <version>0.0.2</version>
-  <description>The hybrid_astar package</description>
-  <maintainer email="kurzer@kth.se">Karl Kurzer</maintainer>
+  <version>0.0.3</version>
+  <description>The revised hybrid_astar package</description>
+  <maintainer email="jialiang.han@outlook.com">Jialiang Han</maintainer>
   <license>BSD</license>
-  <author email="kurzer@kth.se">Karl Kurzer</author>
+  <author email="jialiang.han@outlook.com">Jialiang Han</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
@@ -13,7 +13,9 @@
   <build_depend>std_msgs</build_depend>
   <build_depend>visualization_msgs</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>nav_core</build_depend>
 
+  <run_depend>nav_core</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
@@ -21,5 +23,7 @@
   <run_depend>tf</run_depend>
   <run_depend>map_server</run_depend>
  
-  <export></export>
+  <export>
+    <nav_core plugin="${prefix}/hybrid_a_star_planner_plugin.xml" />
+  </export>
 </package>

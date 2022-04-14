@@ -84,6 +84,9 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/visualize.h
     )
 add_library(HYAS ${SOURCES} ${HEADERS} )
+
+add_library(hybrid_a_star_planner_lib src/hybrid_a_star_planner.cpp)
+
 ## Declare a catkin package
 catkin_package()
 
