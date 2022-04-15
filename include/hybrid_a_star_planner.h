@@ -38,6 +38,6 @@ namespace HybridAStar
                       std::vector<geometry_msgs::PoseStamped> &plan);
 
     private:
-        Planner hybrid_a_star_;
+        // Planner hybrid_a_star_;
     };
 };
