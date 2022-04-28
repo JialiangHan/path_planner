@@ -1,6 +1,48 @@
+#include <pluginlib/class_list_macros.h>
 #include "planner.h"
 
+// register this planner as a BaseGlobalPlanner plugin
+PLUGINLIB_EXPORT_CLASS(HybridAStar::Planner, nav_core::BaseGlobalPlanner)
+
 using namespace HybridAStar;
+
+// these function are for move base plugin
+//###################################################
+//                                  Plugin functions
+//###################################################
+
+Planner::Planner(std::string name, costmap_2d::Costmap2DROS *costmap_ros)
+{
+  initialize(name, costmap_ros);
+}
+
+void Planner::initialize(std::string name, costmap_2d::Costmap2DROS *costmap_ros)
+{
+}
+
+bool Planner::makePlan(const geometry_msgs::PoseStamped &start, const geometry_msgs::PoseStamped &goal, std::vector<geometry_msgs::PoseStamped> &plan)
+{
+
+  plan.push_back(start);
+  for (int i = 0; i < 20; i++)
+  {
+    geometry_msgs::PoseStamped new_goal = goal;
+    tf::Quaternion goal_quat = tf::createQuaternionFromYaw(1.54);
+
+    new_goal.pose.position.x = -2.5 + (0.05 * i);
+    new_goal.pose.position.y = -3.5 + (0.05 * i);
+
+    new_goal.pose.orientation.x = goal_quat.x();
+    new_goal.pose.orientation.y = goal_quat.y();
+    new_goal.pose.orientation.z = goal_quat.z();
+    new_goal.pose.orientation.w = goal_quat.w();
+
+    plan.push_back(new_goal);
+  }
+  plan.push_back(goal);
+  return true;
+}
+
 //###################################################
 //                                        CONSTRUCTOR
 //###################################################
@@ -191,8 +233,8 @@ void Planner::MakePlan()
     float t = tf::getYaw(start_.pose.pose.orientation);
     // set theta to a value (0,2PI]
 
-    x = 7;
-    y = 45;
+    x = 3;
+    y = height - 5;
     t = Utility::ConvertDegToRad(0);
     t = Utility::RadToZeroTo2P(t);
     Node3D nStart(x, y, t, 0, 0, nullptr);
@@ -204,7 +246,7 @@ void Planner::MakePlan()
     t = tf::getYaw(goal_.pose.orientation);
     // set theta to a value (0,2PI]
     t = Utility::RadToZeroTo2P(t);
-    x = 55;
+    x = width - 5;
     y = 4;
     t = Utility::ConvertDegToRad(0);
     Node3D nGoal(x, y, t, 0, 0, nullptr);
