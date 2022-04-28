@@ -15,7 +15,7 @@ else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE Debug)
 
 find_package(catkin REQUIRED COMPONENTS
     roscpp
@@ -23,6 +23,18 @@ find_package(catkin REQUIRED COMPONENTS
     std_msgs
     tf
     steering_functions
+    # base_global_planner
+    costmap_2d
+    costmap_converter
+    cmake_modules
+    dynamic_reconfigure
+    geometry_msgs
+    interactive_markers
+    message_generation
+    nav_core
+    nav_msgs
+    pluginlib
+    visualization_msgs
     )
 find_package(PythonLibs REQUIRED)
 FIND_PACKAGE(Glog REQUIRED)
@@ -41,6 +53,7 @@ include_directories(${EIGEN3_INCLUDE_DIRS})
 set(SOURCES
 ${CMAKE_CURRENT_SOURCE_DIR}/src/a_star.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/hybrid_a_star.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/hybrid_a_star_planner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bucketedqueue.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/src/collisiondetection.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/computational_geometry.cpp
@@ -60,6 +73,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/src/a_star.cpp
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/a_star.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/hybrid_a_star.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/hybrid_a_star_planner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/bucketedqueue.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/include/collisiondetection.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/computational_geometry.h
@@ -83,9 +97,18 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/utility.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/visualize.h
     )
-add_library(HYAS ${SOURCES} ${HEADERS} )
+# add_library(HYAS ${SOURCES} ${HEADERS} )
 
-add_library(hybrid_a_star_planner_lib src/hybrid_a_star_planner.cpp)
+add_library(hybrid_a_star_planner_lib 
+    ${SOURCES})
+
+target_link_libraries(hybrid_a_star_planner_lib
+    ${PYTHON_LIBRARIES}                    
+    ${catkin_LIBRARIES} 
+    ${OMPL_LIBRARIES} 
+    # glog::glog 
+    ${GFLAGS_LIBRARY} 
+)
 
 ## Declare a catkin package
 catkin_package()

@@ -51,6 +51,8 @@ namespace HybridAStar
       // DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range;
       SetInRangeObstacle(obstacle_detection_range_);
       SetDistanceAngleRangeMap();
+      BuildObstacleDensityMap(1.3 * obstacle_detection_range_);
+      BuildNormalizedObstacleDensityMap();
       // BuildCollisionLookupTable();
     }
     nav_msgs::OccupancyGrid::Ptr GetMap() const { return grid_ptr_; };
@@ -71,6 +73,10 @@ namespace HybridAStar
     std::vector<std::pair<float, float>> SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred,const int& number_of_successor);
 
     float GetObstacleDetectionRange() const { return obstacle_detection_range_; };
+
+    // float GetObstacleDensity(const Node3D &node3d);
+
+    float GetNormalizedObstacleDensity(const Node3D &node3d);
 
   private:
     bool IsOnGrid(const Node3D &node3d) const;
@@ -106,15 +112,26 @@ namespace HybridAStar
     void getConfiguration(const Node3D &node, float &x, float &y, float &t) const;
 
     void SetObstacleVec();
-
+    /**
+     * @brief Set the In Range Obstacle object and build obstacle density map
+     *
+     * @param range
+     */
     void SetInRangeObstacle(const float &range);
     /**
      * @brief Get the Node3D Index On Grid Map, index=y*map width+x;
      *
      * @param node3d
-     * @return uint index
+     * @return uint index, this index is a 2d index
      */
     uint GetNode3DIndexOnGridMap(const Node3D &node3d);
+    /**
+     * @brief Get the Node 3 D Fine Index on grid map, index is calculated by CalculateFineIndex
+     *
+     * @param node3d
+     * @return uint
+     */
+    uint GetNode3DFineIndex(const Node3D &node3d);
     /**
      * @brief Get the Node3D Index On Grid Map, index=y*map width+x;
      *
@@ -122,6 +139,22 @@ namespace HybridAStar
      * @return uint index
      */
     uint GetNode3DIndexOnGridMap(const float &x, const float &y);
+    /**
+     * @brief get node3d 3d index on grid map, index=theta*(angle resolution)*map width+y*map width+x;
+     *
+     * @param x
+     * @param y
+     * @param theta
+     * @return uint
+     */
+    uint Get3DIndexOnGridMap(const float &x, const float &y, const float &theta);
+    /**
+     * @brief get node3d 3d index
+     *
+     * @param node3d
+     * @return uint
+     */
+    uint Get3DIndexOnGridMap(const Node3D &node3d);
 
     /**
      * @brief Get the Node 3D Available steering Angle Range, current orientation +-30deg
@@ -159,7 +192,14 @@ namespace HybridAStar
      * @return false
      */
     bool CollisionCheck(const ComputationalGeometry::Segment &segment);
-
+    /**
+     * @brief calculate fine index according its coordinate within one cell.
+     *
+     * @param x
+     * @param y
+     * @param t in rad
+     * @return uint
+     */
     uint
     CalculateFineIndex(const float &x, const float &y, const float &t);
 
@@ -190,6 +230,17 @@ namespace HybridAStar
      * @return Utility::AngleRangeVec,angle range is pair of start angle and angle range
      */
     Utility::AngleRangeVec FindFreeAngleRange(const Node3D &node3d);
+    /**
+     * @brief build in range obstacle density map according to map info
+     *
+     * @param range
+     */
+    void BuildObstacleDensityMap(const float &range);
+    /**
+     * @brief this function is building a normalized obstacle density map from in_range_obstacle_density_map_
+     *
+     */
+    void BuildNormalizedObstacleDensityMap();
 
   private:
     ParameterCollisionDetection params_;
@@ -222,5 +273,15 @@ namespace HybridAStar
      */
     std::unordered_map<uint, std::vector<std::pair<float, Utility::AngleRange>>> distance_angle_range_map_;
     float obstacle_detection_range_;
+    /**
+     * @brief key is location index, value is in range obstacle density defined by (number of obstacle in range ), definition need further consideration., this value define the step size for  adaptive step size
+     *
+     */
+    std::unordered_map<uint, float> in_range_obstacle_density_map_;
+    /**
+     * @brief this is a normalized density map, which is calculated from in range obstacle density map, the range of second is from 0-1, 0 is not a good idea, need to convert to some number > 0
+     *
+     */
+    std::unordered_map<uint, float> normalized_obstacle_density_map_;
   };
 }

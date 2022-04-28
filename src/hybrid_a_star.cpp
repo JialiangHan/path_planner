@@ -574,11 +574,17 @@ namespace HybridAStar
     float distance_to_goal = Utility::GetDistance(pred, goal_);
     // DLOG(INFO) << "distance to goal is " << distance_to_goal;
     // 2. if distance to goal is less than step size above. than make it new step size, otherwise use old one
-    float step_size = 0.5 * configuration_space_ptr_->GetObstacleDetectionRange(), steering_angle;
+
+    float step_size, steering_angle;
     DLOG_IF(WARNING, out.size() == 0) << "Out size is zero!!!";
     if (out.size() != 0)
     {
       step_size = out.back().first;
+    }
+    else
+    {
+      float weight_step_size = configuration_space_ptr_->GetNormalizedObstacleDensity(pred);
+      step_size = weight_step_size * configuration_space_ptr_->GetObstacleDetectionRange();
     }
 
     // DLOG(INFO) << "step size is " << step_size;

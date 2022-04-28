@@ -268,6 +268,7 @@ void CollisionDetection::SetObstacleVec()
 void CollisionDetection::SetInRangeObstacle(const float &range)
 {
   std::vector<Utility::Polygon> obstacle_vec;
+
   for (uint x = 0; x < grid_ptr_->info.width; ++x)
   {
     for (uint y = 0; y < grid_ptr_->info.height; ++y)
@@ -278,6 +279,7 @@ void CollisionDetection::SetInRangeObstacle(const float &range)
       for (const auto &polygon : obstacle_vec_)
       {
         float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
+
         if (distance < range)
         {
           obstacle_vec.emplace_back(polygon);
@@ -393,7 +395,7 @@ std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::GetObstac
 // where to put this collision table in lookup_table.cpp or collisiondetection..cpp?
 void CollisionDetection::BuildCollisionLookupTable()
 {
-  DLOG(INFO) << "BuildCollisionLookupTable start:";
+  // DLOG(INFO) << "BuildCollisionLookupTable start:";
   collision_lookup_.clear();
   // 0. three for loop to loop every point in the map, similar to lookup_table.cpp
   uint index, fine_index;
@@ -422,7 +424,7 @@ void CollisionDetection::BuildCollisionLookupTable()
           while (theta < 2 * M_PI)
           {
             fine_index = CalculateFineIndex(x, y, theta);
-            DLOG(INFO) << "current index is " << index << " , fine index is " << fine_index << " coordinate is " << x << " " << y << " " << theta;
+            // DLOG(INFO) << "current index is " << index << " , fine index is " << fine_index << " coordinate is " << x << " " << y << " " << theta;
             // 1. create polygon accord to its coordinate(x,y), then rotate according to heading angle t.
             //  case: some certain case this polygon is outside map
             if ((x <= params_.vehicle_length / 2 && y <= params_.vehicle_width / 2) ||
@@ -461,7 +463,7 @@ void CollisionDetection::BuildCollisionLookupTable()
     }
     x++;
   }
-  DLOG(INFO) << "BuildCollisionLookupTable done.";
+  // DLOG(INFO) << "BuildCollisionLookupTable done.";
 }
 
 bool CollisionDetection::CollisionCheck(const Utility::Polygon &polygon)
@@ -814,7 +816,13 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
       // DLOG(INFO) << "step size is " << step_size;
     }
   }
-  float weight_step_size = params_.weight_step_size;
+  // TODO this weight should be related to obstacle density
+  // float weight_step_size = params_.weight_step_size;
+  // weight for step size should be inverse proportional to normalized obstacle density
+  float weight_step_size = 1 - GetNormalizedObstacleDensity(pred);
+  // make weight step size in range [0,0.9];
+  // float weight_step_size = 0.9*(1 - GetNormalizedObstacleDensity(pred)) ;
+  DLOG(INFO) << "normalized obstacle density is " << GetNormalizedObstacleDensity(pred) << " step size weight for current node is " << weight_step_size;
   // if rest distance to obstacle is less than 1/2 vehicle length,
   if ((step_size - 0.5 * params_.vehicle_length) > 0)
   {
@@ -925,4 +933,162 @@ float CollisionDetection::FindNoCollisionDistance(const Node3D &node3d, const fl
   // DLOG(INFO) << "no collision distance is " << out;
   // DLOG(INFO) << "FindNoCollisionDistance out.";
   return out;
+}
+
+void CollisionDetection::BuildObstacleDensityMap(const float &range)
+{
+  // DLOG(INFO) << "BuildObstacleDensityMap in:";
+  // build obstacle density map according to in range obstacle map, seems not correct, need to consider obstacle in a wider range.
+  // so use the same way to build this map as in range obstacle map
+  // can this two function be merged?,no, the in range obstacle map consider 2d index while this map consider 3d index.
+  uint number_of_obstacles = 0;
+  uint current_point_index;
+  std::vector<Utility::Polygon> obstacle_vec;
+  // this angle is the max steering angle for vehicle, unit is deg.
+  float max_steering_angle = 30;
+  for (uint x = 0; x < grid_ptr_->info.width; ++x)
+  {
+    for (uint y = 0; y < grid_ptr_->info.height; ++y)
+    {
+      for (uint theta = 0; theta < 360; theta = theta + Utility::ConvertRadToDeg(2 * M_PI / (float)params_.headings))
+      {
+        // DLOG(INFO) << "current node is " << x << " " << y << " " << theta;
+        current_point_index = Get3DIndexOnGridMap(x, y, Utility::ConvertDegToRad(theta));
+        Eigen::Vector2f current_point(x, y);
+        obstacle_vec.clear();
+        Utility::AngleRange current_angle_range;
+        float current_angle_range_start = Utility::
+            ConvertDegToRad(theta - max_steering_angle);
+        float current_angle_range_range = Utility::
+            ConvertDegToRad(2 * max_steering_angle);
+        current_angle_range.first = current_angle_range_start;
+        current_angle_range.second = current_angle_range_range;
+        for (const auto &polygon : obstacle_vec_)
+        {
+          Utility::AngleRange obstacle_angle_range = Utility::GetAngleRangeFromPointToPolygon(polygon, current_point);
+          // 1. find obstacle in angle range current orientation +-max steering angle
+          if (Utility::IsOverlap(obstacle_angle_range, current_angle_range) ||
+              Utility::IsAngleRangeInclude(obstacle_angle_range, current_angle_range) ||
+              Utility::IsAngleRangeInclude(current_angle_range, obstacle_angle_range))
+          {
+            // 2. find its distance from current node to obstacle
+            float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
+            // 3. if distance is smaller than range, nubmer of obstacle++
+            if (distance < range)
+            {
+              number_of_obstacles++;
+              // DLOG(INFO) << "obstacle origin is " << polygon[0].x() << " " << polygon[0].y() << " . current point is " << x << " " << y << " distance is " << distance;
+              // DLOG(INFO) << "obstacle is in the range, distance is " << distance;
+            }
+          }
+        }
+        in_range_obstacle_density_map_.emplace(current_point_index, number_of_obstacles);
+        // DLOG(INFO) << "current node is " << x << " " << y << " " << theta << " fine index is " << current_point_index << " number of obstacles is " << number_of_obstacles;
+        number_of_obstacles = 0;
+      }
+    }
+  }
+  // DLOG(INFO) << "BuildObstacleDensityMap out.";
+}
+
+uint CollisionDetection::GetNode3DFineIndex(const Node3D &node3d)
+{
+  return CalculateFineIndex(node3d.GetX(), node3d.GetY(), node3d.GetT());
+}
+
+// float CollisionDetection::GetObstacleDensity(const Node3D &node3d)
+// {
+//   DLOG(INFO) << "GetObstacleDensity in:";
+//   float obstacle_density;
+//   uint current_fine_index = Get3DIndexOnGridMap(node3d);
+//   if (in_range_obstacle_density_map_.find(current_fine_index) != in_range_obstacle_density_map_.end())
+//   {
+//     obstacle_density = in_range_obstacle_density_map_[current_fine_index];
+//   }
+//   else
+//   {
+//     DLOG(WARNING) << "current fine index can`t be found in the obstacle density map!!!";
+//   }
+//   DLOG(INFO) << "GetObstacleDensity out.";
+//   return obstacle_density;
+// }
+
+void CollisionDetection::BuildNormalizedObstacleDensityMap()
+{
+  // DLOG(INFO) << "BuildNormalizedObstacleDensityMap in:";
+  float normalized_obstacle_density;
+  float max_density = 0, min_density = 1000000;
+  // normalize use formula = (x-min)/(max-min)
+  for (const auto &element : in_range_obstacle_density_map_)
+  {
+    // DLOG(INFO) << "current density is " << element.second;
+    // DLOG(INFO) << "current max density is " << max_density;
+    // DLOG(INFO) << "current min density is " << min_density;
+    if (element.second > max_density)
+    {
+      max_density = element.second;
+    }
+    if (element.second < min_density)
+    {
+      min_density = element.second;
+    }
+  }
+  // DLOG(INFO) << "min density is " << min_density;
+  // DLOG(INFO) << "max density is " << max_density;
+  for (const auto &element : in_range_obstacle_density_map_)
+  {
+    normalized_obstacle_density = (element.second - min_density) / (max_density - min_density);
+    // treatment for zero
+    // if (normalized_obstacle_density == 0)
+    // {
+    //   normalized_obstacle_density = normalized_obstacle_density + 0.001;
+    // }
+    normalized_obstacle_density_map_.emplace(element.first, normalized_obstacle_density);
+    // DLOG(INFO) << "current fine index is " << element.first << " normalized obstacle density is " << normalized_obstacle_density;
+  }
+  // DLOG(INFO) << "BuildNormalizedObstacleDensityMap out.";
+}
+
+float CollisionDetection::GetNormalizedObstacleDensity(const Node3D &node3d)
+{
+  // DLOG(INFO) << "GetNormalizedObstacleDensity in:";
+  float obstacle_density;
+  uint current_fine_index = GetNode3DFineIndex(node3d);
+  if (normalized_obstacle_density_map_.find(current_fine_index) != normalized_obstacle_density_map_.end())
+  {
+    obstacle_density = normalized_obstacle_density_map_[current_fine_index];
+  }
+  else
+  {
+    DLOG(WARNING) << "current fine index can`t be found in the obstacle density map!!!";
+  }
+  // DLOG(INFO) << "GetNormalizedObstacleDensity out.";
+  return obstacle_density;
+}
+
+uint CollisionDetection::Get3DIndexOnGridMap(const float &x, const float &y, const float &theta)
+{
+  uint out, x_int, y_int, t_index;
+  const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
+  float angle;
+  if (abs(theta) < 1e-4)
+  {
+    angle = 0;
+  }
+  else
+  {
+    angle = theta;
+  }
+  x_int = (uint)x;
+  y_int = (uint)y;
+  t_index = (uint)(angle / delta_heading_in_rad);
+
+  out = t_index * params_.headings * map_width_ + y_int * map_width_ + x_int;
+  // DLOG(INFO) << "coordinate is " << x << " " << y << " " << Utility::ConvertRadToDeg(theta) << " x_int is " << x_int << " y_int is " << y_int << " t_index is " << t_index << " final index is " << out;
+  return out;
+}
+
+uint CollisionDetection::Get3DIndexOnGridMap(const Node3D &node3d)
+{
+  return Get3DIndexOnGridMap(node3d.GetX(), node3d.GetY(), node3d.GetT());
 }
