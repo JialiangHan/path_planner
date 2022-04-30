@@ -28,6 +28,8 @@ namespace HybridAStar
     bool enable_collision_lookup = false;
     // parameter which control the step size when has an obstacle
     // float weight_step_size = 0.5;
+
+    bool consider_steering_angle_range_for_obstacle_density = false;
   };
 
   //this struct contains some used parameters in visualize class

@@ -59,6 +59,9 @@ namespace HybridAStar
     ros_param_name = "enable_collision_lookup";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.enable_collision_lookup);
 
+    ros_param_name = "consider_steering_angle_range_for_obstacle_density";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.consider_steering_angle_range_for_obstacle_density);
+
     ros_param_name = "position_resolution";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.position_resolution);
 

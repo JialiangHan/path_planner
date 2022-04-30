@@ -16,8 +16,9 @@ number_of_successors: 3
 # for heuristic in hybrid a, use dubins or reedshepp or cubic bezier
 # 0: dubins curve, 1: reedsshepp curve 2: cubic bezier
 curve_type : 2
+# step size to create successor
+step_size : 1
 
-# obstacle_detection_range: 10
 analytical_expansion: true
 # this parameter determine the frequency of analytical expansion, false means the way in the original paper
 analytical_expansion_every_point : true
@@ -27,6 +28,7 @@ adaptive_steering_angle_and_step_size: true
 piecewise_cubic_bezier_interpolation: true
 # parameter which control the step size when has an obstacle
 # weight_step_size : 0.6
+consider_steering_angle_range_for_obstacle_density: true
 
 obstacle_detection_range: 10
 
@@ -63,7 +65,6 @@ steering_angle: 8
 # [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
 curve_step_size : 1
 
-step_size : 1
 #  [m] --- The number of discretizations in heading
 headings : 72
 #  [m] --- The cell size of the 2D grid of the world
