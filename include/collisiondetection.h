@@ -241,6 +241,13 @@ namespace HybridAStar
      *
      */
     void BuildNormalizedObstacleDensityMap();
+    /**
+     * @brief Get the weight_step_size from normalized obstacle density
+     *
+     * @param normalizied_obstacle_density this is from [0,1]
+     * @return float output should be somehow in a (0,1) range
+     */
+    float GetStepSizeWeight(const float &normalizied_obstacle_density);
 
   private:
     ParameterCollisionDetection params_;

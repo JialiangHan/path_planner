@@ -490,8 +490,14 @@ namespace HybridAStar
     // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     for (const auto &pair : step_size_steering_angle_vec)
     {
-      steering_angle = pair.second;
       step_size = pair.first;
+      if (step_size == 0)
+      {
+        DLOG(INFO) << "current step size is zero, no need to create successor!!";
+        continue;
+      }
+      steering_angle = pair.second;
+
       turning_radius = step_size / abs(steering_angle);
       dt = steering_angle;
       // DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle);
@@ -583,7 +589,7 @@ namespace HybridAStar
     }
     else
     {
-      float weight_step_size = configuration_space_ptr_->GetNormalizedObstacleDensity(pred);
+      float weight_step_size = -0.8 * configuration_space_ptr_->GetNormalizedObstacleDensity(pred) + 0.9;
       step_size = weight_step_size * configuration_space_ptr_->GetObstacleDetectionRange();
     }
 

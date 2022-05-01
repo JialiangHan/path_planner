@@ -807,7 +807,8 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   // DLOG(INFO) << "SelectStepSizeAndSteeringAngle in:";
   std::vector<std::pair<float, float>> out;
   float steering_angle, step_size = 10000;
-  // 1. for step size, it should be 1/n*(min distance to obstacle) for both free angle range and obstacle angle range
+  // 1. for step size, it should be weight*(min distance to obstacle) for both free angle range and obstacle angle range
+  // find min distance
   for (const auto &pair : available_angle_range_vec)
   {
     if (step_size > pair.first)
@@ -816,25 +817,42 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
       // DLOG(INFO) << "step size is " << step_size;
     }
   }
-  // TODO this weight should be related to obstacle density
   // float weight_step_size = params_.weight_step_size;
   // weight for step size should be inverse proportional to normalized obstacle density
-  float weight_step_size = 1 - GetNormalizedObstacleDensity(pred);
-  // make weight step size in range [0,0.9];
-  // float weight_step_size = 0.9*(1 - GetNormalizedObstacleDensity(pred)) ;
+
+  float weight_step_size;
+  weight_step_size = GetStepSizeWeight(GetNormalizedObstacleDensity(pred));
+
+  DLOG_IF(WARNING, weight_step_size == 0) << "weight_step_size is zero!!!!";
   DLOG(INFO) << "normalized obstacle density is " << GetNormalizedObstacleDensity(pred) << " step size weight for current node is " << weight_step_size;
   // if rest distance to obstacle is less than 1/2 vehicle length,
-  if ((step_size - 0.5 * params_.vehicle_length) > 0)
+  float available_step_size = step_size - 0.5 * params_.vehicle_length;
+  if (available_step_size > 0.1)
   {
-    step_size = weight_step_size * step_size;
+    step_size = weight_step_size * available_step_size;
+    // make sure step size is larger than a predefined min distance otherwise too many successors
+
+    if (step_size < 1)
+    {
+      DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
+      DLOG(INFO) << "step size is " << step_size << " available step size is " << available_step_size;
+      if (available_step_size > 1)
+      {
+        step_size = 1;
+      }
+      else
+      {
+        step_size = available_step_size;
+      }
+    }
   }
   else
   {
-    DLOG(INFO) << "min distance to obstacle is less then 1/2*vehicle_length, make step size 0!!!";
+    DLOG(WARNING) << "min distance to obstacle is less then 1/2*vehicle_length, make step size 0!!!";
     step_size = 0;
   }
 
-  // DLOG(INFO) << "step size is " << step_size;
+  DLOG(INFO) << "step size is " << step_size;
   for (const auto &pair : available_angle_range_vec)
   {
     // DLOG(INFO) << "current pair second first is " << Utility::ConvertRadToDeg(pair.second.first) << " range is " << Utility::ConvertRadToDeg(pair.second.second);
@@ -941,6 +959,8 @@ void CollisionDetection::BuildObstacleDensityMap(const float &range)
   // build obstacle density map according to in range obstacle map, seems not correct, need to consider obstacle in a wider range.
   // so use the same way to build this map as in range obstacle map
   // can this two function be merged?,no, the in range obstacle map consider 2d index while this map consider 3d index.
+  // definition of obstacle density:currently obstacle density is the number of obstacle in steering angle range and radius(parameter range)
+
   uint number_of_obstacles = 0;
   uint current_point_index;
   std::vector<Utility::Polygon> obstacle_vec;
@@ -950,41 +970,63 @@ void CollisionDetection::BuildObstacleDensityMap(const float &range)
   {
     for (uint y = 0; y < grid_ptr_->info.height; ++y)
     {
-      for (uint theta = 0; theta < 360; theta = theta + Utility::ConvertRadToDeg(2 * M_PI / (float)params_.headings))
+      // definition of obstacle density:currently obstacle density is the number of obstacle in radius(parameter range), do not consider current orientation, note: index is not fine index for this case
+      if (!params_.consider_steering_angle_range_for_obstacle_density)
       {
-        // DLOG(INFO) << "current node is " << x << " " << y << " " << theta;
-        current_point_index = Get3DIndexOnGridMap(x, y, Utility::ConvertDegToRad(theta));
+        uint current_point_index = GetNode3DIndexOnGridMap(x, y);
         Eigen::Vector2f current_point(x, y);
         obstacle_vec.clear();
-        Utility::AngleRange current_angle_range;
-        float current_angle_range_start = Utility::
-            ConvertDegToRad(theta - max_steering_angle);
-        float current_angle_range_range = Utility::
-            ConvertDegToRad(2 * max_steering_angle);
-        current_angle_range.first = current_angle_range_start;
-        current_angle_range.second = current_angle_range_range;
         for (const auto &polygon : obstacle_vec_)
         {
-          Utility::AngleRange obstacle_angle_range = Utility::GetAngleRangeFromPointToPolygon(polygon, current_point);
-          // 1. find obstacle in angle range current orientation +-max steering angle
-          if (Utility::IsOverlap(obstacle_angle_range, current_angle_range) ||
-              Utility::IsAngleRangeInclude(obstacle_angle_range, current_angle_range) ||
-              Utility::IsAngleRangeInclude(current_angle_range, obstacle_angle_range))
+          float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
+
+          if (distance < range)
           {
-            // 2. find its distance from current node to obstacle
-            float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
-            // 3. if distance is smaller than range, nubmer of obstacle++
-            if (distance < range)
-            {
-              number_of_obstacles++;
-              // DLOG(INFO) << "obstacle origin is " << polygon[0].x() << " " << polygon[0].y() << " . current point is " << x << " " << y << " distance is " << distance;
-              // DLOG(INFO) << "obstacle is in the range, distance is " << distance;
-            }
+            number_of_obstacles++;
           }
         }
         in_range_obstacle_density_map_.emplace(current_point_index, number_of_obstacles);
         // DLOG(INFO) << "current node is " << x << " " << y << " " << theta << " fine index is " << current_point_index << " number of obstacles is " << number_of_obstacles;
         number_of_obstacles = 0;
+      }
+      else
+      {
+        for (uint theta = 0; theta < 360; theta = theta + Utility::ConvertRadToDeg(2 * M_PI / (float)params_.headings))
+        {
+          // DLOG(INFO) << "current node is " << x << " " << y << " " << theta;
+          current_point_index = Get3DIndexOnGridMap(x, y, Utility::ConvertDegToRad(theta));
+          Eigen::Vector2f current_point(x, y);
+          obstacle_vec.clear();
+          Utility::AngleRange current_angle_range;
+          float current_angle_range_start = Utility::
+              ConvertDegToRad(theta - max_steering_angle);
+          float current_angle_range_range = Utility::
+              ConvertDegToRad(2 * max_steering_angle);
+          current_angle_range.first = current_angle_range_start;
+          current_angle_range.second = current_angle_range_range;
+          for (const auto &polygon : obstacle_vec_)
+          {
+            Utility::AngleRange obstacle_angle_range = Utility::GetAngleRangeFromPointToPolygon(polygon, current_point);
+            // 1. find obstacle in angle range current orientation +-max steering angle
+            if (Utility::IsOverlap(obstacle_angle_range, current_angle_range) ||
+                Utility::IsAngleRangeInclude(obstacle_angle_range, current_angle_range) ||
+                Utility::IsAngleRangeInclude(current_angle_range, obstacle_angle_range))
+            {
+              // 2. find its distance from current node to obstacle
+              float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
+              // 3. if distance is smaller than range, nubmer of obstacle++
+              if (distance < range)
+              {
+                number_of_obstacles++;
+                // DLOG(INFO) << "obstacle origin is " << polygon[0].x() << " " << polygon[0].y() << " . current point is " << x << " " << y << " distance is " << distance;
+                // DLOG(INFO) << "obstacle is in the range, distance is " << distance;
+              }
+            }
+          }
+          in_range_obstacle_density_map_.emplace(current_point_index, number_of_obstacles);
+          // DLOG(INFO) << "current node is " << x << " " << y << " " << theta << " fine index is " << current_point_index << " number of obstacles is " << number_of_obstacles;
+          number_of_obstacles = 0;
+        }
       }
     }
   }
@@ -1053,14 +1095,22 @@ float CollisionDetection::GetNormalizedObstacleDensity(const Node3D &node3d)
 {
   // DLOG(INFO) << "GetNormalizedObstacleDensity in:";
   float obstacle_density;
-  uint current_fine_index = GetNode3DFineIndex(node3d);
-  if (normalized_obstacle_density_map_.find(current_fine_index) != normalized_obstacle_density_map_.end())
+  uint current_index;
+  if (!params_.consider_steering_angle_range_for_obstacle_density)
   {
-    obstacle_density = normalized_obstacle_density_map_[current_fine_index];
+    current_index = GetNode3DIndexOnGridMap(node3d);
   }
   else
   {
-    DLOG(WARNING) << "current fine index can`t be found in the obstacle density map!!!";
+    current_index = GetNode3DFineIndex(node3d);
+  }
+  if (normalized_obstacle_density_map_.find(current_index) != normalized_obstacle_density_map_.end())
+  {
+    obstacle_density = normalized_obstacle_density_map_[current_index];
+  }
+  else
+  {
+    DLOG(WARNING) << "current index can`t be found in the obstacle density map!!!";
   }
   // DLOG(INFO) << "GetNormalizedObstacleDensity out.";
   return obstacle_density;
@@ -1091,4 +1141,22 @@ uint CollisionDetection::Get3DIndexOnGridMap(const float &x, const float &y, con
 uint CollisionDetection::Get3DIndexOnGridMap(const Node3D &node3d)
 {
   return Get3DIndexOnGridMap(node3d.GetX(), node3d.GetY(), node3d.GetT());
+}
+
+float CollisionDetection::GetStepSizeWeight(const float &normalizied_obstacle_density)
+{
+  float step_size_weight;
+  bool flag = false;
+  if (flag)
+  {
+    step_size_weight = 1 - normalizied_obstacle_density;
+  }
+  else
+  {
+    // TODO range of step size weight need further consideration
+    //  make weight step size in range (0,0.9];
+    //  manually make it in range(0.1,0.9]
+    step_size_weight = -0.8 * normalizied_obstacle_density + 0.9;
+  }
+  return step_size_weight;
 }
