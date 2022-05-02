@@ -279,6 +279,7 @@ namespace HybridAStar
      * 
      */
     std::unordered_map<uint, std::vector<std::pair<float, Utility::AngleRange>>> distance_angle_range_map_;
+
     float obstacle_detection_range_;
     /**
      * @brief key is location index, value is in range obstacle density defined by (number of obstacle in range ), definition need further consideration., this value define the step size for  adaptive step size

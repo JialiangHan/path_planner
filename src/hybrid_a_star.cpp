@@ -272,9 +272,8 @@ namespace HybridAStar
   //###################################################
   void HybridAStar::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D)
   {
-    float curve_cost = 0;
-    float twoDCost = 0;
-    float twoDoffset = 0;
+    // DLOG(INFO) << "UpdateHeuristic in:";
+    float curve_cost = 0, twoDCost = 0, twoDoffset = 0;
     // translate and rotate
     Node3D goal_rotated_translated;
     goal_rotated_translated.setX(abs(goal.GetX() - start.GetX()));
@@ -300,34 +299,37 @@ namespace HybridAStar
     else
     {
       curve_cost = lookup_table_ptr_->GetCubicBezierCost(goal_rotated_translated);
+      // DLOG(INFO) << "cubic bezier cost is " << curve_cost;
     }
 
     // unconstrained with obstacles
     if (!nodes2D[(int)start.GetY() * map_width_ + (int)start.GetX()].isDiscovered())
     {
-      //    ros::Time t0 = ros::Time::now();
+      // ros::Time t0 = ros::Time::now();
       // create a 2d start node
       Node2D start2d(start.GetX(), start.GetY(), 0, 0, nullptr);
       // create a 2d goal node
       Node2D goal2d(goal.GetX(), goal.GetY(), 0, 0, nullptr);
+      // DLOG(INFO) << "A star start node is " << start2d.GetX() << " " << start2d.GetY() << " goal is " << goal2d.GetX() << " " << goal2d.GetY();
       a_star_ptr_->Initialize(goal2d, start2d);
       // run 2d AStar and return the cost of the cheapest path for that node
       nodes2D[(int)start.GetY() * map_width_ + (int)start.GetX()].SetG(a_star_ptr_->GetAStarCost(nodes2D));
-      //    ros::Time t1 = ros::Time::now();
-      //    ros::Duration d(t1 - t0);
-      //    DLOG(INFO) << "calculated 2D Heuristic in ms: " << d * 1000 ;
+      // ros::Time t1 = ros::Time::now();
+      // ros::Duration d(t1 - t0);
+      // DLOG(INFO) << "calculated 2D Heuristic in ms: " << d * 1000;
     }
 
     // offset for same node in cell
     twoDoffset = sqrt(((start.GetX() - (long)start.GetX()) - (goal.GetX() - (long)goal.GetX())) * ((start.GetX() - (long)start.GetX()) - (goal.GetX() - (long)goal.GetX())) +
                       ((start.GetY() - (long)start.GetY()) - (goal.GetY() - (long)goal.GetY())) * ((start.GetY() - (long)start.GetY()) - (goal.GetY() - (long)goal.GetY())));
-    // DLOG(INFO) << "two d offset is " << twoDoffset;
+    // DLOG(INFO) << "twoD cost before offset is " << nodes2D[(int)start.GetY() * map_width_ + (int)start.GetX()].GetCostSofar() << " two d offset is " << twoDoffset;
     twoDCost = nodes2D[(int)start.GetY() * map_width_ + (int)start.GetX()].GetCostSofar() - twoDoffset;
-    // DLOG(INFO) << "current node is " << start.GetX() << " " << start.GetY() << " " << start.GetT();
-    // DLOG(INFO) << "a star cost is " << twoDCost;
+
+    // DLOG(INFO) << "current node is " << start.GetX() << " " << start.GetY() << " " << start.GetT() << " a star cost is " << twoDCost << " curve cost is " << curve_cost << " heuristic is " << std::max(curve_cost, twoDCost);
     // DLOG(INFO) << "rs cost is " << curve_cost;
     // return the maximum of the heuristics, making the heuristic admissable
     start.SetH(std::max(curve_cost, twoDCost));
+    // DLOG(INFO) << "UpdateHeuristic out.";
   }
 
   //###################################################
@@ -441,7 +443,6 @@ namespace HybridAStar
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
 
-    float step_size;
     // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
@@ -461,6 +462,7 @@ namespace HybridAStar
 
     else
     {
+      float step_size;
       // DLOG(INFO) << "fixed steering angle and step size";
       // assume constant speed.
       float theta = Utility::ConvertDegToRad(params_.steering_angle);
@@ -484,24 +486,22 @@ namespace HybridAStar
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred, const std::vector<std::pair<float, float>> &step_size_steering_angle_vec)
   {
     std::vector<std::shared_ptr<Node3D>> out;
-    float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle, step_size;
+    float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle;
     int prem;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
     // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     for (const auto &pair : step_size_steering_angle_vec)
     {
-      step_size = pair.first;
-      if (step_size == 0)
+      if (pair.first == 0)
       {
         DLOG(INFO) << "current step size is zero, no need to create successor!!";
         continue;
       }
       steering_angle = pair.second;
 
-      turning_radius = step_size / abs(steering_angle);
+      turning_radius = pair.first / abs(steering_angle);
       dt = steering_angle;
-      // DLOG(INFO) << "current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle);
-      // DLOG(INFO) << "step size is " << step_size;
+      DLOG(INFO) << "step size is " << pair.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle);
       // forward, checked
       // right
       if (steering_angle < 0)
@@ -522,7 +522,7 @@ namespace HybridAStar
       // straight forward,checked
       else
       {
-        dx = step_size;
+        dx = pair.first;
         dy = 0;
         prem = 0;
         // DLOG(INFO) << "forward straight";
@@ -576,63 +576,12 @@ namespace HybridAStar
     std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred);
     // 3. determine step size and steering angle from previous output
     out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, params_.number_of_successors);
-    // 1. first find distance from current node to goal position
-    float distance_to_goal = Utility::GetDistance(pred, goal_);
-    // DLOG(INFO) << "distance to goal is " << distance_to_goal;
-    // 2. if distance to goal is less than step size above. than make it new step size, otherwise use old one
+    // comment out due to less nodes explored when add one more step every time
+    //  if (out.size() == 0)
+    //  {
+    AddOneMoreStepSizeAndSteeringAngle(pred, out);
+    // }
 
-    float step_size, steering_angle;
-    DLOG_IF(WARNING, out.size() == 0) << "Out size is zero!!!";
-    if (out.size() != 0)
-    {
-      step_size = out.back().first;
-    }
-    else
-    {
-      float weight_step_size = -0.8 * configuration_space_ptr_->GetNormalizedObstacleDensity(pred) + 0.9;
-      step_size = weight_step_size * configuration_space_ptr_->GetObstacleDetectionRange();
-    }
-
-    // DLOG(INFO) << "step size is " << step_size;
-    if (distance_to_goal < step_size)
-    {
-      step_size = distance_to_goal;
-    }
-    // DLOG(INFO) << "step size is " << step_size;
-    // 3. find angle to goal
-    // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
-    float angle_to_goal = -Utility::RadNormalization(pred.GetT() - goal_.GetT());
-    bool flag = true;
-    if (flag)
-    {
-      angle_to_goal = -Utility::RadNormalization(pred.GetT() - Utility::GetAngle(pred, goal_));
-      // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
-      // DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
-    }
-    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
-    // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
-    // 4. if angle to goal is in the steering angle range(current orientation +-30deg), then make it steering angle, otherwise 30 or -30 to make angle to goal smaller
-
-    if (std::abs(angle_to_goal) > Utility::ConvertDegToRad(30))
-    {
-      // if (pred.GetT() > Utility::RadNormalization(goal_.GetT()) && pred.GetT() < Utility::RadNormalization((goal_.GetT() + Utility::ConvertDegToRad(180))))
-      if (angle_to_goal < -Utility::ConvertDegToRad(30))
-      {
-        // right is negative
-        steering_angle = -Utility::ConvertDegToRad(30);
-      }
-      else
-      {
-        // left is positive
-        steering_angle = Utility::ConvertDegToRad(30);
-      }
-    }
-    else
-    {
-      steering_angle = angle_to_goal;
-    }
-
-    out.emplace_back(std::pair<float, float>(step_size, steering_angle));
     // for (const auto &pair : out)
     // {
     // DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
@@ -798,5 +747,66 @@ namespace HybridAStar
       // DLOG(INFO) << "point is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
     }
     // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath out.";
+  }
+
+  void HybridAStar::AddOneMoreStepSizeAndSteeringAngle(const Node3D &pred, std::vector<std::pair<float, float>> &step_size_steering_angle_pair)
+  {
+    // 1. first find distance from current node to goal position
+    float distance_to_goal = Utility::GetDistance(pred, goal_);
+    // DLOG(INFO) << "distance to goal is " << distance_to_goal;
+    // 2. if distance to goal is less than step size above. than make it new step size, otherwise use old one
+
+    float step_size, steering_angle;
+    // DLOG_IF(WARNING, step_size_steering_angle_pair.size() == 0) << "step_size_steering_angle_pair size is zero!!!";
+    if (step_size_steering_angle_pair.size() != 0)
+    {
+      step_size = step_size_steering_angle_pair.back().first;
+    }
+    else
+    {
+      float weight_step_size = -0.8 * configuration_space_ptr_->GetNormalizedObstacleDensity(pred) + 0.9;
+      step_size = weight_step_size * configuration_space_ptr_->GetObstacleDetectionRange();
+    }
+
+    // DLOG(INFO) << "step size is " << step_size;
+    if (distance_to_goal < step_size)
+    {
+      step_size = distance_to_goal;
+    }
+    // DLOG(INFO) << "step size is " << step_size;
+    // 3. find angle to goal
+    // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
+    float angle_to_goal = -Utility::RadNormalization(pred.GetT() - goal_.GetT());
+    bool flag = true;
+    if (flag)
+    {
+      angle_to_goal = -Utility::RadNormalization(pred.GetT() - Utility::GetAngle(pred, goal_));
+      // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
+      // DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
+    }
+    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
+    // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
+    // 4. if angle to goal is in the steering angle range(current orientation +-30deg), then make it steering angle, otherwise 30 or -30 to make angle to goal smaller
+
+    if (std::abs(angle_to_goal) > Utility::ConvertDegToRad(30))
+    {
+      // if (pred.GetT() > Utility::RadNormalization(goal_.GetT()) && pred.GetT() < Utility::RadNormalization((goal_.GetT() + Utility::ConvertDegToRad(180))))
+      if (angle_to_goal < -Utility::ConvertDegToRad(30))
+      {
+        // right is negative
+        steering_angle = -Utility::ConvertDegToRad(30);
+      }
+      else
+      {
+        // left is positive
+        steering_angle = Utility::ConvertDegToRad(30);
+      }
+    }
+    else
+    {
+      steering_angle = angle_to_goal;
+    }
+
+    step_size_steering_angle_pair.emplace_back(std::pair<float, float>(step_size, steering_angle));
   }
 }

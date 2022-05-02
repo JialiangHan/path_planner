@@ -25,10 +25,9 @@ analytical_expansion_every_point : true
 
 adaptive_steering_angle_and_step_size: true
 
-piecewise_cubic_bezier_interpolation: true
-# parameter which control the step size when has an obstacle
-# weight_step_size : 0.6
-consider_steering_angle_range_for_obstacle_density: true
+piecewise_cubic_bezier_interpolation: false
+
+consider_steering_angle_range_for_obstacle_density: false
 
 obstacle_detection_range: 10
 
@@ -44,6 +43,8 @@ vehicle_width : 1
 vehicle_length : 2
 # smooth the path or not
 smooth : false 
+# [degree] --- max steering angle in degree
+max_steering_angle: 30
 # **********************Search parameters*****************
 #   \brief [m] --- The tie breaker breaks ties between nodes expanded in the same cell
 

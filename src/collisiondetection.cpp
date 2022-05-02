@@ -824,7 +824,7 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   weight_step_size = GetStepSizeWeight(GetNormalizedObstacleDensity(pred));
 
   DLOG_IF(WARNING, weight_step_size == 0) << "weight_step_size is zero!!!!";
-  DLOG(INFO) << "normalized obstacle density is " << GetNormalizedObstacleDensity(pred) << " step size weight for current node is " << weight_step_size;
+  // DLOG(INFO) << "normalized obstacle density is " << GetNormalizedObstacleDensity(pred) << " step size weight for current node is " << weight_step_size;
   // if rest distance to obstacle is less than 1/2 vehicle length,
   float available_step_size = step_size - 0.5 * params_.vehicle_length;
   if (available_step_size > 0.1)
@@ -834,8 +834,8 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
 
     if (step_size < 1)
     {
-      DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
-      DLOG(INFO) << "step size is " << step_size << " available step size is " << available_step_size;
+      // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
+      // DLOG(INFO) << "step size is " << step_size << " available step size is " << available_step_size;
       if (available_step_size > 1)
       {
         step_size = 1;
@@ -848,11 +848,12 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   }
   else
   {
-    DLOG(WARNING) << "min distance to obstacle is less then 1/2*vehicle_length, make step size 0!!!";
+    // DLOG(WARNING) << "min distance to obstacle is less then 1/2*vehicle_length, make step size 0!!!";
     step_size = 0;
+    return out;
   }
 
-  DLOG(INFO) << "step size is " << step_size;
+  // DLOG(INFO) << "step size is " << step_size;
   for (const auto &pair : available_angle_range_vec)
   {
     // DLOG(INFO) << "current pair second first is " << Utility::ConvertRadToDeg(pair.second.first) << " range is " << Utility::ConvertRadToDeg(pair.second.second);

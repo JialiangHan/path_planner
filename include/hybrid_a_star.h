@@ -93,6 +93,8 @@ namespace HybridAStar
 
       void ConvertToPiecewiseCubicBezierPath();
 
+      void AddOneMoreStepSizeAndSteeringAngle(const Node3D &pred, std::vector<std::pair<float, float>> &step_size_steering_angle_pair);
+
    private:
       ParameterHybridAStar params_;
       Path3D piecewise_cubic_bezier_path_;
