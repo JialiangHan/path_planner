@@ -91,6 +91,7 @@ namespace HybridAStar
                 // GOAL TEST
                 if (*nPred == goal_)
                 {
+                    // DLOG(INFO) << "goal reached, return cost so far.";
                     return nPred->GetCostSofar();
                 }
                 // ____________________
@@ -186,8 +187,8 @@ namespace HybridAStar
     //###################################################
     void AStar::UpdateCostSoFar(Node2D &node)
     {
-        float cost_so_far;
-        cost_so_far += Utility::GetDistance(node, *node.GetPred());
+        float cost_so_far = 0;
+        cost_so_far = node.GetCostSofar() + Utility::GetDistance(node, *node.GetPred());
         node.SetG(cost_so_far);
     }
     //###################################################
@@ -195,7 +196,10 @@ namespace HybridAStar
     //###################################################
     void AStar::UpdateHeuristic(Node2D &current)
     {
-        current.SetH(Utility::GetDistance(current, goal_));
+        float distance_to_goal = Utility::GetDistance(current, goal_);
+        // DLOG(INFO) << "current node is " << current.GetX() << " " << current.GetY() << " distance to goal is " << distance_to_goal;
+
+        current.SetH(distance_to_goal);
     }
     //###################################################
     //                                   trace path
