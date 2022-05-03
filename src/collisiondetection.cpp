@@ -151,7 +151,7 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
     collision_result = CollisionCheck(polygon);
     if (!collision_result)
     {
-      DLOG(INFO) << "in collision, coordinate is " << x << " " << y << " " << t;
+      // DLOG(INFO) << "in collision, coordinate is " << x << " " << y << " " << t;
     }
     return collision_result;
   }
@@ -163,7 +163,7 @@ bool CollisionDetection::configurationTest(const Eigen::Vector2f &start, const E
   collision_result = CollisionCheck(start, end);
   if (!collision_result)
   {
-    DLOG(INFO) << "in collision, segment start at " << start.x() << " " << start.y() << " end at " << end.x() << " " << end.y();
+    // DLOG(INFO) << "in collision, segment start at " << start.x() << " " << start.y() << " end at " << end.x() << " " << end.y();
   }
   return collision_result;
 }
@@ -227,7 +227,7 @@ void CollisionDetection::getConfiguration(const std::shared_ptr<Node3D> &node3d_
 // checked
 void CollisionDetection::SetObstacleVec()
 {
-  DLOG(INFO) << "SetObstacleVec in:";
+  // DLOG(INFO) << "SetObstacleVec in:";
   Utility::Polygon current_polygon;
   for (uint x = 0; x < grid_ptr_->info.width; ++x)
   {
@@ -261,11 +261,11 @@ void CollisionDetection::SetObstacleVec()
 
   // AddMapBoundaryAsObstacle(obstacle_vec_);
 
-  for (const auto &polygon : obstacle_vec_)
-  {
-    DLOG(INFO) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
-  }
-  DLOG(INFO) << "SetObstacleVec out.";
+  // for (const auto &polygon : obstacle_vec_)
+  // {
+  //   DLOG(INFO) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
+  // }
+  // DLOG(INFO) << "SetObstacleVec out.";
 }
 // checked
 void CollisionDetection::SetInRangeObstacle(const float &range)
@@ -815,7 +815,7 @@ std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeA
   // {
   //   DLOG(INFO) << "min distance is " << pair.first << " angle range start is " << Utility::ConvertRadToDeg(pair.second.first) << " range is " << Utility::ConvertRadToDeg(pair.second.second);
   // }
-  DLOG_IF(WARNING, out.size() == 0) << "WARNING: Free angle range size is zero!!!!";
+  // DLOG_IF(WARNING, out.size() == 0) << "WARNING: Free angle range size is zero!!!!";
   // DLOG(INFO) << "FindFreeAngleRangeAndObstacleAngleRange out.";
   return out;
 }
@@ -846,7 +846,7 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   // DLOG(INFO) << "normalized obstacle density is " << GetNormalizedObstacleDensity(pred) << " step size weight for current node is " << weight_step_size;
   // if rest distance to obstacle is less than 1/2 vehicle length,
   float available_step_size = step_size - 0.5 * params_.vehicle_length;
-  if (available_step_size > 0.1)
+  if (available_step_size > 1)
   {
     step_size = weight_step_size * available_step_size;
     // make sure step size is larger than a predefined min distance otherwise too many successors
@@ -854,13 +854,14 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
     if (step_size < 1)
     {
       // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
-      // DLOG(INFO) << "step size is " << step_size << " available step size is " << available_step_size;
+
       if (available_step_size > 1)
       {
         step_size = 1;
       }
       else
       {
+        DLOG(INFO) << "step size is " << step_size << " available step size is " << available_step_size;
         step_size = available_step_size;
       }
     }
@@ -872,7 +873,7 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
     return out;
   }
 
-  // DLOG(INFO) << "step size is " << step_size;
+  DLOG_IF(INFO, step_size < 1) << "step size is " << step_size;
   for (const auto &pair : available_angle_range_vec)
   {
     // DLOG(INFO) << "current pair second first is " << Utility::ConvertRadToDeg(pair.second.first) << " range is " << Utility::ConvertRadToDeg(pair.second.second);
@@ -887,11 +888,20 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
     // 2. for free angle range, steering angle is angle range start + 1/(number of successors+1) * angle range.
     if (pair.first == obstacle_detection_range_)
     {
-      for (int index = 1; index < number_of_successor + 1; ++index)
+      // if free angle range is too small, then just create only one steering angle
+      if (pair.second.second / (number_of_successor + 1) >= Utility::ConvertDegToRad(5))
       {
-        // target orientation=angle range start + (index/number of successor)* angle range range
-        //  current orientation=current node theta
-        steering_angle = Utility::RadNormalization(-(pair.second.first + index * pair.second.second / (number_of_successor + 1) - pred.GetT()));
+        for (int index = 1; index < number_of_successor + 1; ++index)
+        {
+          // target orientation=angle range start + (index/number of successor)* angle range range
+          //  current orientation=current node theta
+          steering_angle = Utility::RadNormalization(-(pair.second.first + index * pair.second.second / (number_of_successor + 1) - pred.GetT()));
+          out.emplace_back(std::pair<float, float>(step_size, steering_angle));
+        }
+      }
+      else
+      {
+        steering_angle = Utility::RadNormalization(-(pair.second.first + 0.5 * pair.second.second - pred.GetT()));
         out.emplace_back(std::pair<float, float>(step_size, steering_angle));
       }
     }

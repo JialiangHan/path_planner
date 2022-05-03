@@ -501,7 +501,7 @@ namespace HybridAStar
 
       turning_radius = pair.first / abs(steering_angle);
       dt = steering_angle;
-      DLOG(INFO) << "step size is " << pair.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle);
+      // DLOG(INFO) << "step size is " << pair.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle);
       // forward, checked
       // right
       if (steering_angle < 0)
@@ -566,7 +566,7 @@ namespace HybridAStar
     }
     return out;
   }
-
+  // TODO this function need improve, less pair should be created for obstacle angle angle
   std::vector<std::pair<float, float>> HybridAStar::FindStepSizeAndSteeringAngle(const Node3D &pred)
   {
     // DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
@@ -766,10 +766,10 @@ namespace HybridAStar
     {
       float weight_step_size = -0.8 * configuration_space_ptr_->GetNormalizedObstacleDensity(pred) + 0.9;
       step_size = weight_step_size * configuration_space_ptr_->GetObstacleDetectionRange();
+      DLOG_IF(INFO, step_size < 1) << "step size is " << step_size;
     }
 
-    // DLOG(INFO) << "step size is " << step_size;
-    if (distance_to_goal < step_size)
+       if (distance_to_goal < step_size)
     {
       step_size = distance_to_goal;
     }
