@@ -46,7 +46,7 @@ namespace HybridAStar
       map_height_ = map->info.height;
       map_width_ = map->info.width;
       SetObstacleVec();
-      CombineInNeighborObstacles();
+      // CombineInNeighborObstacles();
       obstacle_detection_range_ = 6 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
       // DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range;
       SetInRangeObstacle(obstacle_detection_range_);
@@ -77,13 +77,14 @@ namespace HybridAStar
     // float GetObstacleDensity(const Node3D &node3d);
 
     float GetNormalizedObstacleDensity(const Node3D &node3d);
+    bool IsOnGrid(const float &x, const float &y) const;
 
   private:
     bool IsOnGrid(const Node3D &node3d) const;
     bool IsOnGrid(const Node2D &node2d) const;
     bool IsOnGrid(const std::shared_ptr<Node2D> &node2d_ptr) const;
     bool IsOnGrid(const std::shared_ptr<Node3D> &node3d_ptr) const;
-    bool IsOnGrid(const float &x, const float &y) const;
+
     bool IsOnGrid(const Eigen::Vector2f &point) const;
 
     /*!
@@ -248,6 +249,15 @@ namespace HybridAStar
      * @return float output should be somehow in a (0,1) range
      */
     float GetStepSizeWeight(const float &normalizied_obstacle_density);
+
+    void AddMapBoundaryAsObstacle(std::vector<Utility::Polygon> &obstacle_vec);
+    /**
+     * @brief determine current polygon is a boundary obstacle(a boundary obstacle is the obstacle added by algorithm, not exist on the map)
+     *
+     * @return true
+     * @return false
+     */
+    bool IsBoundaryObstacle(const Utility::Polygon &obstacle);
 
   private:
     ParameterCollisionDetection params_;

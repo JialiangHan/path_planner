@@ -4,8 +4,10 @@ using namespace HybridAStar;
 
 bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr)
 {
+  // DLOG(INFO) << "IsTraversable in:";
   if (!IsOnGrid(node2d_ptr))
   {
+    // DLOG(INFO) << "IsTraversable out.";
     return false;
   }
   /* Depending on the used collision checking mechanism this needs to be adjusted
@@ -21,13 +23,14 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr
   // 2D collision test
   if (t == 99)
   {
+    // DLOG(INFO) << "IsTraversable out.";
     return !grid_ptr_->data[node2d_ptr->GetIdx()];
   }
   if (true)
   {
     cost = configurationTest(x, y, t) ? 0 : 1;
   }
-
+  // DLOG(INFO) << "IsTraversable out.";
   return cost <= 0;
 };
 bool CollisionDetection::IsTraversable(const std::shared_ptr<Node3D> &node3d_ptr)
@@ -37,8 +40,10 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node3D> &node3d_ptr
 
 bool CollisionDetection::IsTraversable(const Node3D &node3d)
 {
+  // DLOG(INFO) << "IsTraversable in:";
   if (!IsOnGrid(node3d))
   {
+    // DLOG(INFO) << "IsTraversable out.";
     return false;
   }
   /* Depending on the used collision checking mechanism this needs to be adjusted
@@ -46,14 +51,13 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
        other: collision checking using the 2d costmap and the navigation stack
     */
 
-  float x;
-  float y;
-  float t;
+  float x, y, t;
   // assign values to the configuration
   getConfiguration(node3d, x, y, t);
   // 2D collision test
   if (t == 99)
   {
+    // DLOG(INFO) << "IsTraversable out.";
     return !grid_ptr_->data[node3d.GetIdx()];
   }
   if (node3d.GetPred() != nullptr)
@@ -61,6 +65,7 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
     // if (configurationTest(x, y, t))
     if (configurationTest(x, y, t) && configurationTest(node3d, *node3d.GetPred()))
     {
+      // DLOG(INFO) << "IsTraversable out.";
       return true;
     }
   }
@@ -68,10 +73,11 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
   {
     if (configurationTest(x, y, t))
     {
+      // DLOG(INFO) << "IsTraversable out.";
       return true;
     }
   }
-
+  // DLOG(INFO) << "IsTraversable out.";
   return false;
 }
 bool CollisionDetection::IsOnGrid(const Eigen::Vector2f &point) const
@@ -100,8 +106,16 @@ bool CollisionDetection::IsOnGrid(const std::shared_ptr<Node3D> &node3d_ptr) con
 
 bool CollisionDetection::IsOnGrid(const float &x, const float &y) const
 {
-  return x >= 0 && x < (int)grid_ptr_->info.width &&
-         y >= 0 && y < (int)grid_ptr_->info.height;
+  if (x >= 0 && x < (int)grid_ptr_->info.width &&
+      y >= 0 && y < (int)grid_ptr_->info.height)
+  {
+    return true;
+  }
+  else
+  {
+    // DLOG(WARNING) << "current node " << x << " " << y << " is not on grid!!!";
+    return false;
+  }
 }
 bool CollisionDetection::configurationTest(const float &x, const float &y, const float &t)
 {
@@ -135,10 +149,10 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
     Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length, params_.vehicle_width, t);
     bool collision_result;
     collision_result = CollisionCheck(polygon);
-    // if (!collision_result)
-    // {
-    //   DLOG(INFO) << "in collision, coordinate is " << x << " " << y << " " << t;
-    // }
+    if (!collision_result)
+    {
+      DLOG(INFO) << "in collision, coordinate is " << x << " " << y << " " << t;
+    }
     return collision_result;
   }
   return false;
@@ -147,10 +161,10 @@ bool CollisionDetection::configurationTest(const Eigen::Vector2f &start, const E
 {
   bool collision_result;
   collision_result = CollisionCheck(start, end);
-  // if (!collision_result)
-  // {
-  //   DLOG(INFO) << "in collision, segment start at " << start.x() << " " << start.y() << " end at " << end.x() << " " << end.y();
-  // }
+  if (!collision_result)
+  {
+    DLOG(INFO) << "in collision, segment start at " << start.x() << " " << start.y() << " end at " << end.x() << " " << end.y();
+  }
   return collision_result;
 }
 bool CollisionDetection::configurationTest(const Node3D &start, const Node3D &end)
@@ -213,7 +227,7 @@ void CollisionDetection::getConfiguration(const std::shared_ptr<Node3D> &node3d_
 // checked
 void CollisionDetection::SetObstacleVec()
 {
-  // DLOG(INFO) << "SetObstacleVec in:";
+  DLOG(INFO) << "SetObstacleVec in:";
   Utility::Polygon current_polygon;
   for (uint x = 0; x < grid_ptr_->info.width; ++x)
   {
@@ -244,25 +258,14 @@ void CollisionDetection::SetObstacleVec()
       }
     }
   }
-  // TODO need to add boundary obstacle
 
-  // // need to add map boundary to obstacle vec_ for other consideration
-  // // bottom obstacle as bottom boundary
-  // current_polygon = Utility::CreatePolygon(Eigen::Vector2f(0, -1), map_width_, 1);
-  // obstacle_vec_.emplace_back(current_polygon);
-  // // right obstacle as right boundary
-  // current_polygon = Utility::CreatePolygon(Eigen::Vector2f(map_width_, 0), 1, map_height_);
-  // obstacle_vec_.emplace_back(current_polygon);
-  // // top obstacle as top boundary
-  // current_polygon = Utility::CreatePolygon(Eigen::Vector2f(0, map_height_), map_width_, 1);
-  // obstacle_vec_.emplace_back(current_polygon);
-  // // left obstacle as left boundary
-  // current_polygon = Utility::CreatePolygon(Eigen::Vector2f(-1, 0), 1, map_height_);
-  // obstacle_vec_.emplace_back(current_polygon);
-  // for (const auto &polygon : obstacle_vec_)
-  // {
-  //   DLOG(INFO) << "polygon size is " << polygon.size();
-  // }
+  // AddMapBoundaryAsObstacle(obstacle_vec_);
+
+  for (const auto &polygon : obstacle_vec_)
+  {
+    DLOG(INFO) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
+  }
+  DLOG(INFO) << "SetObstacleVec out.";
 }
 // checked
 void CollisionDetection::SetInRangeObstacle(const float &range)
@@ -283,8 +286,7 @@ void CollisionDetection::SetInRangeObstacle(const float &range)
         if (distance < range)
         {
           obstacle_vec.emplace_back(polygon);
-          // DLOG(INFO) << "obstacle origin is " << polygon[0].x() << " " << polygon[0].y() << " . current point is " << x << " " << y << " distance is " << distance;
-          // DLOG(INFO) << "obstacle is in the range, distance is " << distance;
+          DLOG_IF(INFO, distance < 0) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y() << "  and its in the range. current point is " << x << " " << y << " distance is " << distance;
         }
       }
       in_range_obstacle_map_.emplace(current_point_index, obstacle_vec);
@@ -590,20 +592,32 @@ uint CollisionDetection::CalculateFineIndex(const float &x, const float &y, cons
 
 void CollisionDetection::CombineInNeighborObstacles()
 {
-  // DLOG(INFO) << "CombineInNeighborObstacles in:";
-  // 1. detect obstacles are in neighbor
-  // 2. combine obstacles
-  // DLOG(INFO) << "obstacle origin is " << x << " " << y;
+  DLOG(INFO) << "CombineInNeighborObstacles in:";
+  for (const auto &polygon : obstacle_vec_)
+  {
+    DLOG(INFO) << "obstacle before combining is: obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
+  }
+
   for (uint index1 = 0; index1 < obstacle_vec_.size(); ++index1)
   {
-    for (uint index2 = index1 + 1; index2 < obstacle_vec_.size(); ++index2)
+    // 3. do not combine boundary obstacles
+    if (!IsBoundaryObstacle(obstacle_vec_[index1]))
     {
-      if (Utility::IsPolygonInNeighbor(obstacle_vec_[index1], obstacle_vec_[index2]))
+      for (uint index2 = index1 + 1; index2 < obstacle_vec_.size(); ++index2)
       {
-        Utility::Polygon combined_polygon = Utility::CombinePolyon(obstacle_vec_[index1], obstacle_vec_[index2]);
-        obstacle_vec_[index1].clear();
-        // DLOG(INFO) << "clear current polygon.";
-        obstacle_vec_.emplace_back(combined_polygon);
+        // DLOG(INFO) << "obstacle origin is " << x << " " << y;
+        // 1. detect obstacles are in neighbor
+        if (!IsBoundaryObstacle(obstacle_vec_[index1]))
+        {
+          if (Utility::IsPolygonInNeighbor(obstacle_vec_[index1], obstacle_vec_[index2]))
+          {
+            // 2. combine obstacles
+            Utility::Polygon combined_polygon = Utility::CombinePolyon(obstacle_vec_[index1], obstacle_vec_[index2]);
+            obstacle_vec_[index1].clear();
+            // DLOG(INFO) << "clear current polygon.";
+            obstacle_vec_.emplace_back(combined_polygon);
+          }
+        }
       }
     }
   }
@@ -629,6 +643,10 @@ void CollisionDetection::CombineInNeighborObstacles()
       ++iter;
     }
   }
+  for (const auto &polygon : obstacle_vec_)
+  {
+    DLOG(INFO) << "obstacle after combining is: obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
+  }
   // count = 0;
   // for (const auto &polygon : obstacle_vec_)
   // {
@@ -639,6 +657,7 @@ void CollisionDetection::CombineInNeighborObstacles()
   //   }
   // }
   // DLOG(INFO) << "total obstacles after erase are " << count;
+  DLOG(INFO) << "CombineInNeighborObstacles out.";
 }
 // checked, it`s correct.
 Utility::AngleRangeVec CollisionDetection::FindFreeAngleRange(const Node3D &node3d)
@@ -1160,4 +1179,44 @@ float CollisionDetection::GetStepSizeWeight(const float &normalizied_obstacle_de
     step_size_weight = -0.8 * normalizied_obstacle_density + 0.9;
   }
   return step_size_weight;
+}
+// checked correct.
+void CollisionDetection::AddMapBoundaryAsObstacle(std::vector<Utility::Polygon> &obstacle_vec)
+{
+  // need to add map boundary to obstacle vec_ for other consideration
+  // key point here is to make origin for these boundary obstacle outside map, purpose is to distinguish these boundary obstacle from normal ones.
+  // bottom obstacle as bottom boundary
+  Utility::Polygon current_polygon;
+  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(0, -1), map_width_, 1);
+  obstacle_vec.emplace_back(current_polygon);
+  // right obstacle as right boundary
+  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(map_width_, -1), 1, map_height_ + 2);
+  obstacle_vec.emplace_back(current_polygon);
+  // top obstacle as top boundary
+  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(-1, map_height_), map_width_ + 2, 1);
+  obstacle_vec.emplace_back(current_polygon);
+  // left obstacle as left boundary
+  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(-1, 0), 1, map_height_);
+  obstacle_vec.emplace_back(current_polygon);
+}
+// checked, no issue
+bool CollisionDetection::IsBoundaryObstacle(const Utility::Polygon &obstacle)
+{
+  // DLOG(INFO) << "IsBoundaryObstacle in:";
+  // if the start point is outside map, then this polygon is boundary obstacle
+  if (obstacle.size() != 0)
+  {
+    if (!IsOnGrid(obstacle[0]))
+    {
+      // DLOG(INFO) << "current obstacle is a boundary obstacle";
+      // DLOG(INFO) << "IsBoundaryObstacle out.";
+      return true;
+    }
+  }
+  else
+  {
+    DLOG(WARNING) << "obstacle size is zero!!!!";
+  }
+  // DLOG(INFO) << "IsBoundaryObstacle out.";
+  return false;
 }
