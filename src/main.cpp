@@ -32,6 +32,8 @@ int main(int argc, char** argv) {
 
   google::InstallFailureSignalHandler();
 
+  google::EnableLogCleaner(5);
+
   ros::init(argc, argv, "hybrid_a_star");
 
   HybridAStar::Planner hy;
