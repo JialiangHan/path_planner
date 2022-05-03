@@ -63,19 +63,21 @@ TEST(Utility, FindIntersectionPoint)
 
 TEST(Utility, OnSegment)
 {
-    Eigen::Vector2f p1(0, 0), p2(1, 1), p3(0, 1), p4(1, 0), p5(0, 5), p6(0.5, 0), p7(-10, 1), p8(10, 1);
+    Eigen::Vector2f p1(-1, 0), p2(0, 0), p3(0, 10), p4(-1, 10), p5(0, 5), p6(0.5, 0), p7(-10, 1), p8(10, 1);
     std::vector<Eigen::Vector2f> polygon{p1, p2, p3, p4, p1};
-    std::vector<Eigen::Vector2f> outside{p5, p7, p8};
-    bool expect, result;
-    for (const auto &point : outside)
-    {
-        expect = false;
-        for (uint i = 0; i < polygon.size() - 1; ++i)
-        {
-            result = Utility::OnSegment(polygon[i], polygon[i + 1], point);
-            EXPECT_EQ(expect, result);
-        }
-    }
+    std::vector<Eigen::Vector2f> outside{p5};
+    bool expect = true, result;
+    result = Utility::OnSegment(p2, p3, p5);
+    EXPECT_EQ(expect, result);
+    // for (const auto &point : outside)
+    // {
+    //     expect = true;
+    //     for (uint i = 0; i < polygon.size() - 1; ++i)
+    //     {
+    //         result = Utility::OnSegment(polygon[i], polygon[i + 1], point);
+    //         EXPECT_EQ(expect, result);
+    //     }
+    // }
 }
 
 TEST(Utility, IsAboveSegment)

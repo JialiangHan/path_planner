@@ -27,6 +27,7 @@ namespace HybridAStar
     //###################################################
     float AStar::GetAStarCost(Node2D *nodes2D)
     {
+        // DLOG(INFO) << "GetAStarCost in:";
         // PREDECESSOR AND SUCCESSOR INDEX
         int iPred, iSucc;
         float newG;
@@ -92,6 +93,7 @@ namespace HybridAStar
                 if (*nPred == goal_)
                 {
                     // DLOG(INFO) << "goal reached, return cost so far.";
+                    // DLOG(INFO) << "GetAStarCost out.";
                     return nPred->GetCostSofar();
                 }
                 // ____________________
@@ -134,43 +136,58 @@ namespace HybridAStar
             }
         }
         // return large number to guide search away
+        // DLOG(INFO) << "GetAStarCost out.";
         return 1000;
     }
-
+    // TODO this function can be improved
     std::vector<std::shared_ptr<Node2D>> AStar::CreateSuccessor(const Node2D &pred, const uint &possible_dir)
     {
+        // DLOG(INFO) << "CreateSuccessor in:";
         std::vector<std::shared_ptr<Node2D>> successor_vec;
         std::shared_ptr<Node2D> pred_ptr = std::make_shared<Node2D>(pred);
+        int x_successor, y_successor;
         if (possible_dir == 4)
         {
             std::vector<int> delta = {-1, 1};
             for (uint i = 0; i < delta.size(); ++i)
             {
-                int x_successor = pred.GetX() + delta[i];
+                x_successor = pred.GetX() + delta[i];
+                if (!configuration_space_ptr_->IsOnGrid(x_successor, pred.GetY()))
+                {
+                    continue;
+                }
                 std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(x_successor, pred.GetY(), pred.GetCostSofar(), 0, pred_ptr));
                 successor_vec.emplace_back(temp);
             }
             for (uint i = 0; i < delta.size(); ++i)
             {
-                int y_successor = pred.GetY() + delta[i];
+                y_successor = pred.GetY() + delta[i];
+                if (!configuration_space_ptr_->IsOnGrid(pred.GetX(), y_successor))
+                {
+                    continue;
+                }
                 std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(pred.GetX(), y_successor, pred.GetCostSofar(), 0, pred_ptr));
                 successor_vec.emplace_back(temp);
             }
         }
         else if (possible_dir == 8)
         {
-            std::vector<int> delta_x = {-1, 0, 1};
-            std::vector<int> delta_y = {-1, 0, 1};
-            for (uint i = 0; i < delta_x.size(); ++i)
+            std::vector<int> delta = {-1, 0, 1};
+
+            for (uint i = 0; i < delta.size(); ++i)
             {
-                for (uint j = 0; j < delta_y.size(); ++j)
+                for (uint j = 0; j < delta.size(); ++j)
                 {
-                    if (delta_x[i] == 0 && delta_y[j] == 0)
+                    if (delta[i] == 0 && delta[j] == 0)
                     {
                         continue;
                     }
-                    int x_successor = pred.GetX() + delta_x[i];
-                    int y_successor = pred.GetY() + delta_y[j];
+                    x_successor = pred.GetX() + delta[i];
+                    y_successor = pred.GetY() + delta[j];
+                    if (!configuration_space_ptr_->IsOnGrid(x_successor, y_successor))
+                    {
+                        continue;
+                    }
                     std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(x_successor, y_successor, pred.GetCostSofar(), 0, pred_ptr));
                     successor_vec.emplace_back(temp);
                 }
@@ -180,6 +197,11 @@ namespace HybridAStar
         {
             DLOG(WARNING) << "Wrong possible_dir!!!";
         }
+        // for (const auto &element : successor_vec)
+        // {
+        //     DLOG(INFO) << "successor created is " << element->GetX() << " " << element->GetY();
+        // }
+        // DLOG(INFO) << "CreateSuccessor out.";
         return successor_vec;
     }
     //###################################################

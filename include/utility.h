@@ -102,21 +102,30 @@ namespace Utility
      */
     float CrossProduct(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2);
     /**
- * @brief determine if a point is inside a polygon
- *
- * @param polygon p0->p1->p2->p3->p0
- * @param point
- * @return int 1 inside, 0 outside
- */
+     * @brief determine if a point is inside a polygon, on edge is not considered
+     *
+     * @param polygon p0->p1->p2->p3->p0
+     * @param point
+     * @return int 1 inside, 0 outside
+     */
     int IsInsidePolygon(const Polygon &polygon, const Eigen::Vector2f &point);
     int IsInsidePolygon(const Polygon &polygon, const Eigen::Vector3f &point);
     /**
- * @brief Create a Polygon object, current is only for rectangle
- *
- * @param width
- * @param height
- * @return Polygon
- */
+     * @brief determine if a point is on polygon edge
+     *
+     * @param polygon
+     * @param point
+     * @return true
+     * @return false
+     */
+    bool IsOnPolygon(const Polygon &polygon, const Eigen::Vector2f &point);
+    /**
+     * @brief Create a Polygon object, current is only for rectangle
+     *
+     * @param width
+     * @param height
+     * @return Polygon
+     */
     Polygon CreatePolygon(const float &width, const float &height);
     /**
  * @brief Create a Polygon object, current is only for rectangle

@@ -106,6 +106,7 @@ namespace Utility
         {
             Eigen::Vector2f p1p2 = p2 - p1;
             Eigen::Vector2f p1p3 = p3 - p1;
+            // DLOG(INFO) << "answer is " << abs(p1p2.dot(p1p3) / p1p2.norm() / p1p3.norm() - 1);
             if (abs(p1p2.dot(p1p3) / p1p2.norm() / p1p3.norm() - 1) < 1e-6)
             {
                 return true;
@@ -230,12 +231,6 @@ namespace Utility
         int number_intersection = 0;
         for (uint i = 0; i < polygon.size() - 1; ++i)
         {
-            // check if point is on polygon edge
-            if (OnSegment(polygon[i], polygon[i + 1], point))
-            {
-                // DLOG(INFO) << "Point is on polygon edge.";
-                return 1;
-            }
             // if edge intersect with vector from point to far away point
             if (IsIntersect(point, far_away_point, polygon[i], polygon[i + 1]) == 1)
             {
@@ -268,10 +263,13 @@ namespace Utility
         // DLOG(INFO) << "number of intersection is " << number_intersection;
         if ((number_intersection % 2) == 0)
         {
+            // DLOG(INFO) << "Point " << point.x() << " " << point.y() << " is outside polygon  first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
+
             return 0;
         }
         else
         {
+            // DLOG(INFO) << "Point " << point.x() << " " << point.y() << " is inside polygon  first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
             return 1;
         }
     }
@@ -280,6 +278,22 @@ namespace Utility
         Eigen::Vector2f point_2d = ConvertVector3fToVector2f(point);
         return IsInsidePolygon(polygon, point_2d);
     }
+
+    bool IsOnPolygon(const Polygon &polygon, const Eigen::Vector2f &point)
+    {
+        for (uint i = 0; i < polygon.size() - 1; ++i)
+        {
+            // check if point is on polygon edge
+            if (OnSegment(polygon[i], polygon[i + 1], point))
+            {
+                // DLOG(INFO) << "Point " << point.x() << " " << point.y() << " is on polygon edge (start: " << polygon[i].x() << " " << polygon[i].y() << " end: " << polygon[i + 1].x() << " " << polygon[i + 1].y() << " )";
+                return true;
+            }
+        }
+        // DLOG(INFO) << "Point is not on polygon edge,";
+        return false;
+    }
+
     Polygon CreatePolygon(const float &width, const float &height)
     {
         Polygon polygon;
@@ -288,20 +302,65 @@ namespace Utility
         polygon.emplace_back(Eigen::Vector2f(width, height));
         polygon.emplace_back(Eigen::Vector2f(0, height));
         polygon.emplace_back(Eigen::Vector2f(0, 0));
+
         return polygon;
     }
+    // checked, correct
     Polygon CreatePolygon(const Eigen::Vector2f &origin, const float &width,
                           const float &height)
     {
         Polygon polygon;
+
+        Eigen::Vector2f second_point(width + origin.x(), origin.y());
+        Eigen::Vector2f third_point(width + origin.x(), origin.y() + height);
+        Eigen::Vector2f fourth_point(Eigen::Vector2f(origin.x(), origin.y() + height));
         polygon.emplace_back(origin);
-        polygon.emplace_back(Eigen::Vector2f(width + origin.x(), origin.y()));
-        polygon.emplace_back(
-            Eigen::Vector2f(width + origin.x(), origin.y() + height));
-        polygon.emplace_back(Eigen::Vector2f(origin.x(), origin.y() + height));
+        polygon.emplace_back(second_point);
+        polygon.emplace_back(third_point);
+        polygon.emplace_back(fourth_point);
         polygon.emplace_back(origin);
+
+        // DLOG(INFO) << "first point is " << origin.x() << " " << origin.y() << " second_point is " << second_point.x() << " " << second_point.y() << " third_point is " << third_point.x() << " " << third_point.y() << " fourth_point is " << fourth_point.x() << " " << fourth_point.y();
+
         return polygon;
     }
+
+    Polygon CreatePolygon(const Eigen::Vector2f &center, const float &width,
+                          const float &height, const float &heading)
+    {
+        Polygon polygon;
+        Eigen::Vector2f first_point(-width / 2, -height / 2);
+        Eigen::Vector2f second_point(+width / 2, -height / 2);
+        Eigen::Vector2f third_point(+width / 2, +height / 2);
+        Eigen::Vector2f fourth_point(-width / 2, +height / 2);
+        // DLOG(INFO) << "first point is " << first_point.x() << " " << first_point.y();
+        // DLOG(INFO) << "second_point is " << second_point.x() << " " << second_point.y();
+        // DLOG(INFO) << "third_point is " << third_point.x() << " " << third_point.y();
+        // DLOG(INFO) << "fourth_point is " << fourth_point.x() << " " << fourth_point.y();
+        // rotation
+        Eigen::Matrix2f rotation_matrix;
+        rotation_matrix(0, 0) = cos(heading);
+        rotation_matrix(0, 1) = -sin(heading);
+        rotation_matrix(1, 0) = sin(heading);
+        rotation_matrix(1, 1) = cos(heading);
+        first_point = center + rotation_matrix * first_point;
+        second_point = center + rotation_matrix * second_point;
+        third_point = center + rotation_matrix * third_point;
+        fourth_point = center + rotation_matrix * fourth_point;
+        // DLOG(INFO) << "first point is " << first_point.x() << " " << first_point.y();
+        // DLOG(INFO) << "second_point is " << second_point.x() << " " << second_point.y();
+        // DLOG(INFO) << "third_point is " << third_point.x() << " " << third_point.y();
+        // DLOG(INFO) << "fourth_point is " << fourth_point.x() << " " << fourth_point.y();
+        // push back
+        polygon.emplace_back(first_point);
+        polygon.emplace_back(second_point);
+        polygon.emplace_back(third_point);
+        polygon.emplace_back(fourth_point);
+        polygon.emplace_back(first_point);
+
+        return polygon;
+    }
+
     float GetDistanceFromPointToPoint(const Eigen::Vector3f &vector_3d,
                                       const Eigen::Vector2f &vector_2d)
     {
@@ -361,10 +420,17 @@ namespace Utility
                                         const Eigen::Vector2f &point)
     {
         float min_distance = 100000;
+        // check point is on polygon edge
+        if (IsOnPolygon(polygon, point))
+        {
+            return 0;
+        }
+        // check point is inside polygon
         if (IsInsidePolygon(polygon, point))
         {
             return -1;
         }
+
         for (uint i = 0; i < polygon.size() - 1; ++i)
         {
             float current_distance =
@@ -587,41 +653,6 @@ namespace Utility
         // DLOG(INFO) << "pre_vector_length is: " << pre_vector_length;
         // DLOG(INFO) << "delta_angle is: " << delta_angle;
         return curvature;
-    }
-    Polygon CreatePolygon(const Eigen::Vector2f &center, const float &width,
-                          const float &height, const float &heading)
-    {
-        Polygon polygon;
-        Eigen::Vector2f first_point(-width / 2, -height / 2);
-        Eigen::Vector2f second_point(+width / 2, -height / 2);
-        Eigen::Vector2f third_point(+width / 2, +height / 2);
-        Eigen::Vector2f fourth_point(-width / 2, +height / 2);
-        // DLOG(INFO) << "first point is " << first_point.x() << " " << first_point.y();
-        // DLOG(INFO) << "second_point is " << second_point.x() << " " << second_point.y();
-        // DLOG(INFO) << "third_point is " << third_point.x() << " " << third_point.y();
-        // DLOG(INFO) << "fourth_point is " << fourth_point.x() << " " << fourth_point.y();
-        //rotation
-        Eigen::Matrix2f rotation_matrix;
-        rotation_matrix(0, 0) = cos(heading);
-        rotation_matrix(0, 1) = -sin(heading);
-        rotation_matrix(1, 0) = sin(heading);
-        rotation_matrix(1, 1) = cos(heading);
-        first_point = center + rotation_matrix * first_point;
-        second_point = center + rotation_matrix * second_point;
-        third_point = center + rotation_matrix * third_point;
-        fourth_point = center + rotation_matrix * fourth_point;
-        // DLOG(INFO) << "first point is " << first_point.x() << " " << first_point.y();
-        // DLOG(INFO) << "second_point is " << second_point.x() << " " << second_point.y();
-        // DLOG(INFO) << "third_point is " << third_point.x() << " " << third_point.y();
-        // DLOG(INFO) << "fourth_point is " << fourth_point.x() << " " << fourth_point.y();
-        //push back
-        polygon.emplace_back(first_point);
-        polygon.emplace_back(second_point);
-        polygon.emplace_back(third_point);
-        polygon.emplace_back(fourth_point);
-        polygon.emplace_back(first_point);
-
-        return polygon;
     }
 
     bool IsPolygonIntersectWithPolygon(const Polygon &polygon1, const Polygon &polygon2)
