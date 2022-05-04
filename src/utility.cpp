@@ -135,7 +135,7 @@ namespace Utility
     {
         if ((p1.x() == p2.x() && p2.x() == p3.x() && p3.x() == p4.x()) || (p1.y() == p2.y() && p2.y() == p3.y() && p3.y() == p4.y()))
         {
-            //these segments are have same coordinate. maybe they are overlapped.
+            // these segments are have same coordinate. maybe they are overlapped.
             return 0;
         }
         if (std::max(p3.x(), p4.x()) < std::min(p1.x(), p2.x()) ||
@@ -470,7 +470,7 @@ namespace Utility
         float range_length = GetAngleBetweenTwoVector(point, start, point, end);
         return std::make_pair(RadToZeroTo2P(start_angle), range_length);
     }
-    //checked
+    // checked
     AngleRange GetAngleRangeFromPointToPolygon(const Polygon &polygon,
                                                const Eigen::Vector2f &point)
     {
@@ -484,7 +484,7 @@ namespace Utility
             AngleRange angle_range2 = GetAngleRangeFromPointToSegment(visible_vertex[index + 1], visible_vertex[index], point);
             AngleRange angle_range;
 
-            //use smallest starting angle as new start angle for polygon
+            // use smallest starting angle as new start angle for polygon
             if (angle_range1.first > angle_range2.first)
             {
 
@@ -568,7 +568,7 @@ namespace Utility
     bool IsAngleRangeInclude(const AngleRange &angle_range_1,
                              const AngleRange &angle_range_2)
     {
-        //all input should be in rad.
+        // all input should be in rad.
         float angle_range_1_start = angle_range_1.first;
         float angle_range_1_end = angle_range_1.first + angle_range_1.second;
         float angle_range_2_start = angle_range_2.first;
@@ -608,13 +608,13 @@ namespace Utility
         float angle_range_2_start = angle_range_2.first;
         float angle_range_2_end = angle_range_2.first + angle_range_2.second;
         // DLOG(INFO) << "ar1 start is " << Utility::ConvertRadToDeg(angle_range_1_start) << " end is " << Utility::ConvertRadToDeg(angle_range_1_end) << " ar2 start is " << Utility::ConvertRadToDeg(angle_range_2_start) << " end is " << Utility::ConvertRadToDeg(angle_range_2_end);
-        //case 1, start of first<start of second<end of first<end of second
+        // case 1, start of first<start of second<end of first<end of second
         if (angle_range_1_start <= angle_range_2_start && angle_range_2_start <= angle_range_1_end && angle_range_1_end <= angle_range_2_end)
         {
             out.first = angle_range_1_start;
             out.second = angle_range_2_start - angle_range_1_start;
         }
-        //case 2, start of second<start of first<end of second<end of first
+        // case 2, start of second<start of first<end of second<end of first
         if (angle_range_2_start <= angle_range_1_start && angle_range_1_start <= angle_range_2_end && angle_range_2_end <= angle_range_1_end)
         {
             out.first = angle_range_2_end;
@@ -625,7 +625,7 @@ namespace Utility
     float CalculateCurvature(const Eigen::Vector2f &pre, const Eigen::Vector2f &current, const Eigen::Vector2f &succ)
     {
         float curvature = 0;
-        //get three points from path
+        // get three points from path
 
         if (pre == current || current == succ)
         {
@@ -633,12 +633,12 @@ namespace Utility
             return curvature;
         }
 
-        //get two vector between these three nodes
+        // get two vector between these three nodes
         Eigen::Vector2f pre_vector = current - pre;
 
         Eigen::Vector2f succ_vector = succ - current;
 
-        //calculate delta distance and delta angle
+        // calculate delta distance and delta angle
         float delta_distance = succ_vector.norm();
         float pre_vector_length = pre_vector.norm();
 
@@ -675,7 +675,7 @@ namespace Utility
         {
             return -1;
         }
-        //get distance from point to polygon
+        // get distance from point to polygon
         float temp_distance = GetDistanceFromPolygonToPoint(polygon, start);
         if (out > temp_distance)
         {
@@ -686,7 +686,7 @@ namespace Utility
         {
             out = temp_distance;
         }
-        //get distance from segment to vertex of polygon
+        // get distance from segment to vertex of polygon
         for (const auto &vertex : polygon)
         {
             temp_distance = GetDistanceFromSegmentToPoint(start, end, vertex);
