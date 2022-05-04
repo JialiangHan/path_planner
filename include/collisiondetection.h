@@ -63,14 +63,17 @@ namespace HybridAStar
      * @return std::vector<std::pair<float, Utility::AngleRange>> pair first is min distance, pair second is angle range
      */
     std::vector<std::pair<float, Utility::AngleRange>> FindFreeAngleRangeAndObstacleAngleRange(const Node3D &node3d);
+
     /**
-     * @brief select step size and steering angle according to available angle range vec and current node
+     * @brief select step size and steering angle according to available angle range vec and current node, include add one more successor toward goal
      *
      * @param available_angle_range_vec
      * @param pred
+     * @param goal
+     * @param number_of_successor
      * @return std::vector<std::pair<float, float>> first is step size, second is steering angle
      */
-    std::vector<std::pair<float, float>> SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred,const int& number_of_successor);
+    std::vector<std::pair<float, float>> SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred, const Node3D &goal, const int &number_of_successor);
 
     float GetObstacleDetectionRange() const { return obstacle_detection_range_; };
 
@@ -258,6 +261,8 @@ namespace HybridAStar
      * @return false
      */
     bool IsBoundaryObstacle(const Utility::Polygon &obstacle);
+
+    std::pair<float, float> AddOneMoreStepSizeAndSteeringAngle(const float &angle_to_goal, const float &step_size, const Node3D &pred, const Node3D &goal);
 
   private:
     ParameterCollisionDetection params_;
