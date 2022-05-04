@@ -877,13 +877,17 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
 
   // 3. find angle to goal
   // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
-  float angle_to_goal = -Utility::RadNormalization(pred.GetT() - goal.GetT());
-  bool flag = true;
-  if (flag)
+  float angle_to_goal;
+  if (params_.add_one_more_successor_only_in_free_angle_range)
   {
-    angle_to_goal = -Utility::RadNormalization(pred.GetT() - Utility::GetAngle(pred, goal));
-    // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
-    // DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
+    angle_to_goal = -Utility::RadNormalization(pred.GetT() - goal.GetT());
+    bool flag = true;
+    if (flag)
+    {
+      angle_to_goal = -Utility::RadNormalization(pred.GetT() - Utility::GetAngle(pred, goal));
+      // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
+      // DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
+    }
   }
   for (const auto &pair : available_angle_range_vec)
   {
@@ -900,10 +904,13 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
     // 2. for free angle range, steering angle is angle range start + 1/(number of successors+1) * angle range.
     if (pair.first == obstacle_detection_range_)
     {
-      // TODO if angle to goal is in free angle range, then add one more pair of step size and steering angle to result
-      if (Utility::IsAngleRangeInclude(pair.second, angle_to_goal))
+      if (params_.add_one_more_successor_only_in_free_angle_range)
       {
-        out.emplace_back(AddOneMoreStepSizeAndSteeringAngle(angle_to_goal, step_size, pred, goal));
+        // TODO if angle to goal is in free angle range, then add one more pair of step size and steering angle to result
+        if (Utility::IsAngleRangeInclude(pair.second, angle_to_goal))
+        {
+          out.emplace_back(AddOneMoreStepSizeAndSteeringAngle(angle_to_goal, step_size, pred, goal));
+        }
       }
       // TODO how to automatically determine number of successors?
       //  if free angle range is too small, then just create only one steering angle
@@ -1293,7 +1300,7 @@ std::pair<float, float> CollisionDetection::AddOneMoreStepSizeAndSteeringAngle(c
   out.first = new_step_size;
   out.second = steering_angle;
 
-  // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size and steering angle pair is " << new_step_size << " " << Utility::ConvertRadToDeg(steering_angle);
+  DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size and steering angle pair is " << new_step_size << " " << Utility::ConvertRadToDeg(steering_angle);
 
   return out;
 }
