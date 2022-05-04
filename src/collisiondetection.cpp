@@ -1300,7 +1300,7 @@ std::pair<float, float> CollisionDetection::AddOneMoreStepSizeAndSteeringAngle(c
   out.first = new_step_size;
   out.second = steering_angle;
 
-  DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size and steering angle pair is " << new_step_size << " " << Utility::ConvertRadToDeg(steering_angle);
+  // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size is " << new_step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle);
 
   return out;
 }

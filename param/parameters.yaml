@@ -20,9 +20,9 @@ curve_type : 2
 # step size to create successor
 step_size : 1
 
-add_one_more_successor : false
+add_one_more_successor : true
 
-add_one_more_successor_only_in_free_angle_range: true
+add_one_more_successor_only_in_free_angle_range: false
 
 analytical_expansion: true
 # this parameter determine the frequency of analytical expansion, false means the way in the original paper

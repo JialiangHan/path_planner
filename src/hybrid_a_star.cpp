@@ -808,6 +808,8 @@ namespace HybridAStar
       steering_angle = angle_to_goal;
     }
 
+    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT()) << " one more step size is " << step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle);
+
     step_size_steering_angle_pair.emplace_back(std::pair<float, float>(step_size, steering_angle));
   }
 }
