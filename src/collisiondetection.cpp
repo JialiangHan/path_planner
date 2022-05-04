@@ -878,6 +878,13 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   // 3. find angle to goal
   // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
   float angle_to_goal = -Utility::RadNormalization(pred.GetT() - goal.GetT());
+  bool flag = true;
+  if (flag)
+  {
+    angle_to_goal = -Utility::RadNormalization(pred.GetT() - Utility::GetAngle(pred, goal));
+    // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
+    // DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
+  }
   for (const auto &pair : available_angle_range_vec)
   {
 
@@ -1262,9 +1269,7 @@ std::pair<float, float> CollisionDetection::AddOneMoreStepSizeAndSteeringAngle(c
     new_step_size = step_size;
   }
   // DLOG(INFO) << "step size is " << step_size;
-  // 3. find angle to goal
 
-  // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
   // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
   // 4. if angle to goal is in the steering angle range(current orientation +-30deg), then make it steering angle, otherwise 30 or -30 to make angle to goal smaller
 
@@ -1287,6 +1292,8 @@ std::pair<float, float> CollisionDetection::AddOneMoreStepSizeAndSteeringAngle(c
   }
   out.first = new_step_size;
   out.second = steering_angle;
+
+  // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size and steering angle pair is " << new_step_size << " " << Utility::ConvertRadToDeg(steering_angle);
 
   return out;
 }

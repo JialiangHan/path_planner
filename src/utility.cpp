@@ -950,7 +950,7 @@ namespace Utility
     {
         // if angle is in between angle range start and angle range end, then it`s include
         float angle_range_end = angle_range.first + angle_range.second;
-        DLOG(INFO) << "angle range start " << ConvertRadToDeg(angle_range.first) << " angle range end " << ConvertRadToDeg(angle_range_end) << " angle is " << ConvertRadToDeg(angle);
+        // DLOG(INFO) << "angle range start " << ConvertRadToDeg(angle_range.first) << " angle range end " << ConvertRadToDeg(angle_range_end) << " angle is " << ConvertRadToDeg(angle);
         // first check 0-360
         if (angle > angle_range.first && angle < angle_range_end)
         {
