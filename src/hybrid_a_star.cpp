@@ -575,11 +575,11 @@ namespace HybridAStar
     // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
     std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred);
     // 3. determine step size and steering angle from previous output
-    out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, params_.number_of_successors);
+    out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors);
     // comment out due to less nodes explored when add one more step every time
     //  if (out.size() == 0)
     //  {
-    AddOneMoreStepSizeAndSteeringAngle(pred, out);
+    // AddOneMoreStepSizeAndSteeringAngle(pred, out);
     // }
 
     // for (const auto &pair : out)
@@ -747,66 +747,5 @@ namespace HybridAStar
       // DLOG(INFO) << "point is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
     }
     // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath out.";
-  }
-
-  void HybridAStar::AddOneMoreStepSizeAndSteeringAngle(const Node3D &pred, std::vector<std::pair<float, float>> &step_size_steering_angle_pair)
-  {
-    // 1. first find distance from current node to goal position
-    float distance_to_goal = Utility::GetDistance(pred, goal_);
-    // DLOG(INFO) << "distance to goal is " << distance_to_goal;
-    // 2. if distance to goal is less than step size above. than make it new step size, otherwise use old one
-
-    float step_size, steering_angle;
-    // DLOG_IF(WARNING, step_size_steering_angle_pair.size() == 0) << "step_size_steering_angle_pair size is zero!!!";
-    if (step_size_steering_angle_pair.size() != 0)
-    {
-      step_size = step_size_steering_angle_pair.back().first;
-    }
-    else
-    {
-      float weight_step_size = -0.8 * configuration_space_ptr_->GetNormalizedObstacleDensity(pred) + 0.9;
-      step_size = weight_step_size * configuration_space_ptr_->GetObstacleDetectionRange();
-      DLOG_IF(INFO, step_size < 1) << "step size is " << step_size;
-    }
-
-       if (distance_to_goal < step_size)
-    {
-      step_size = distance_to_goal;
-    }
-    // DLOG(INFO) << "step size is " << step_size;
-    // 3. find angle to goal
-    // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
-    float angle_to_goal = -Utility::RadNormalization(pred.GetT() - goal_.GetT());
-    bool flag = true;
-    if (flag)
-    {
-      angle_to_goal = -Utility::RadNormalization(pred.GetT() - Utility::GetAngle(pred, goal_));
-      // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
-      // DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
-    }
-    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT());
-    // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
-    // 4. if angle to goal is in the steering angle range(current orientation +-30deg), then make it steering angle, otherwise 30 or -30 to make angle to goal smaller
-
-    if (std::abs(angle_to_goal) > Utility::ConvertDegToRad(30))
-    {
-      // if (pred.GetT() > Utility::RadNormalization(goal_.GetT()) && pred.GetT() < Utility::RadNormalization((goal_.GetT() + Utility::ConvertDegToRad(180))))
-      if (angle_to_goal < -Utility::ConvertDegToRad(30))
-      {
-        // right is negative
-        steering_angle = -Utility::ConvertDegToRad(30);
-      }
-      else
-      {
-        // left is positive
-        steering_angle = Utility::ConvertDegToRad(30);
-      }
-    }
-    else
-    {
-      steering_angle = angle_to_goal;
-    }
-
-    step_size_steering_angle_pair.emplace_back(std::pair<float, float>(step_size, steering_angle));
   }
 }

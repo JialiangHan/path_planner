@@ -9,7 +9,7 @@ Panels:
         - /Grid1
         - /Path1
       Splitter Ratio: 0.5
-    Tree Height: 787
+    Tree Height: 363
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -249,8 +249,8 @@ Visualization Manager:
       Near Clip Distance: 0.009999999776482582
       Scale: 17.459815979003906
       Target Frame: <Fixed Frame>
-      X: 40.9305419921875
-      Y: 24.93227767944336
+      X: 50.03711700439453
+      Y: 20.579425811767578
     Saved: ~
 Window Geometry:
   Displays:

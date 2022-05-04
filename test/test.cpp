@@ -288,3 +288,15 @@ TEST(Utility, IsSegmentIntersectWithPolygon)
     int result = Utility::IsSegmentIntersectWithPolygon(polygon, start, end);
     EXPECT_EQ(expect, result);
 }
+
+TEST(Utility, IsAngleRangeIncludeAngle)
+{
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(150), Utility::ConvertDegToRad(50));
+    float angle1 = Utility::ConvertDegToRad(180);
+
+    Utility::AngleRange ar2(Utility::ConvertDegToRad(330), Utility::ConvertDegToRad(50));
+    float angle2 = Utility::ConvertDegToRad(10);
+
+    EXPECT_TRUE(Utility::IsAngleRangeInclude(ar1, angle1));
+    EXPECT_TRUE(Utility::IsAngleRangeInclude(ar2, angle2));
+}

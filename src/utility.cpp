@@ -945,4 +945,23 @@ namespace Utility
         diff = ConvertNod2DToVector2f(goal) - ConvertNod2DToVector2f(start);
         return atan2(diff.y(), diff.x());
     }
+
+    bool IsAngleRangeInclude(const AngleRange &angle_range, const float &angle)
+    {
+        // if angle is in between angle range start and angle range end, then it`s include
+        float angle_range_end = angle_range.first + angle_range.second;
+        // DLOG(INFO) << "angle range start " << ConvertRadToDeg(angle_range.first) << " angle range end " << ConvertRadToDeg(angle_range_end) << " angle is " << ConvertRadToDeg(angle);
+        // first check 0-360
+        if (angle > angle_range.first && angle < angle_range_end)
+        {
+            return true;
+        }
+
+        // second check [-pi,pi]
+        if (RadNormalization(angle) > RadNormalization(angle_range.first) && RadNormalization(angle) < RadNormalization(angle_range_end))
+        {
+            return true;
+        }
+        return false;
+    }
 } // namespace Utility

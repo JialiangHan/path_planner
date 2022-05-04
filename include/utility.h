@@ -275,6 +275,15 @@ namespace Utility
      */
     bool IsAngleRangeInclude(const AngleRange &angle_range_1,
                              const AngleRange &angle_range_2);
+    /**
+     * @brief determine is angle is inside this angle range
+     *
+     * @param angle_range
+     * @param angle rad
+     * @return true
+     * @return false
+     */
+    bool IsAngleRangeInclude(const AngleRange &angle_range, const float &angle);
 
     /**
  * @brief angle range 1 minus angle range 2,only for overlap condition, fully included is not considered
