@@ -1,6 +1,29 @@
 #include "collisiondetection.h"
 
 using namespace HybridAStar;
+//**********************constructor*******************
+CollisionDetection::CollisionDetection(const ParameterCollisionDetection &params)
+{
+  params_ = params;
+  this->grid_ptr_ = nullptr;
+  Lookup::collisionLookup(collisionLookup);
+}
+
+void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map)
+{
+  grid_ptr_ = map;
+  map_height_ = map->info.height;
+  map_width_ = map->info.width;
+  SetObstacleVec();
+  // CombineInNeighborObstacles();
+  obstacle_detection_range_ = 6 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
+  // DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range_;
+  SetInRangeObstacle(obstacle_detection_range_);
+  SetDistanceAngleRangeMap();
+  BuildObstacleDensityMap(1.3 * obstacle_detection_range_);
+  BuildNormalizedObstacleDensityMap();
+  // BuildCollisionLookupTable();
+}
 
 bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr)
 {
@@ -333,7 +356,7 @@ void CollisionDetection::SetDistanceAngleRangeMap()
     {
       uint current_point_index = GetNode3DIndexOnGridMap(x, y);
       Eigen::Vector2f current_point(x, y);
-      std::vector<Utility::Polygon> in_range_obstacle_vec;
+      // std::vector<Utility::Polygon> in_range_obstacle_vec;
       if (in_range_obstacle_map_.find(current_point_index) != in_range_obstacle_map_.end())
       {
         std::vector<std::pair<float, Utility::AngleRange>> distance_angle_range_vec;
@@ -351,49 +374,49 @@ void CollisionDetection::SetDistanceAngleRangeMap()
   }
   // DLOG(INFO) << "SetDistanceAngleRangeMap out.";
 }
-// todo use sweepline algorithm
-std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::GetObstacleInAvailableSteeringAngleRangle(const Node3D &node3d)
-{
-  DLOG(INFO) << "GetObstacleInAvailableSteeringAngleRangle in:";
-  std::vector<std::pair<float, Utility::AngleRange>> out;
-  uint current_point_index = GetNode3DIndexOnGridMap(node3d);
-  Utility::AngleRange steering_angle_range;
-  DLOG(INFO) << "current node index is " << current_point_index;
-  if (distance_angle_range_map_.find(current_point_index) != distance_angle_range_map_.end())
-  {
-    for (const auto &pair : distance_angle_range_map_[current_point_index])
-    {
-      steering_angle_range = GetNode3DAvailableAngleRange(node3d);
-      DLOG(INFO) << "steering angle range is " << Utility::ConvertRadToDeg(steering_angle_range.first) << " " << Utility::ConvertRadToDeg(steering_angle_range.second);
-      DLOG(INFO) << "obstacle angle range is " << Utility::ConvertRadToDeg(pair.second.first) << " " << Utility::ConvertRadToDeg(pair.second.second);
-      if (Utility::IsOverlap(steering_angle_range, pair.second))
-      {
-        out.emplace_back(pair);
-        DLOG(INFO) << "steering angle range and obstacle angle range are overlapped";
-      }
+// // todo use sweepline algorithm
+// std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::GetObstacleInAvailableSteeringAngleRangle(const Node3D &node3d)
+// {
+//   DLOG(INFO) << "GetObstacleInAvailableSteeringAngleRangle in:";
+//   std::vector<std::pair<float, Utility::AngleRange>> out;
+//   uint current_point_index = GetNode3DIndexOnGridMap(node3d);
+//   Utility::AngleRange steering_angle_range;
+//   DLOG(INFO) << "current node index is " << current_point_index;
+//   if (distance_angle_range_map_.find(current_point_index) != distance_angle_range_map_.end())
+//   {
+//     for (const auto &pair : distance_angle_range_map_[current_point_index])
+//     {
+//       steering_angle_range = GetNode3DAvailableAngleRange(node3d);
+//       DLOG(INFO) << "steering angle range is " << Utility::ConvertRadToDeg(steering_angle_range.first) << " " << Utility::ConvertRadToDeg(steering_angle_range.second);
+//       DLOG(INFO) << "obstacle angle range is " << Utility::ConvertRadToDeg(pair.second.first) << " " << Utility::ConvertRadToDeg(pair.second.second);
+//       if (Utility::IsOverlap(steering_angle_range, pair.second))
+//       {
+//         out.emplace_back(pair);
+//         DLOG(INFO) << "steering angle range and obstacle angle range are overlapped";
+//       }
 
-      if (Utility::IsAngleRangeInclude(steering_angle_range, pair.second))
-      {
-        out.emplace_back(pair);
-        DLOG(INFO) << "steering angle range and obstacle angle range are IsAngleRangeInclude";
-      }
+//       if (Utility::IsAngleRangeInclude(steering_angle_range, pair.second))
+//       {
+//         out.emplace_back(pair);
+//         DLOG(INFO) << "steering angle range and obstacle angle range are IsAngleRangeInclude";
+//       }
 
-      if (Utility::IsAngleRangeInclude(pair.second, steering_angle_range))
-      {
-        out.emplace_back(pair);
-        DLOG(INFO) << "obstacle angle range and steering angle range  are IsAngleRangeInclude";
-      }
-      // TODO what if two angle range are not overlap, include, these ranges are far away
-    }
-  }
-  DLOG(INFO) << "size of distance_angle_range_vec is " << out.size();
-  for (const auto &pair : out)
-  {
-    DLOG(INFO) << "distance to obstacle is " << pair.first << " angle range start is " << Utility::ConvertRadToDeg(pair.second.first) << " angle range range is " << Utility::ConvertRadToDeg(pair.second.second);
-  }
-  DLOG(INFO) << "GetObstacleInAvailableSteeringAngleRangle out.";
-  return out;
-}
+//       if (Utility::IsAngleRangeInclude(pair.second, steering_angle_range))
+//       {
+//         out.emplace_back(pair);
+//         DLOG(INFO) << "obstacle angle range and steering angle range  are IsAngleRangeInclude";
+//       }
+//       // TODO what if two angle range are not overlap, include, these ranges are far away
+//     }
+//   }
+//   DLOG(INFO) << "size of distance_angle_range_vec is " << out.size();
+//   for (const auto &pair : out)
+//   {
+//     DLOG(INFO) << "distance to obstacle is " << pair.first << " angle range start is " << Utility::ConvertRadToDeg(pair.second.first) << " angle range range is " << Utility::ConvertRadToDeg(pair.second.second);
+//   }
+//   DLOG(INFO) << "GetObstacleInAvailableSteeringAngleRangle out.";
+//   return out;
+// }
 
 // where to put this collision table in lookup_table.cpp or collisiondetection..cpp?
 void CollisionDetection::BuildCollisionLookupTable()
@@ -591,75 +614,75 @@ uint CollisionDetection::CalculateFineIndex(const float &x, const float &y, cons
   return out;
 }
 
-void CollisionDetection::CombineInNeighborObstacles()
-{
-  DLOG(INFO) << "CombineInNeighborObstacles in:";
-  for (const auto &polygon : obstacle_vec_)
-  {
-    DLOG(INFO) << "obstacle before combining is: obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
-  }
+// void CollisionDetection::CombineInNeighborObstacles()
+// {
+//   DLOG(INFO) << "CombineInNeighborObstacles in:";
+//   for (const auto &polygon : obstacle_vec_)
+//   {
+//     DLOG(INFO) << "obstacle before combining is: obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
+//   }
 
-  for (uint index1 = 0; index1 < obstacle_vec_.size(); ++index1)
-  {
-    // 3. do not combine boundary obstacles
-    if (!IsBoundaryObstacle(obstacle_vec_[index1]))
-    {
-      for (uint index2 = index1 + 1; index2 < obstacle_vec_.size(); ++index2)
-      {
-        // DLOG(INFO) << "obstacle origin is " << x << " " << y;
-        // 1. detect obstacles are in neighbor
-        if (!IsBoundaryObstacle(obstacle_vec_[index1]))
-        {
-          if (Utility::IsPolygonInNeighbor(obstacle_vec_[index1], obstacle_vec_[index2]))
-          {
-            // 2. combine obstacles
-            Utility::Polygon combined_polygon = Utility::CombinePolyon(obstacle_vec_[index1], obstacle_vec_[index2]);
-            obstacle_vec_[index1].clear();
-            // DLOG(INFO) << "clear current polygon.";
-            obstacle_vec_.emplace_back(combined_polygon);
-          }
-        }
-      }
-    }
-  }
-  // int count = 0;
-  // for (const auto &polygon : obstacle_vec_)
-  // {
-  //   // DLOG(INFO) << "polygon size is " << polygon.size();
-  //   if (polygon.size() != 0)
-  //   {
-  //     count++;
-  //   }
-  // }
-  // DLOG(INFO) << "total obstacles are " << count;
-  for (auto iter = obstacle_vec_.begin(); iter != obstacle_vec_.end();)
-  {
-    if (iter->size() == 0)
-    {
-      iter = obstacle_vec_.erase(iter);
-      // DLOG(INFO) << "erase current iter.";
-    }
-    else
-    {
-      ++iter;
-    }
-  }
-  for (const auto &polygon : obstacle_vec_)
-  {
-    DLOG(INFO) << "obstacle after combining is: obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
-  }
-  // count = 0;
-  // for (const auto &polygon : obstacle_vec_)
-  // {
-  //   // DLOG(INFO) << "polygon size is " << polygon.size();
-  //   if (polygon.size() != 0)
-  //   {
-  //     count++;
-  //   }
-  // }
-  // DLOG(INFO) << "total obstacles after erase are " << count;
-  DLOG(INFO) << "CombineInNeighborObstacles out.";
-}
+//   for (uint index1 = 0; index1 < obstacle_vec_.size(); ++index1)
+//   {
+//     // 3. do not combine boundary obstacles
+//     if (!IsBoundaryObstacle(obstacle_vec_[index1]))
+//     {
+//       for (uint index2 = index1 + 1; index2 < obstacle_vec_.size(); ++index2)
+//       {
+//         // DLOG(INFO) << "obstacle origin is " << x << " " << y;
+//         // 1. detect obstacles are in neighbor
+//         if (!IsBoundaryObstacle(obstacle_vec_[index1]))
+//         {
+//           if (Utility::IsPolygonInNeighbor(obstacle_vec_[index1], obstacle_vec_[index2]))
+//           {
+//             // 2. combine obstacles
+//             Utility::Polygon combined_polygon = Utility::CombinePolyon(obstacle_vec_[index1], obstacle_vec_[index2]);
+//             obstacle_vec_[index1].clear();
+//             // DLOG(INFO) << "clear current polygon.";
+//             obstacle_vec_.emplace_back(combined_polygon);
+//           }
+//         }
+//       }
+//     }
+//   }
+//   // int count = 0;
+//   // for (const auto &polygon : obstacle_vec_)
+//   // {
+//   //   // DLOG(INFO) << "polygon size is " << polygon.size();
+//   //   if (polygon.size() != 0)
+//   //   {
+//   //     count++;
+//   //   }
+//   // }
+//   // DLOG(INFO) << "total obstacles are " << count;
+//   for (auto iter = obstacle_vec_.begin(); iter != obstacle_vec_.end();)
+//   {
+//     if (iter->size() == 0)
+//     {
+//       iter = obstacle_vec_.erase(iter);
+//       // DLOG(INFO) << "erase current iter.";
+//     }
+//     else
+//     {
+//       ++iter;
+//     }
+//   }
+//   for (const auto &polygon : obstacle_vec_)
+//   {
+//     DLOG(INFO) << "obstacle after combining is: obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
+//   }
+//   // count = 0;
+//   // for (const auto &polygon : obstacle_vec_)
+//   // {
+//   //   // DLOG(INFO) << "polygon size is " << polygon.size();
+//   //   if (polygon.size() != 0)
+//   //   {
+//   //     count++;
+//   //   }
+//   // }
+//   // DLOG(INFO) << "total obstacles after erase are " << count;
+//   DLOG(INFO) << "CombineInNeighborObstacles out.";
+// }
 // checked, it`s correct.
 Utility::AngleRangeVec CollisionDetection::FindFreeAngleRange(const Node3D &node3d)
 {

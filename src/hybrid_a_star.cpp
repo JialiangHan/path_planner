@@ -767,7 +767,7 @@ namespace HybridAStar
     {
       float weight_step_size = -0.8 * configuration_space_ptr_->GetNormalizedObstacleDensity(pred) + 0.9;
       step_size = weight_step_size * configuration_space_ptr_->GetObstacleDetectionRange();
-      DLOG_IF(INFO, step_size < 1) << "step size is " << step_size;
+      // DLOG_IF(INFO, step_size < 1) << "step size is " << step_size;
     }
 
     if (distance_to_goal < step_size)

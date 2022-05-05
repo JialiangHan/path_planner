@@ -25,12 +25,7 @@ namespace HybridAStar
     /// Constructor
     CollisionDetection(){};
 
-    CollisionDetection(const ParameterCollisionDetection &params)
-    {
-      params_ = params;
-      this->grid_ptr_ = nullptr;
-      Lookup::collisionLookup(collisionLookup);
-    };
+    CollisionDetection(const ParameterCollisionDetection &params);
 
     bool IsTraversable(const std::shared_ptr<Node2D> &nod2d_ptr);
     bool IsTraversable(const std::shared_ptr<Node3D> &nod3d_ptr);
@@ -40,21 +35,8 @@ namespace HybridAStar
     /*!
      \brief updates the grid with the world map
   */
-    void UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map)
-    {
-      grid_ptr_ = map;
-      map_height_ = map->info.height;
-      map_width_ = map->info.width;
-      SetObstacleVec();
-      // CombineInNeighborObstacles();
-      obstacle_detection_range_ = 6 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
-      // DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range;
-      SetInRangeObstacle(obstacle_detection_range_);
-      SetDistanceAngleRangeMap();
-      BuildObstacleDensityMap(1.3 * obstacle_detection_range_);
-      BuildNormalizedObstacleDensityMap();
-      // BuildCollisionLookupTable();
-    }
+    void UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map);
+
     nav_msgs::OccupancyGrid::Ptr GetMap() const { return grid_ptr_; };
     /**
      * @brief find free angle range and obstacle angle range from a vector of <distance,angle> pair
@@ -207,9 +189,9 @@ namespace HybridAStar
     uint
     CalculateFineIndex(const float &x, const float &y, const float &t);
 
-    void CombineInNeighborObstacles();
+    // void CombineInNeighborObstacles();
 
-    std::vector<std::pair<float, Utility::AngleRange>> GetObstacleInAvailableSteeringAngleRangle(const Node3D &node3d);
+    // std::vector<std::pair<float, Utility::AngleRange>> GetObstacleInAvailableSteeringAngleRangle(const Node3D &node3d);
     /**
      * @brief sweep from steering angle range at node3d, get angle and their distance which has no collision
      *
