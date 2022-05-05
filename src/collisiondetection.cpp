@@ -258,9 +258,10 @@ void CollisionDetection::SetObstacleVec()
       }
     }
   }
-
-  // AddMapBoundaryAsObstacle(obstacle_vec_);
-
+  if (params_.map_boundary_obstacle)
+  {
+    AddMapBoundaryAsObstacle(obstacle_vec_);
+  }
   // for (const auto &polygon : obstacle_vec_)
   // {
   //   DLOG(INFO) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();

@@ -32,6 +32,8 @@ namespace HybridAStar
     bool consider_steering_angle_range_for_obstacle_density = false;
 
     bool add_one_more_successor_only_in_free_angle_range = false;
+
+    bool map_boundary_obstacle = false;
   };
 
   //this struct contains some used parameters in visualize class
