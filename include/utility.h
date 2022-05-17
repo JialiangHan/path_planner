@@ -60,13 +60,24 @@ namespace Utility
     bool OnSegment(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2,
                    const Eigen::Vector2f &p3);
     /**
- * @brief determine p3 is above or below segment p1-p2
- *
- * @param p1
- * @param p2
- * @param p3
- * @return int 1 above and on segment, 0 below,
- */
+     * @brief determine if a point is on a line
+     *
+     * @param point
+     * @param start
+     * @param unit_vector
+     * @return true
+     * @return false
+     */
+    bool IsPointOnLine(const Eigen::Vector2f &point, const Eigen::Vector2f &start,
+                       const Eigen::Vector2f &unit_vector);
+    /**
+     * @brief determine p3 is above or below segment p1-p2
+     *
+     * @param p1
+     * @param p2
+     * @param p3
+     * @return int 1 above and on segment, 0 below,
+     */
     int IsAboveSegment(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2,
                        const Eigen::Vector2f &p3);
     /**
@@ -175,6 +186,18 @@ namespace Utility
                                         const Eigen::Vector2f &end,
                                         const Eigen::Vector2f &point);
     /**
+     * @brief Get the Distance From Point To Line, line is represented by a starting point and unit vector
+     *
+     * @param start
+     * @param unit_vector
+     * @param point
+     * @return float
+     */
+    float GetDistanceFromPointToLine(const Eigen::Vector2f &point,
+                                     const Eigen::Vector2f &start,
+                                     const Eigen::Vector2f &unit_vector);
+
+    /**
  * @brief Get the min Distance From Polygon To Point
  *
  * @param polygon
@@ -244,7 +267,16 @@ namespace Utility
  */
     AngleRange GetAngleRangeFromPointToPolygon(const Polygon &polygon,
                                                const Eigen::Vector2f &point);
-
+    /**
+     * @brief Get the Angle Range From Point To Polygon object consider in a circle whose radius is range
+     *
+     * @param polygon
+     * @param point
+     * @param radius obstacle detection radius
+     * @return AngleRange
+     */
+    AngleRange GetAngleRangeFromPointToPolygon(const Polygon &polygon,
+                                               const Eigen::Vector2f &point, const float &radius);
     /**
      * @brief find visible vertex of a polygon from a point view, current this
      * function only work for rectangle
@@ -266,12 +298,12 @@ namespace Utility
     bool IsOverlap(const AngleRange &angle_range_1,
                    const AngleRange &angle_range_2);
     /**
-     * @brief determine is angle range 1 is fully inside angle range 2
-     * 
-     * @param angle_range_1 
-     * @param angle_range_2 
-     * @return true 
-     * @return false 
+     * @brief determine is angle range 1 include angle range 2, ar1 is larger and include ar2.
+     *
+     * @param angle_range_1
+     * @param angle_range_2
+     * @return true
+     * @return false
      */
     bool IsAngleRangeInclude(const AngleRange &angle_range_1,
                              const AngleRange &angle_range_2);
@@ -295,13 +327,22 @@ namespace Utility
     AngleRange MinusAngleRange(const AngleRange &angle_range_1,
                                const AngleRange &angle_range_2);
     /**
-    * @brief calculate curvature from three points
-    * 
-    * @param pre 
-    * @param current 
-    * @param succ 
-    * @return float 
-    */
+     * @brief combine angle range only if they have some range in common.
+     *
+     * @param angle_range_1
+     * @param angle_range_2
+     * @return AngleRange start and range are only negative when ar1 and ar2 not in common
+     */
+    AngleRange CombineAngleRange(const AngleRange &angle_range_1,
+                                 const AngleRange &angle_range_2);
+    /**
+     * @brief calculate curvature from three points
+     *
+     * @param pre
+     * @param current
+     * @param succ
+     * @return float
+     */
     float CalculateCurvature(const Eigen::Vector2f &pre, const Eigen::Vector2f &current, const Eigen::Vector2f &succ);
     /**
        * @brief determine if polygon1 is intersect with polygon2, 
@@ -331,6 +372,102 @@ namespace Utility
      * @return Polygon
      */
     Polygon CombinePolyon(const Polygon &polygon1, const Polygon &polygon2);
+    /**
+     * @brief Get the Angle Range From Point To Edge At some Radius
+     *
+     * @param point
+     * @param start edge start
+     * @param end edge end
+     * @param radius
+     * @return AngleRange
+     */
+    AngleRange GetAngleRangeFromPointToEdgeAtRadius(const HybridAStar::Node3D &point, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end);
+
+    AngleRange GetAngleRangeFromPointToEdgeAtRadius(const Eigen::Vector2f &point, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end);
+    /**
+     * @brief Get the Angle Range From Point To Polygon At some radius, center should always outside polygon
+     *
+     * @param point circle center
+     * @param radius
+     * @param polygon
+     * @return AngleRange
+     */
+    AngleRange GetAngleRangeFromPointToPolygonAtRadius(const Eigen::Vector2f &point, const float &radius, const Polygon &polygon);
+
+    /**
+     * @brief Get the Intersection Points Between Circle And Segment
+     *
+     * @param center circle center
+     * @param radius
+     * @param start
+     * @param end
+     * @return std::vector<Eigen::Vector2f>
+     */
+    std::vector<Eigen::Vector2f> GetIntersectionPointsBetweenCircleAndSegment(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end);
+    /**
+     * @brief determine relationship between circle and polyon
+     *
+     * @param center
+     * @param radius
+     * @param polygon
+     * @return int 1: polyon is fully inside circle, 0: polygon partially inside circle, -1: polygon is fully outside circle
+     */
+    int IsPolygonInsideCircle(const Eigen::Vector2f &center, const float &radius, const Polygon &polygon);
+    /**
+     * @brief determine if a point is inside circle, on circle is not considered.
+     *
+     * @param center
+     * @param radius
+     * @param point
+     * @return true point inside circle
+     * @return false point outside circle
+     */
+    bool IsPointInsideCircle(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &point);
+    /**
+     * @brief determine if edge is inside circle, on circle is not considered.
+     *
+     * @param center
+     * @param radius
+     * @param start
+     * @param end
+     * @return int 1: edge is fully inside circle, 0: edge partially inside circle, -1: edge is fully outside circle
+     */
+    int IsEdgeInsideCircle(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end);
+    /**
+     * @brief find angle range using two angle, whether start or end is not important. range must be smaller than Pi
+     *
+     * @param a1 in rad
+     * @param a2 in rad
+     * @return AngleRange
+     */
+    AngleRange FindAngleRange(const float &a1, const float &a2);
+    /**
+     * @brief Get the Intersection Points Between Circle And Line, first assumption is there must be at least one intersection points
+     *
+     * @param center
+     * @param radius
+     * @param start start point of line
+     * @param unit_vector unit vector of line
+     * @return std::vector<Eigen::Vector2f>
+     */
+    std::vector<Eigen::Vector2f> GetIntersectionPointsBetweenCircleAndLine(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &unit_vector);
+    /**
+     * @brief Get the Unit Vector of two points,
+     *
+     * @param start
+     * @param end
+     * @return Eigen::Vector2f
+     */
+    Eigen::Vector2f GetUnitVector(const Eigen::Vector2f &start, const Eigen::Vector2f &end);
+    /**
+     * @brief find projection point on a line
+     *
+     * @param center
+     * @param start
+     * @param unit_vector
+     * @return Eigen::Vector2f
+     */
+    Eigen::Vector2f FindProjectionPoint(const Eigen::Vector2f &center, const Eigen::Vector2f &start, const Eigen::Vector2f &unit_vector);
 
     //*************************other ***********************
 
@@ -374,4 +511,5 @@ namespace Utility
                    const HybridAStar::Node3D &goal);
     float GetAngle(const HybridAStar::Node2D &start,
                    const HybridAStar::Node2D &goal);
+    float GetAngle(const Eigen::Vector2f &start, const Eigen::Vector2f &goal);
 }

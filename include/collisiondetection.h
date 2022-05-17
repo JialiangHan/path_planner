@@ -96,7 +96,10 @@ namespace HybridAStar
     void getConfiguration(const std::shared_ptr<Node3D> &node3d_ptr, float &x, float &y, float &t) const;
 
     void getConfiguration(const Node3D &node, float &x, float &y, float &t) const;
-
+    /**
+     * @brief Set obstacle vec: scan the map, create a 1X1 obstacle and find its neighbor and then combine obstacles
+     *
+     */
     void SetObstacleVec();
     /**
      * @brief Set the In Range Obstacle object and build obstacle density map
@@ -250,8 +253,7 @@ namespace HybridAStar
     ParameterCollisionDetection params_;
     /// The occupancy grid
     nav_msgs::OccupancyGrid::Ptr grid_ptr_;
-    uint map_width_;
-    uint map_height_;
+
     /// The collision lookup table
     Constants::config collisionLookup[Constants::headings * Constants::positions];
     //collision lookup table, use array instead of vector, temporally use vector

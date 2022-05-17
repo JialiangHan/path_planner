@@ -12,8 +12,7 @@ CollisionDetection::CollisionDetection(const ParameterCollisionDetection &params
 void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map)
 {
   grid_ptr_ = map;
-  map_height_ = map->info.height;
-  map_width_ = map->info.width;
+
   SetObstacleVec();
   // CombineInNeighborObstacles();
   obstacle_detection_range_ = 6 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
@@ -327,8 +326,8 @@ uint CollisionDetection::GetNode3DIndexOnGridMap(const Node3D &node3d)
 uint CollisionDetection::GetNode3DIndexOnGridMap(const float &x, const float &y)
 {
   // DLOG(INFO) << "coordinate is " << x << " " << y << " "
-  //  << " final index is " << (uint)y * map_width_ + (uint)x;
-  return (uint)y * map_width_ + (uint)x;
+  //  << " final index is " << (uint)y * grid_ptr_->info.width + (uint)x;
+  return (uint)y * grid_ptr_->info.width + (uint)x;
 }
 // checked, it`s correct.
 Utility::AngleRange CollisionDetection::GetNode3DAvailableAngleRange(const Node3D &node3d)
@@ -349,7 +348,7 @@ Utility::AngleRange CollisionDetection::GetNode3DAvailableAngleRange(const Node3
 // checked, it`s correct
 void CollisionDetection::SetDistanceAngleRangeMap()
 {
-  // DLOG(INFO) << "SetDistanceAngleRangeMap in:";
+  DLOG(INFO) << "SetDistanceAngleRangeMap in:";
   for (uint x = 0; x < grid_ptr_->info.width; ++x)
   {
     for (uint y = 0; y < grid_ptr_->info.height; ++y)
@@ -363,7 +362,8 @@ void CollisionDetection::SetDistanceAngleRangeMap()
         for (const auto &polygon : in_range_obstacle_map_[current_point_index])
         {
           float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
-          Utility::AngleRange angle_range = Utility::GetAngleRangeFromPointToPolygon(polygon, current_point);
+
+          Utility::AngleRange angle_range = Utility::GetAngleRangeFromPointToPolygon(polygon, current_point, obstacle_detection_range_);
           std::pair<float, Utility::AngleRange> temp = std::make_pair(distance, angle_range);
           distance_angle_range_vec.emplace_back(temp);
         }
@@ -372,7 +372,7 @@ void CollisionDetection::SetDistanceAngleRangeMap()
       }
     }
   }
-  // DLOG(INFO) << "SetDistanceAngleRangeMap out.";
+  DLOG(INFO) << "SetDistanceAngleRangeMap out.";
 }
 // // todo use sweepline algorithm
 // std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::GetObstacleInAvailableSteeringAngleRangle(const Node3D &node3d)
@@ -431,11 +431,11 @@ void CollisionDetection::BuildCollisionLookupTable()
   float x = 0, y = 0, theta = 0;
 
   const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
-  while (x < map_width_)
+  while (x < grid_ptr_->info.width)
   {
     y = 0;
     // theta = 0;
-    while (y < map_height_)
+    while (y < grid_ptr_->info.height)
     {
       // theta = 0;
       index = GetNode3DIndexOnGridMap(x, y);
@@ -454,9 +454,9 @@ void CollisionDetection::BuildCollisionLookupTable()
             // 1. create polygon accord to its coordinate(x,y), then rotate according to heading angle t.
             //  case: some certain case this polygon is outside map
             if ((x <= params_.vehicle_length / 2 && y <= params_.vehicle_width / 2) ||
-                (x >= map_width_ - params_.vehicle_length / 2 && y <= params_.vehicle_width / 2) ||
-                (x <= params_.vehicle_length / 2 && y >= map_height_ - params_.vehicle_width / 2) ||
-                (x >= map_width_ - params_.vehicle_length / 2 && y >= map_height_ - params_.vehicle_width / 2))
+                (x >= grid_ptr_->info.width - params_.vehicle_length / 2 && y <= params_.vehicle_width / 2) ||
+                (x <= params_.vehicle_length / 2 && y >= grid_ptr_->info.height - params_.vehicle_width / 2) ||
+                (x >= grid_ptr_->info.width - params_.vehicle_length / 2 && y >= grid_ptr_->info.height - params_.vehicle_width / 2))
             {
               DLOG(INFO) << "vehicle is outside map";
               collision_result = false;
@@ -506,7 +506,7 @@ bool CollisionDetection::CollisionCheck(const Utility::Polygon &polygon)
   // should be convert to int for x and y;
   uint current_point_index = GetNode3DIndexOnGridMap(polygon[0].x(), polygon[0].y());
   // check if this polygon inside map or outside map
-  Utility::Polygon map_boundary = Utility::CreatePolygon(map_width_, map_height_);
+  Utility::Polygon map_boundary = Utility::CreatePolygon(grid_ptr_->info.width, grid_ptr_->info.height);
   // DLOG(INFO) << "current polygon start is " << polygon[0].x() << " " << polygon[0].y() << " index is " << current_point_index;
 
   if (Utility::IsPolygonIntersectWithPolygon(polygon, map_boundary))
@@ -1212,7 +1212,7 @@ uint CollisionDetection::Get3DIndexOnGridMap(const float &x, const float &y, con
   y_int = (uint)y;
   t_index = (uint)(angle / delta_heading_in_rad);
 
-  out = t_index * params_.headings * map_width_ + y_int * map_width_ + x_int;
+  out = t_index * params_.headings * grid_ptr_->info.width + y_int * grid_ptr_->info.width + x_int;
   // DLOG(INFO) << "coordinate is " << x << " " << y << " " << Utility::ConvertRadToDeg(theta) << " x_int is " << x_int << " y_int is " << y_int << " t_index is " << t_index << " final index is " << out;
   return out;
 }
@@ -1246,16 +1246,16 @@ void CollisionDetection::AddMapBoundaryAsObstacle(std::vector<Utility::Polygon> 
   // key point here is to make origin for these boundary obstacle outside map, purpose is to distinguish these boundary obstacle from normal ones.
   // bottom obstacle as bottom boundary
   Utility::Polygon current_polygon;
-  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(0, -1), map_width_, 1);
+  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(0, -1), grid_ptr_->info.width, 1);
   obstacle_vec.emplace_back(current_polygon);
   // right obstacle as right boundary
-  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(map_width_, -1), 1, map_height_ + 2);
+  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(grid_ptr_->info.width, -1), 1, grid_ptr_->info.height + 2);
   obstacle_vec.emplace_back(current_polygon);
   // top obstacle as top boundary
-  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(-1, map_height_), map_width_ + 2, 1);
+  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(-1, grid_ptr_->info.height), grid_ptr_->info.width + 2, 1);
   obstacle_vec.emplace_back(current_polygon);
   // left obstacle as left boundary
-  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(-1, 0), 1, map_height_);
+  current_polygon = Utility::CreatePolygon(Eigen::Vector2f(-1, 0), 1, grid_ptr_->info.height);
   obstacle_vec.emplace_back(current_polygon);
 }
 // checked, no issue

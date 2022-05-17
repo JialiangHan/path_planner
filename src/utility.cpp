@@ -121,6 +121,21 @@ namespace Utility
             return false;
         }
     }
+    // checked, correct.
+    bool IsPointOnLine(const Eigen::Vector2f &point, const Eigen::Vector2f &start, const Eigen::Vector2f &unit_vector)
+    {
+        Eigen::Vector2f diff = point - start;
+        float angle = acos(diff.dot(unit_vector) / diff.norm() / unit_vector.norm());
+        // DLOG(INFO) << "angle is " << angle;
+        // DLOG(INFO) << "angle is " << (angle < 1e-3);
+        // DLOG(INFO) << "angle -pI " << ((angle - M_PI) < 1e-3);
+        if (abs(angle) < 1e-3 || (abs(angle - M_PI) < 1e-3))
+        {
+            // DLOG(INFO) << "point " << point.x() << " " << point.y() << " is on the line!";
+            return true;
+        }
+        return false;
+    }
 
     float CrossProduct(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2)
     {
@@ -394,7 +409,7 @@ namespace Utility
         {
             return 0;
         }
-        Eigen::Vector2f far_point;
+        Eigen::Vector2f far_point, unit_vector = GetUnitVector(start, end);
         float distance_to_start, distance_to_goal;
         distance_to_start = GetDistanceFromPointToPoint(start, point);
         distance_to_goal = GetDistanceFromPointToPoint(end, point);
@@ -413,9 +428,23 @@ namespace Utility
             // this means point is outside segment
             return std::min(distance_to_start, distance_to_goal);
         }
-        return sqrt((point - far_point).norm() * (point - far_point).norm() -
-                    projection_length * projection_length);
+        return GetDistanceFromPointToLine(point, start, unit_vector);
     }
+    // checked, correct.
+    float GetDistanceFromPointToLine(const Eigen::Vector2f &point,
+                                     const Eigen::Vector2f &start,
+                                     const Eigen::Vector2f &unit_vector)
+    {
+        if (IsPointOnLine(point, start, unit_vector))
+        {
+            return 0;
+        }
+
+        float projection_length = abs((point - start).dot(unit_vector));
+
+        return sqrt((point - start).norm() * (point - start).norm() - projection_length * projection_length);
+    }
+
     float GetDistanceFromPolygonToPoint(const Polygon &polygon,
                                         const Eigen::Vector2f &point)
     {
@@ -442,34 +471,48 @@ namespace Utility
         }
         return min_distance;
     }
+    // checked, correct.
     float GetAngleBetweenTwoVector(const Eigen::Vector2f &p1_start,
                                    const Eigen::Vector2f &p1_end,
                                    const Eigen::Vector2f &p2_start,
                                    const Eigen::Vector2f &p2_end)
     {
+        // DLOG(INFO) << "GetAngleBetweenTwoVector in:";
         Eigen::Vector2f v1 = p1_end - p1_start;
         Eigen::Vector2f v2 = p2_end - p1_start;
         // return of acos is in [0,pi]
         float angle = std::acos(v1.dot(v2) / v1.norm() / v2.norm());
         float sign = CrossProduct(v1, v2);
-        if (sign > 0)
+        // DLOG(INFO) << "angle is " << ConvertRadToDeg(angle) << " sign is " << ConvertRadToDeg(sign);
+        if (sign >= 0)
         {
+            // DLOG(INFO) << "GetAngleBetweenTwoVector out.";
             return angle;
         }
         else
         {
+            // DLOG(INFO) << "GetAngleBetweenTwoVector out.";
             return -angle;
         }
     }
+    // checked,correct
     AngleRange GetAngleRangeFromPointToSegment(const Eigen::Vector2f &start,
                                                const Eigen::Vector2f &end,
                                                const Eigen::Vector2f &point)
     {
+        // DLOG(INFO) << "GetAngleRangeFromPointToSegment in:";
         Eigen::Vector2f horizontal(10000, point.y());
         float start_angle = GetAngleBetweenTwoVector(point, horizontal, point, start);
-        float range_length = GetAngleBetweenTwoVector(point, start, point, end);
-        return std::make_pair(RadToZeroTo2P(start_angle), range_length);
+        float range_length = GetAngleBetweenTwoVector(point, horizontal, point, end);
+        AngleRange out = FindAngleRange(start_angle, range_length);
+        // DLOG(INFO) << "start angle is " << ConvertRadToDeg(start_angle) << " "
+        //            << " range_length is " << ConvertRadToDeg(range_length);
+        // DLOG(INFO) << "range start is " << ConvertRadToDeg(out.first) << " "
+        //            << " range is " << ConvertRadToDeg(out.second);
+        // DLOG(INFO) << "GetAngleRangeFromPointToSegment out.";
+        return out;
     }
+
     // checked
     AngleRange GetAngleRangeFromPointToPolygon(const Polygon &polygon,
                                                const Eigen::Vector2f &point)
@@ -506,6 +549,26 @@ namespace Utility
 
         return std::make_pair(starting_angle, abs(range));
     }
+
+    AngleRange GetAngleRangeFromPointToPolygon(const Polygon &polygon,
+                                               const Eigen::Vector2f &point, const float &radius)
+    {
+        DLOG(INFO) << "GetAngleRangeFromPointToPolygon in:";
+        AngleRange out;
+        // 1. check if polygon is inside this circle
+        float distance = Utility::GetDistanceFromPolygonToPoint(polygon, point);
+        if (distance > radius)
+        {
+            DLOG(INFO) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y() << "  and distance to point: " << point.x() << " " << point.y() << " is " << distance << " range is " << radius;
+            return out;
+        }
+
+        // 2. find angle which has distance equal to radius from point to polygon
+        out = GetAngleRangeFromPointToPolygonAtRadius(point, radius, polygon);
+        DLOG(INFO) << "GetAngleRangeFromPointToPolygon out.";
+        return out;
+    }
+
     std::vector<Eigen::Vector2f>
     FindVisibleVertexFromNode(const Polygon &polygon,
                               const Eigen::Vector2f &point)
@@ -941,9 +1004,18 @@ namespace Utility
     float GetAngle(const HybridAStar::Node2D &start,
                    const HybridAStar::Node2D &goal)
     {
+        return GetAngle(ConvertNod2DToVector2f(start), ConvertNod2DToVector2f(goal));
+    }
+    // checked, correct
+    float GetAngle(const Eigen::Vector2f &start, const Eigen::Vector2f &goal)
+    {
         Eigen::Vector2f diff;
-        diff = ConvertNod2DToVector2f(goal) - ConvertNod2DToVector2f(start);
-        return atan2(diff.y(), diff.x());
+        diff = goal - start;
+        float angle = RadToZeroTo2P(atan2(diff.y(), diff.x()));
+        // make sure angle is in [0,2pi]
+
+        // DLOG(INFO) << "angle is " << ConvertRadToDeg(angle);
+        return angle;
     }
 
     bool IsAngleRangeInclude(const AngleRange &angle_range, const float &angle)
@@ -964,4 +1036,323 @@ namespace Utility
         }
         return false;
     }
+
+    AngleRange GetAngleRangeFromPointToEdgeAtRadius(const HybridAStar::Node3D &point, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end)
+    {
+        return GetAngleRangeFromPointToEdgeAtRadius(ConvertNod3DToVector2f(point), radius, start, end);
+    }
+    // checked ,correct
+    AngleRange GetAngleRangeFromPointToEdgeAtRadius(const Eigen::Vector2f &point, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end)
+    {
+        // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius in:";
+        AngleRange out;
+
+        // 1. check if distance from point to edge is smaller than radius?
+        float distance = GetDistanceFromSegmentToPoint(start, end, point);
+        if (distance >= radius)
+        {
+            DLOG(INFO) << "point is too far from edge!!!";
+            out.second = 0;
+            // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
+            return out;
+        }
+        // 2. find intersection point for a circle and a segment
+        std::vector<Eigen::Vector2f> intersection_points = GetIntersectionPointsBetweenCircleAndSegment(point, radius, start, end);
+        // 3. find its angle from intersection point to point
+        // 3.1 edge is fully inside polygon or outside polygon
+        if (intersection_points.size() == 0)
+        {
+            // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
+            return GetAngleRangeFromPointToSegment(start, end, point);
+        }
+
+        if (intersection_points.size() == 1)
+        {
+            bool is_start_inside_circle = IsPointInsideCircle(point, radius, start);
+            bool is_end_inside_circle = IsPointInsideCircle(point, radius, end);
+            // 3.2.1 edge is tangent to the circle, size is one and two end points are outside circle
+            if (!is_start_inside_circle && !is_end_inside_circle)
+            {
+                out.second = 0;
+                // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
+                return out;
+            }
+            // 3.2.2 edge is partially inside circle
+            if (is_start_inside_circle && !is_end_inside_circle)
+            {
+                float intersection_angle = GetAngle(point, intersection_points[0]);
+                float start_angle = GetAngle(point, start);
+                out = FindAngleRange(intersection_angle, start_angle);
+            }
+            if (!is_start_inside_circle && is_end_inside_circle)
+            {
+                float intersection_angle = GetAngle(point, intersection_points[0]);
+                float start_angle = GetAngle(point, end);
+                out = FindAngleRange(intersection_angle, start_angle);
+            }
+            // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
+            return out;
+        }
+
+        // 3.3 edge intersect with circle two times
+        // intersection_points size must be two.
+        if (intersection_points.size() != 2)
+        {
+            DLOG(INFO) << "more than two intersection points found, impossible!!!";
+            out.second = 0;
+            // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
+            return out;
+        }
+        // DLOG(INFO) << "intersection point is " << intersection_points[0].x() << " " << intersection_points[0].y() << " second point is " << intersection_points[1].x() << " " << intersection_points[1].y();
+        out = FindAngleRange(GetAngle(point, intersection_points[0]), GetAngle(point, intersection_points[1]));
+        // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
+        return out;
+    }
+    // checked, correct
+    AngleRange GetAngleRangeFromPointToPolygonAtRadius(const Eigen::Vector2f &point, const float &radius, const Polygon &polygon)
+    {
+        AngleRange out(-1, -1);
+        // three states of polygon position:
+        // 1. fully inside circle
+        // 2. partially inside circle
+        // 3. fully outside circle
+        // for 1 and 3, radius has nothing to do with result, just use normal function
+        if (IsPolygonInsideCircle(point, radius, polygon) != 0)
+        {
+            out = GetAngleRangeFromPointToPolygon(polygon, point);
+            return out;
+        };
+        // loop all the edge for polygon
+        AngleRangeVec angle_range_vec;
+        for (uint index = 0; index < polygon.size() - 1; ++index)
+        {
+            if (IsEdgeInsideCircle(point, radius, polygon[index], polygon[index + 1]) != -1)
+            {
+                angle_range_vec.emplace_back(GetAngleRangeFromPointToEdgeAtRadius(point, radius, polygon[index], polygon[index + 1]));
+            }
+        }
+        for (const auto &angle_range : angle_range_vec)
+        {
+            if (out.second == -1)
+            {
+                out = angle_range;
+            }
+            out = CombineAngleRange(out, angle_range);
+        }
+        return out;
+    }
+    // checked, correct.
+    AngleRange FindAngleRange(const float &a1, const float &a2)
+    {
+        AngleRange out;
+        float min_angle, max_angle, range_start, range;
+        if (a1 > a2)
+        {
+            min_angle = a2;
+            max_angle = a1;
+        }
+        else
+        {
+            min_angle = a1;
+            max_angle = a2;
+        }
+
+        // if range greater than PI, than reverse start and end
+        range = max_angle - min_angle;
+        if (range > M_PI)
+        {
+            range_start = max_angle;
+            range = min_angle + 2 * M_PI - min_angle;
+        }
+        else
+        {
+            range_start = min_angle;
+            range = max_angle - min_angle;
+        }
+        out.first = range_start;
+        out.second = range;
+
+        return out;
+    }
+    // checked, correct.
+    std::vector<Eigen::Vector2f> GetIntersectionPointsBetweenCircleAndSegment(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end)
+    {
+        // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndSegment in:";
+        std::vector<Eigen::Vector2f> out;
+        // three state: zero intersection, one intersection, two intersection
+        // distance from center to segment larger than radius, then there must be zero intersection
+        if (GetDistanceFromSegmentToPoint(start, end, center) > radius)
+        {
+            DLOG(INFO) << "segment is too far from circle!!!";
+            // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndSegment out.";
+            return out;
+        }
+        // zero intersection:
+        //  two points are inside circle
+        if ((IsPointInsideCircle(center, radius, start) && IsPointInsideCircle(center, radius, end)))
+        {
+            DLOG(INFO) << "No intersection for circle and segment since two ends of segment are all inside circle!!!";
+            // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndSegment out.";
+            return out;
+        }
+        // find intersection between circle and line,
+        Eigen::Vector2f unit_vector = GetUnitVector(start, end);
+        // DLOG(INFO) << "unit vector is " << unit_vector.x() << " " << unit_vector.y();
+        std::vector<Eigen::Vector2f> intersection_vec = GetIntersectionPointsBetweenCircleAndLine(center, radius, start, unit_vector);
+
+        // then check if intersection points are on segment
+        for (const auto &points : intersection_vec)
+        {
+            // DLOG(INFO) << "all intersections from line is " << points.x() << " " << points.y();
+            if (OnSegment(start, end, points))
+            {
+                out.emplace_back(points);
+            }
+        }
+        // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndSegment out.";
+        return out;
+    }
+    // checked, correct
+    bool IsPointInsideCircle(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &point)
+    {
+        float distance = GetDistanceFromPointToPoint(center, point);
+        if (distance > radius)
+        {
+            // point is outside circle
+            return false;
+        }
+        return true;
+    }
+    // checked, correct
+    int IsEdgeInsideCircle(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end)
+    {
+        bool start_inside = IsPointInsideCircle(center, radius, start);
+        bool end_inside = IsPointInsideCircle(center, radius, end);
+        // edge is inside circle
+        if (start_inside && end_inside)
+        {
+            return 1;
+        }
+        if (!start_inside && !end_inside)
+        {
+            return -1;
+        }
+        return 0;
+    }
+    // checked, correct
+    int IsPolygonInsideCircle(const Eigen::Vector2f &center, const float &radius, const Polygon &polygon)
+    {
+        // DLOG(INFO) << "IsPolygonInsideCircle in:";
+        int out = 0;
+        for (uint index = 0; index < polygon.size() - 1; ++index)
+        {
+            out += IsEdgeInsideCircle(center, radius, polygon[index], polygon[index + 1]);
+            // DLOG(INFO) << "out is " << out;
+        }
+        if (out == 4)
+        {
+            // DLOG(INFO) << "IsPolygonInsideCircle out.";
+            return 1;
+        }
+        if (out == -4)
+        {
+            // DLOG(INFO) << "IsPolygonInsideCircle out.";
+            return -1;
+        }
+        // DLOG(INFO) << "IsPolygonInsideCircle out.";
+        return 0;
+    }
+    // tested, correct.
+    Eigen::Vector2f GetUnitVector(const Eigen::Vector2f &start, const Eigen::Vector2f &end)
+    {
+        Eigen::Vector2f diff = end - start;
+
+        return diff.normalized();
+    }
+    // checked, it`s correct.
+    std::vector<Eigen::Vector2f> GetIntersectionPointsBetweenCircleAndLine(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &unit_vector)
+    {
+        // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndLine in:";
+        std::vector<Eigen::Vector2f> out;
+        // 1. check if distance from line to circle larger than radius
+        float distance = GetDistanceFromPointToLine(center, start, unit_vector);
+        // distance greater than radius, then no intersection
+        if (distance > radius)
+        {
+            DLOG(INFO) << "no intersection since line is too far from circle!!";
+            // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndLine out.";
+            return out;
+        }
+        // just tangent, only one intersection
+        if (abs(distance - radius) < 1e-3)
+        {
+            out.emplace_back(FindProjectionPoint(center, start, unit_vector));
+            // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndLine out.";
+            return out;
+        }
+        // rest case is two intersection:
+        // 1. find projection point on line for center
+        Eigen::Vector2f projection = FindProjectionPoint(center, start, unit_vector);
+        // 2. intersection=projection point +- k* unit vector, k=sqrt(radius - distance from center to line)
+        float k = sqrt(radius * radius - distance * distance);
+        out.emplace_back(projection + k * unit_vector);
+        out.emplace_back(projection - k * unit_vector);
+        // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndLine out.";
+        return out;
+    }
+    // checked, correct
+    Eigen::Vector2f FindProjectionPoint(const Eigen::Vector2f &point, const Eigen::Vector2f &start, const Eigen::Vector2f &unit_vector)
+    {
+        if (IsPointOnLine(point, start, unit_vector))
+        {
+            return point;
+        }
+        Eigen::Vector2f normal_vector(unit_vector.y(), -unit_vector.x());
+        float distance = GetDistanceFromPointToLine(point, start, unit_vector);
+        Eigen::Vector2f potential_point_1 = point + distance * normal_vector;
+        Eigen::Vector2f potential_point_2 = point - distance * normal_vector;
+        if (IsPointOnLine(potential_point_1, start, unit_vector))
+        {
+            return potential_point_1;
+        }
+        return potential_point_2;
+    }
+    // checked, correct
+    AngleRange CombineAngleRange(const AngleRange &ar1,
+                                 const AngleRange &ar2)
+    {
+        // DLOG(INFO) << "CombineAngleRange in:";
+        AngleRange out;
+        // check if ar1 and ar2 are include?
+        if (IsAngleRangeInclude(ar1, ar2))
+        {
+            out = ar1;
+            // DLOG(INFO) << "CombineAngleRange out.";
+            return out;
+        }
+        if (IsAngleRangeInclude(ar2, ar1))
+        {
+            out = ar2;
+            // DLOG(INFO) << "CombineAngleRange out.";
+            return out;
+        }
+        // check if ar1 and ar2 are overlap
+        if (IsOverlap(ar1, ar2))
+        {
+
+            float ar1_end = ar1.first + ar1.second;
+
+            float ar2_end = ar2.first + ar2.second;
+            out.first = std::min(ar1.first, ar2.first);
+            out.second = std::max(ar1_end, ar2_end) - out.first;
+            // DLOG(INFO) << "CombineAngleRange out.";
+            return out;
+        }
+        // ar1 and ar2 are not overlap and included, make start and range -1
+        out.first = -1;
+        out.second = -1;
+        DLOG(INFO) << "CombineAngleRange out.";
+        return out;
+    }
+
 } // namespace Utility
