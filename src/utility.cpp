@@ -99,6 +99,22 @@ namespace Utility
     bool OnSegment(const Eigen::Vector2f &p1, const Eigen::Vector2f &p3,
                    const Eigen::Vector2f &p2)
     {
+        // special case: all three points have same x or y coordinate
+        // same x coordinate
+        if (abs(p2.x() - p1.x()) < 1e-3 && abs(p2.x() - p3.x()) < 1e-3 &&
+            p2.y() <= std::max(p1.y(), p3.y()) &&
+            p2.y() >= std::min(p1.y(), p3.y()))
+        {
+            // DLOG(INFO) << "all three points p1 " << p1.x() << " " << p1.y() << " p3 " << p3.x() << " " << p3.y() << " p2 " << p2.x() << " " << p2.y() << " have same x coordinate.";
+            return true;
+        }
+        // same y coordinate
+        if (p2.x() <= std::max(p1.x(), p3.x()) &&
+            p2.x() >= std::min(p1.x(), p3.x()) && abs(p2.y() - p1.y()) < 1e-3 && abs(p2.y() - p3.y()) < 1e-3)
+        {
+            // DLOG(INFO) << "all three points p1 " << p1.x() << " " << p1.y() << " p3 " << p3.x() << " " << p3.y() << " p2 " << p2.x() << " " << p2.y() << " have same y coordinate.";
+            return true;
+        }
         if (p2.x() <= std::max(p1.x(), p3.x()) &&
             p2.x() >= std::min(p1.x(), p3.x()) &&
             p2.y() <= std::max(p1.y(), p3.y()) &&
@@ -124,16 +140,23 @@ namespace Utility
     // checked, correct.
     bool IsPointOnLine(const Eigen::Vector2f &point, const Eigen::Vector2f &start, const Eigen::Vector2f &unit_vector)
     {
+        // DLOG(INFO) << "IsPointOnLine in:";
         Eigen::Vector2f diff = point - start;
-        float angle = acos(diff.dot(unit_vector) / diff.norm() / unit_vector.norm());
-        // DLOG(INFO) << "angle is " << angle;
-        // DLOG(INFO) << "angle is " << (angle < 1e-3);
-        // DLOG(INFO) << "angle -pI " << ((angle - M_PI) < 1e-3);
-        if (abs(angle) < 1e-3 || (abs(angle - M_PI) < 1e-3))
+        if (abs(diff.x()) < 1e-3 && abs(diff.y()) < 1e-3)
         {
-            // DLOG(INFO) << "point " << point.x() << " " << point.y() << " is on the line!";
+            // DLOG(INFO) << "point " << point.x() << " " << point.y() << " is on the line start at " << start.x() << " " << start.y() << " unit vector is " << unit_vector.x() << " " << unit_vector.y();
             return true;
         }
+        float angle = acos(diff.dot(unit_vector) / diff.norm() / unit_vector.norm());
+        // DLOG(INFO) << "angle is " << angle;
+        // DLOG(INFO) << "angle smaller than 1e-3: " << (angle < 1e-3);
+        // DLOG(INFO) << "(angle -3.14) smaller than 1e-3: " << (abs(angle - 3.14) < 1e-3);
+        if (abs(angle) < 1e-3 || (abs(angle - M_PI) < 1e-3))
+        {
+            // DLOG(INFO) << "point " << point.x() << " " << point.y() << " is on the line start at " << start.x() << " " << start.y() << " unit vector is " << unit_vector.x() << " " << unit_vector.y();
+            return true;
+        }
+        // DLOG(INFO) << "point " << point.x() << " " << point.y() << " is not on the line start at " << start.x() << " " << start.y() << " unit vector is " << unit_vector.x() << " " << unit_vector.y();
         return false;
     }
 
@@ -144,7 +167,6 @@ namespace Utility
         // DLOG(INFO) << "result is " << out;
         return out;
     }
-
     int IsIntersect(const Eigen::Vector2f &p1, const Eigen::Vector2f &p2,
                     const Eigen::Vector2f &p3, const Eigen::Vector2f &p4)
     {
@@ -505,10 +527,8 @@ namespace Utility
         float start_angle = GetAngleBetweenTwoVector(point, horizontal, point, start);
         float range_length = GetAngleBetweenTwoVector(point, horizontal, point, end);
         AngleRange out = FindAngleRange(start_angle, range_length);
-        // DLOG(INFO) << "start angle is " << ConvertRadToDeg(start_angle) << " "
-        //            << " range_length is " << ConvertRadToDeg(range_length);
-        // DLOG(INFO) << "range start is " << ConvertRadToDeg(out.first) << " "
-        //            << " range is " << ConvertRadToDeg(out.second);
+        // DLOG(INFO) << "start angle is " << ConvertRadToDeg(start_angle) << " "                   << " range_length is " << ConvertRadToDeg(range_length);
+        // DLOG(INFO) << "range start is " << ConvertRadToDeg(out.first) << " "                   << " range is " << ConvertRadToDeg(out.second);
         // DLOG(INFO) << "GetAngleRangeFromPointToSegment out.";
         return out;
     }
@@ -517,7 +537,9 @@ namespace Utility
     AngleRange GetAngleRangeFromPointToPolygon(const Polygon &polygon,
                                                const Eigen::Vector2f &point)
     {
+        // DLOG(INFO) << "GetAngleRangeFromPointToPolygon in:";
         float starting_angle = 100000, range = 0;
+
         std::vector<Eigen::Vector2f> visible_vertex = FindVisibleVertexFromNode(polygon, point);
         // DLOG(INFO) << "point is " << point.x() << " " << point.y();
         // DLOG(INFO) << "size of visible vertex is " << visible_vertex.size();
@@ -546,26 +568,38 @@ namespace Utility
             range += angle_range.second;
             // DLOG(INFO) << "range is " << Utility::ConvertRadToDeg(range);
         }
-
+        // DLOG(INFO) << "GetAngleRangeFromPointToPolygon out.";
         return std::make_pair(starting_angle, abs(range));
     }
 
     AngleRange GetAngleRangeFromPointToPolygon(const Polygon &polygon,
                                                const Eigen::Vector2f &point, const float &radius)
     {
-        DLOG(INFO) << "GetAngleRangeFromPointToPolygon in:";
+        // DLOG(INFO) << "GetAngleRangeFromPointToPolygon in:";
         AngleRange out;
+
         // 1. check if polygon is inside this circle
         float distance = Utility::GetDistanceFromPolygonToPoint(polygon, point);
+        // DLOG(INFO) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y() << "  and distance to point: " << point.x() << " " << point.y() << " is " << distance << " range is " << radius;
+        // if distance from polygon to point too small,make range is zero
+        if (distance < 1e-3)
+        {
+            out.second = 0;
+            // DLOG(INFO) << "too close to polygon!!";
+            return out;
+        }
         if (distance > radius)
         {
-            DLOG(INFO) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y() << "  and distance to point: " << point.x() << " " << point.y() << " is " << distance << " range is " << radius;
+            // DLOG(INFO) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y() << "  and distance to point: " << point.x() << " " << point.y() << " is " << distance << " range is " << radius;
+            // DLOG(INFO) << "polygon is outside the range!!";
             return out;
         }
 
         // 2. find angle which has distance equal to radius from point to polygon
         out = GetAngleRangeFromPointToPolygonAtRadius(point, radius, polygon);
-        DLOG(INFO) << "GetAngleRangeFromPointToPolygon out.";
+        DLOG_IF(INFO, out.first == -1) << "angle range start from " << ConvertRadToDeg(out.first) << " range is " << ConvertRadToDeg(out.second);
+        // DLOG(INFO) << "angle range start from " << ConvertRadToDeg(out.first) << " range is " << ConvertRadToDeg(out.second);
+        // DLOG(INFO) << "GetAngleRangeFromPointToPolygon out.";
         return out;
     }
 
@@ -574,6 +608,11 @@ namespace Utility
                               const Eigen::Vector2f &point)
     {
         std::vector<Eigen::Vector2f> out;
+        // check if point is polygon, return empty vector if on polygon
+        if (IsOnPolygon(polygon, point))
+        {
+            return out;
+        }
         bool intersect_flag = false;
         for (uint i = 0; i < polygon.size() - 1; ++i)
         {
@@ -599,67 +638,57 @@ namespace Utility
     bool IsOverlap(const AngleRange &angle_range_1,
                    const AngleRange &angle_range_2)
     {
+        // DLOG(INFO) << "IsOverlap in:";
         float angle_range_1_start = angle_range_1.first;
-        float angle_range_1_end = angle_range_1.first + angle_range_1.second;
+        float angle_range_1_end = GetAngleRangeEnd(angle_range_1);
         float angle_range_2_start = angle_range_2.first;
-        float angle_range_2_end = angle_range_2.first + angle_range_2.second;
-        // far away
-        if (angle_range_2_start > angle_range_1_end ||
-            angle_range_1_start > angle_range_2_end)
-        {
-            return false;
-        }
+        float angle_range_2_end = GetAngleRangeEnd(angle_range_2);
+        // DLOG(INFO) << "ar1 start is " << ConvertRadToDeg(angle_range_1_start) << " ar1 end is " << ConvertRadToDeg(angle_range_1_end) << " ar2 start is " << ConvertRadToDeg(angle_range_2_start) << " ar2 end is " << ConvertRadToDeg(angle_range_2_end);
+
         // include
-        else if ((angle_range_1_start <= angle_range_2_start &&
-                  angle_range_1_end >= angle_range_2_end) ||
-                 (angle_range_2_start <= angle_range_1_start &&
-                  angle_range_2_end >= angle_range_1_end))
+        if (IsAngleRangeInclude(angle_range_1, angle_range_2) || IsAngleRangeInclude(angle_range_2, angle_range_1))
         {
+            // DLOG(INFO) << "one ar include another.";
             return false;
         }
         // overlap
-        else if ((angle_range_1_end >= angle_range_2_end &&
-                  angle_range_1_start >= angle_range_2_start) ||
-                 (angle_range_2_end >= angle_range_1_end &&
-                  angle_range_2_start >= angle_range_1_start))
+        // one angle is in another angle range
+        else if ((IsAngleRangeInclude(angle_range_1, angle_range_2_start) && !IsAngleRangeInclude(angle_range_1, angle_range_2_end)) || (!IsAngleRangeInclude(angle_range_1, angle_range_2_start) && IsAngleRangeInclude(angle_range_1, angle_range_2_end)) || (IsAngleRangeInclude(angle_range_2, angle_range_1_start) && !IsAngleRangeInclude(angle_range_2, angle_range_1_end)) || (!IsAngleRangeInclude(angle_range_2, angle_range_1_start) && IsAngleRangeInclude(angle_range_2, angle_range_1_end)))
         {
+            // DLOG(INFO) << "yes, two angle ranges are overlap.";
             return true;
         }
+        // DLOG(INFO) << "no, two angle ranges are not overlapped.";
         return false;
     }
     // checked
     bool IsAngleRangeInclude(const AngleRange &angle_range_1,
                              const AngleRange &angle_range_2)
     {
+        // special case: if ar2 range is zero
+        if (angle_range_2.second == 0)
+        {
+            return IsAngleRangeInclude(angle_range_1, angle_range_2.first);
+        }
         // all input should be in rad.
-        float angle_range_1_start = angle_range_1.first;
-        float angle_range_1_end = angle_range_1.first + angle_range_1.second;
+        // float angle_range_1_start = angle_range_1.first;
+        // float angle_range_1_end = GetAngleRangeEnd(angle_range_1);
         float angle_range_2_start = angle_range_2.first;
-        float angle_range_2_end = angle_range_2.first + angle_range_2.second;
-        if (angle_range_1_start > M_PI && angle_range_1_end > M_PI)
+        float angle_range_2_end = GetAngleRangeEnd(angle_range_2);
+        // if ar2 start and end are both included by ar1, then ar1 include ar2
+        if (IsAngleRangeInclude(angle_range_1, angle_range_2_start) && IsAngleRangeInclude(angle_range_1, angle_range_2_end))
         {
-            angle_range_1_start = Utility::RadNormalization(angle_range_1_start);
-            angle_range_1_end = Utility::RadNormalization(angle_range_1_end);
-        }
-        if (angle_range_2_start > M_PI && angle_range_2_end > M_PI)
-        {
-            angle_range_2_start = Utility::RadNormalization(angle_range_2_start);
-            angle_range_2_end = Utility::RadNormalization(angle_range_2_end);
-        }
-        // DLOG(INFO) << "ar1 start is " << Utility::ConvertRadToDeg(angle_range_1_start) << " end is " << Utility::ConvertRadToDeg(angle_range_1_end) << " ar2 start is " << Utility::ConvertRadToDeg(angle_range_2_start) << " end is " << Utility::ConvertRadToDeg(angle_range_2_end);
-        // DLOG(INFO) << "ar1 start smaller than ar2 start :" << (angle_range_1_start <= angle_range_2_start);
-        // DLOG(INFO) << "ar1 end greater than ar2 end :" << (angle_range_1_end >= angle_range_2_end);
-        if (((angle_range_1_start <= angle_range_2_start) || abs(angle_range_1_start - angle_range_2_start) < 1e-3) && angle_range_1_end >= angle_range_2_end)
-        {
+            // DLOG(INFO) << "ar1 start is " << Utility::ConvertRadToDeg(angle_range_1.first) << " end is " << Utility::ConvertRadToDeg(GetAngleRangeEnd(angle_range_1)) << " ar2 start is " << Utility::ConvertRadToDeg(angle_range_2_start) << " end is " << Utility::ConvertRadToDeg(angle_range_2_end) << " . ar1 include ar2.";
             return true;
         }
-
+        // DLOG(INFO) << "ar1 start is " << Utility::ConvertRadToDeg(angle_range_1.first) << " end is " << Utility::ConvertRadToDeg(GetAngleRangeEnd(angle_range_1)) << " ar2 start is " << Utility::ConvertRadToDeg(angle_range_2_start) << " end is " << Utility::ConvertRadToDeg(angle_range_2_end) << " . ar1 doesn`t include ar2.";
         return false;
     }
     // checked
-    AngleRange MinusAngleRange(const AngleRange &angle_range_1,
-                               const AngleRange &angle_range_2)
+    AngleRange MinusAngleRangeOverlap(const AngleRange &angle_range_1,
+                                      const AngleRange &angle_range_2)
     {
+        // DLOG(INFO) << "MinusAngleRangeOverlap in:";
         AngleRange out;
         if (!IsOverlap(angle_range_1, angle_range_2))
         {
@@ -667,24 +696,86 @@ namespace Utility
             return out;
         }
         float angle_range_1_start = angle_range_1.first;
-        float angle_range_1_end = angle_range_1.first + angle_range_1.second;
+        float angle_range_1_end = GetAngleRangeEnd(angle_range_1);
         float angle_range_2_start = angle_range_2.first;
-        float angle_range_2_end = angle_range_2.first + angle_range_2.second;
+        float angle_range_2_end = GetAngleRangeEnd(angle_range_2);
         // DLOG(INFO) << "ar1 start is " << Utility::ConvertRadToDeg(angle_range_1_start) << " end is " << Utility::ConvertRadToDeg(angle_range_1_end) << " ar2 start is " << Utility::ConvertRadToDeg(angle_range_2_start) << " end is " << Utility::ConvertRadToDeg(angle_range_2_end);
-        // case 1, start of first<start of second<end of first<end of second
-        if (angle_range_1_start <= angle_range_2_start && angle_range_2_start <= angle_range_1_end && angle_range_1_end <= angle_range_2_end)
+        // special case, ar1 and ar2 just have an angle boundary in common. 1. find in common angle boundary. 2. move this boundary inside ar1
+        if (IsEqual(angle_range_1_start, angle_range_2_end) &&
+            !IsEqual(angle_range_1_end, angle_range_2_end))
+        {
+            out.first = angle_range_1_start + ConvertDegToRad(0.1);
+            out.second = angle_range_1.second - ConvertDegToRad(0.1);
+            // DLOG(INFO) << "ar1 and ar2 share ar1 start!!!";
+            return out;
+        }
+        if (IsEqual(angle_range_1_end, angle_range_2_start) &&
+            !IsEqual(angle_range_1_start, angle_range_2_end))
         {
             out.first = angle_range_1_start;
-            out.second = angle_range_2_start - angle_range_1_start;
+            out.second = angle_range_1.second - ConvertDegToRad(0.1);
+            // DLOG(INFO) << "ar1 and ar2 share ar1 end!!!";
+            return out;
+        }
+
+        // case 1, start of first<start of second<end of first<end of second
+        if (Angle1RightAngle2(angle_range_1_start, angle_range_2_start) && Angle1RightAngle2(angle_range_2_start, angle_range_1_end) && Angle1RightAngle2(angle_range_1_end, angle_range_2_end))
+        {
+            out.first = angle_range_1_start;
+            out.second = GetAngleDistance(angle_range_1_start, angle_range_2_start);
         }
         // case 2, start of second<start of first<end of second<end of first
-        if (angle_range_2_start <= angle_range_1_start && angle_range_1_start <= angle_range_2_end && angle_range_2_end <= angle_range_1_end)
+        if (Angle1RightAngle2(angle_range_2_start, angle_range_1_start) && Angle1RightAngle2(angle_range_1_start, angle_range_2_end) && Angle1RightAngle2(angle_range_2_end, angle_range_1_end))
         {
             out.first = angle_range_2_end;
-            out.second = angle_range_1_end - angle_range_2_end;
+            out.second = GetAngleDistance(angle_range_2_end, angle_range_1_end);
         }
+        out.first = RadToZeroTo2P(out.first);
+        // DLOG(INFO) << "out start from " << ConvertRadToDeg(out.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(out));
+        // DLOG(INFO) << "MinusAngleRangeOverlap in:";
         return out;
     }
+    // checked
+    std::vector<AngleRange> MinusAngleRange(const AngleRange &ar1, const AngleRange &ar2)
+    {
+        // DLOG(INFO) << "MinusAngleRange in:";
+        // DLOG(INFO) << "ar1 start at " << ConvertRadToDeg(ar1.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd( ar1)) << " ar2 start at " << ConvertRadToDeg(ar2.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd( ar2));
+        std::vector<AngleRange> out;
+        if (IsEqual(ar1, ar2))
+        {
+            out.emplace_back(FindAngleRange(ar1.first, ar1.first));
+            return out;
+        }
+        if (IsOverlap(ar1, ar2))
+        {
+            // DLOG(INFO) << "ar1 and ar2 are overlapped.";
+            out.emplace_back(MinusAngleRangeOverlap(ar1, ar2));
+        }
+        if (IsAngleRangeInclude(ar1, ar2))
+        {
+            // DLOG(INFO) << "ar1 include a2!";
+
+            float ar1_start = ar1.first;
+            float ar1_end = GetAngleRangeEnd(ar1);
+            float ar2_start = ar2.first;
+            float ar2_end = GetAngleRangeEnd(ar2);
+            if (!IsEqual(ar1_start, ar2_start))
+            {
+                out.emplace_back(FindAngleRange(ar1_start, ar2_start));
+            }
+            if (!IsEqual(ar2_end, ar1_end))
+            {
+                out.emplace_back(FindAngleRange(ar2_end, ar1_end));
+            }
+        }
+        // for (const auto &pair : out)
+        // {
+        // DLOG(INFO) << "angle range start from " << ConvertRadToDeg(pair.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(pair))<<" range is "<<ConvertRadToDeg(pair.second);
+        // }
+        // DLOG(INFO) << "MinusAngleRange out.";
+        return out;
+    }
+
     float CalculateCurvature(const Eigen::Vector2f &pre, const Eigen::Vector2f &current, const Eigen::Vector2f &succ)
     {
         float curvature = 0;
@@ -938,6 +1029,10 @@ namespace Utility
     }
     float DegNormalization(const float &t)
     {
+        if (t >= -180 && t <= 360)
+        {
+            return t;
+        }
         float out;
         out = fmod(t, 360);
         if (out < 0)
@@ -952,6 +1047,10 @@ namespace Utility
     }
     float RadNormalization(const float &rad)
     {
+        if (rad >= -M_PI && rad <= M_PI)
+        {
+            return rad;
+        }
         float out;
         out = fmod(rad, 2.f * M_PI);
         if (out < 0)
@@ -962,7 +1061,7 @@ namespace Utility
         {
             out = out - 2.0f * M_PI;
         }
-        if (abs(out) < 1e-3)
+        if (abs(out) < 1e-6)
         {
             out = 0;
         }
@@ -971,6 +1070,10 @@ namespace Utility
 
     float DegToZeroTo2P(const float &deg)
     {
+        if (deg >= 0 && deg <= 360)
+        {
+            return deg;
+        }
         float out;
         out = fmod(deg, 360);
         if (out < 0)
@@ -983,13 +1086,18 @@ namespace Utility
 
     float RadToZeroTo2P(const float &rad)
     {
+
+        if (rad >= 0 && rad <= 2.f * M_PI)
+        {
+            return rad;
+        }
         float out;
         out = fmod(rad, 2.f * M_PI);
         if (out < 0)
         {
             out += 2.f * M_PI;
         }
-        if (abs(out - 2 * M_PI) < 1e-3)
+        if (abs(out - 2 * M_PI) < 1e-6)
         {
             out = 0;
         }
@@ -1020,20 +1128,40 @@ namespace Utility
 
     bool IsAngleRangeInclude(const AngleRange &angle_range, const float &angle)
     {
+        // DLOG(INFO) << "IsAngleRangeInclude in:";
         // if angle is in between angle range start and angle range end, then it`s include
-        float angle_range_end = angle_range.first + angle_range.second;
+        float angle_range_end = GetAngleRangeEnd(angle_range);
         // DLOG(INFO) << "angle range start " << ConvertRadToDeg(angle_range.first) << " angle range end " << ConvertRadToDeg(angle_range_end) << " angle is " << ConvertRadToDeg(angle);
-        // first check 0-360
-        if (angle > angle_range.first && angle < angle_range_end)
+        if (IsEqual(angle, angle_range.first))
         {
+            // DLOG(INFO) << "angle is inside angle range.";
+            return true;
+        }
+        if (IsEqual(angle, angle_range_end))
+        {
+            // DLOG(INFO) << "angle is inside angle range.";
+            return true;
+        }
+        // angle is inside angle range only if distance from angle to ar start is smaller than range
+        float distance_to_start = RadToZeroTo2P(angle - angle_range.first);
+        // DLOG(INFO) << "distance to start is " << ConvertRadToDeg(distance_to_start);
+        if (distance_to_start < angle_range.second)
+        {
+            // DLOG(INFO) << "angle is inside angle range.";
             return true;
         }
 
-        // second check [-pi,pi]
-        if (RadNormalization(angle) > RadNormalization(angle_range.first) && RadNormalization(angle) < RadNormalization(angle_range_end))
-        {
-            return true;
-        }
+        // not good since angle range might be greater than PI
+        //  if (Angle1RightAngle2(angle_range.first, angle))
+        //  {
+        //      if (!Angle1RightAngle2(angle_range_end, angle))
+        //      {
+        //          // DLOG(INFO) << "angle is inside angle range.";
+        //          return true;
+        //      }
+        //  }
+
+        // DLOG(INFO) << "angle is not inside angle range.";
         return false;
     }
 
@@ -1046,12 +1174,13 @@ namespace Utility
     {
         // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius in:";
         AngleRange out;
-
+        // DLOG(INFO) << "edge start from " << start.x() << " " << start.y() << " end " << end.x() << " " << end.y() << ". circle: center is " << point.x() << " " << point.y() << " radius is " << radius;
         // 1. check if distance from point to edge is smaller than radius?
         float distance = GetDistanceFromSegmentToPoint(start, end, point);
-        if (distance >= radius)
+        if (distance > radius)
         {
             DLOG(INFO) << "point is too far from edge!!!";
+            DLOG(INFO) << "distance from point: " << point.x() << " " << point.y() << " edge start from " << start.x() << " " << start.y() << " end " << end.x() << " " << end.y() << " is " << distance << " radius is " << radius;
             out.second = 0;
             // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
             return out;
@@ -1062,34 +1191,40 @@ namespace Utility
         // 3.1 edge is fully inside polygon or outside polygon
         if (intersection_points.size() == 0)
         {
+            // DLOG(INFO) << "edge start from " << start.x() << " " << start.y() << " end " << end.x() << " " << end.y() << " is fully inside circle: center is " << point.x() << " " << point.y() << " radius is " << radius;
+            out = GetAngleRangeFromPointToSegment(start, end, point);
+            // DLOG(INFO) << "out start from " << ConvertRadToDeg(out.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(out));
             // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
-            return GetAngleRangeFromPointToSegment(start, end, point);
+            return out;
         }
 
         if (intersection_points.size() == 1)
         {
+
             bool is_start_inside_circle = IsPointInsideCircle(point, radius, start);
             bool is_end_inside_circle = IsPointInsideCircle(point, radius, end);
+            // DLOG(INFO) << "edge start from " << start.x() << " " << start.y() << " end " << end.x() << " " << end.y() << " has one intersection " << intersection_points[0].x() << " " << intersection_points[0].y() << " with circle: center is " << point.x() << " " << point.y() << " radius is " << radius;
             // 3.2.1 edge is tangent to the circle, size is one and two end points are outside circle
             if (!is_start_inside_circle && !is_end_inside_circle)
             {
                 out.second = 0;
+                // DLOG(INFO) << "edge is tangent to the circle.";
                 // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
                 return out;
             }
             // 3.2.2 edge is partially inside circle
+            float intersection_angle = GetAngle(point, intersection_points[0]);
+            float start_angle;
             if (is_start_inside_circle && !is_end_inside_circle)
             {
-                float intersection_angle = GetAngle(point, intersection_points[0]);
-                float start_angle = GetAngle(point, start);
-                out = FindAngleRange(intersection_angle, start_angle);
+                start_angle = GetAngle(point, start);
             }
             if (!is_start_inside_circle && is_end_inside_circle)
             {
-                float intersection_angle = GetAngle(point, intersection_points[0]);
-                float start_angle = GetAngle(point, end);
-                out = FindAngleRange(intersection_angle, start_angle);
+                start_angle = GetAngle(point, end);
             }
+            out = FindAngleRange(intersection_angle, start_angle);
+            // DLOG(INFO) << "out start from " << ConvertRadToDeg(out.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(out));
             // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
             return out;
         }
@@ -1098,20 +1233,23 @@ namespace Utility
         // intersection_points size must be two.
         if (intersection_points.size() != 2)
         {
-            DLOG(INFO) << "more than two intersection points found, impossible!!!";
+            // DLOG(INFO) << "more than two intersection points found, impossible!!!";
             out.second = 0;
             // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
             return out;
         }
         // DLOG(INFO) << "intersection point is " << intersection_points[0].x() << " " << intersection_points[0].y() << " second point is " << intersection_points[1].x() << " " << intersection_points[1].y();
         out = FindAngleRange(GetAngle(point, intersection_points[0]), GetAngle(point, intersection_points[1]));
+        // DLOG(INFO) << "out start from " << ConvertRadToDeg(out.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(out));
         // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
         return out;
     }
     // checked, correct
     AngleRange GetAngleRangeFromPointToPolygonAtRadius(const Eigen::Vector2f &point, const float &radius, const Polygon &polygon)
     {
+        // DLOG(INFO) << "GetAngleRangeFromPointToPolygonAtRadius in:";
         AngleRange out(-1, -1);
+        // DLOG(INFO) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y() << " current point " << point.x() << " " << point.y();
         // three states of polygon position:
         // 1. fully inside circle
         // 2. partially inside circle
@@ -1120,41 +1258,75 @@ namespace Utility
         if (IsPolygonInsideCircle(point, radius, polygon) != 0)
         {
             out = GetAngleRangeFromPointToPolygon(polygon, point);
+            // DLOG(INFO) << "GetAngleRangeFromPointToPolygonAtRadius out.";
             return out;
         };
         // loop all the edge for polygon
         AngleRangeVec angle_range_vec;
-        for (uint index = 0; index < polygon.size() - 1; ++index)
+        // for (uint index = 0; index < polygon.size() - 1; ++index)
+        // {
+        //     if (IsEdgeInsideCircle(point, radius, polygon[index], polygon[index + 1]) != -1)
+        //     {
+        //         angle_range_vec.emplace_back(GetAngleRangeFromPointToEdgeAtRadius(point, radius, polygon[index], polygon[index + 1]));
+        //     }
+        // }
+
+        // find edges facing  point
+        std::vector<Edge> facing_edges_vec = GetPolygonEdgesFacingPoint(polygon, point);
+        // DLOG(INFO) << "size of facing edges vec is " << facing_edges_vec.size();
+        // find their corrsponding angle range
+        for (const auto &edge : facing_edges_vec)
         {
-            if (IsEdgeInsideCircle(point, radius, polygon[index], polygon[index + 1]) != -1)
-            {
-                angle_range_vec.emplace_back(GetAngleRangeFromPointToEdgeAtRadius(point, radius, polygon[index], polygon[index + 1]));
-            }
+            angle_range_vec.emplace_back(GetAngleRangeFromPointToEdgeAtRadius(point, radius, edge.first, edge.second));
         }
+        // DLOG(INFO) << "size of angle_range_vec is " << angle_range_vec.size();
         for (const auto &angle_range : angle_range_vec)
         {
+            // DLOG(INFO) << "before combination angle range start from " << ConvertRadToDeg(angle_range.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(angle_range)) << " out start from " << ConvertRadToDeg(out.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(out));
+
             if (out.second == -1)
             {
                 out = angle_range;
             }
-            out = CombineAngleRange(out, angle_range);
+            if (!IsEqual(out, angle_range))
+            {
+                out = CombineAngleRange(out, angle_range);
+                // DLOG(INFO) << "after combination out start from " << ConvertRadToDeg(out.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(out));
+            }
         }
+        DLOG_IF(INFO, out.first == -1) << "out start from " << ConvertRadToDeg(out.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(out));
+        // DLOG(INFO) << "GetAngleRangeFromPointToPolygonAtRadius out.";
         return out;
     }
     // checked, correct.
     AngleRange FindAngleRange(const float &a1, const float &a2)
     {
+        // DLOG(INFO) << "FindAngleRange in:";
         AngleRange out;
-        float min_angle, max_angle, range_start, range;
-        if (a1 > a2)
+        float temp1, temp2, min_angle, max_angle, range_start, range;
+        temp1 = RadToZeroTo2P(a1);
+        temp2 = RadToZeroTo2P(a2);
+        // check if two angles are equal:
+        if (IsEqual(temp1, temp2))
         {
-            min_angle = a2;
-            max_angle = a1;
+            out.first = temp1;
+            out.second = 0;
+            // DLOG(INFO) << "two angles are equal.";
+            // DLOG(INFO) << "two angle is " << ConvertRadToDeg(a1) << " " << ConvertRadToDeg(a2) << " final range start from "
+            //            << ConvertRadToDeg(out.first) << " range is " << ConvertRadToDeg(out.second);
+            // DLOG(INFO) << "FindAngleRange out.";
+            return out;
+        }
+
+        if (temp1 > temp2)
+        {
+            min_angle = temp2;
+            max_angle = temp1;
         }
         else
         {
-            min_angle = a1;
-            max_angle = a2;
+            min_angle = temp1;
+            max_angle = temp2;
         }
 
         // if range greater than PI, than reverse start and end
@@ -1162,7 +1334,7 @@ namespace Utility
         if (range > M_PI)
         {
             range_start = max_angle;
-            range = min_angle + 2 * M_PI - min_angle;
+            range = 2 * M_PI - range;
         }
         else
         {
@@ -1171,7 +1343,8 @@ namespace Utility
         }
         out.first = range_start;
         out.second = range;
-
+        // DLOG(INFO) << "two angle is " << ConvertRadToDeg(a1) << " " << ConvertRadToDeg(a2) << " final range start from "                   << ConvertRadToDeg(out.first) << " range is " << ConvertRadToDeg(out.second);
+        // DLOG(INFO) << "FindAngleRange out.";
         return out;
     }
     // checked, correct.
@@ -1191,7 +1364,7 @@ namespace Utility
         //  two points are inside circle
         if ((IsPointInsideCircle(center, radius, start) && IsPointInsideCircle(center, radius, end)))
         {
-            DLOG(INFO) << "No intersection for circle and segment since two ends of segment are all inside circle!!!";
+            // DLOG(INFO) << "No intersection for circle and segment since two ends of segment are all inside circle!!!";
             // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndSegment out.";
             return out;
         }
@@ -1209,6 +1382,10 @@ namespace Utility
                 out.emplace_back(points);
             }
         }
+        // for (const auto &point : out)
+        // {
+        // DLOG(INFO) << "intersection point is " << point.x() << " " << point.y();
+        // }
         // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndSegment out.";
         return out;
     }
@@ -1216,7 +1393,7 @@ namespace Utility
     bool IsPointInsideCircle(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &point)
     {
         float distance = GetDistanceFromPointToPoint(center, point);
-        if (distance > radius)
+        if (distance >= radius)
         {
             // point is outside circle
             return false;
@@ -1228,12 +1405,15 @@ namespace Utility
     {
         bool start_inside = IsPointInsideCircle(center, radius, start);
         bool end_inside = IsPointInsideCircle(center, radius, end);
+        float distance = GetDistanceFromSegmentToPoint(start, end, center);
+
         // edge is inside circle
         if (start_inside && end_inside)
         {
             return 1;
         }
-        if (!start_inside && !end_inside)
+        // fully outside
+        if (!start_inside && !end_inside && (distance > radius))
         {
             return -1;
         }
@@ -1244,6 +1424,7 @@ namespace Utility
     {
         // DLOG(INFO) << "IsPolygonInsideCircle in:";
         int out = 0;
+        // DLOG(INFO) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y() << " current point " << center.x() << " " << center.y() << " radius is " << radius;
         for (uint index = 0; index < polygon.size() - 1; ++index)
         {
             out += IsEdgeInsideCircle(center, radius, polygon[index], polygon[index + 1]);
@@ -1251,15 +1432,15 @@ namespace Utility
         }
         if (out == 4)
         {
-            // DLOG(INFO) << "IsPolygonInsideCircle out.";
+            // DLOG(INFO) << "polygon is fully inside circle.";
             return 1;
         }
         if (out == -4)
         {
-            // DLOG(INFO) << "IsPolygonInsideCircle out.";
+            // DLOG(INFO) << "polygon is fully outside circle.";
             return -1;
         }
-        // DLOG(INFO) << "IsPolygonInsideCircle out.";
+        // DLOG(INFO) << "polygon is partially inside circle.";
         return 0;
     }
     // tested, correct.
@@ -1287,7 +1468,7 @@ namespace Utility
         if (abs(distance - radius) < 1e-3)
         {
             out.emplace_back(FindProjectionPoint(center, start, unit_vector));
-            // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndLine out.";
+            DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndLine out.";
             return out;
         }
         // rest case is two intersection:
@@ -1297,14 +1478,17 @@ namespace Utility
         float k = sqrt(radius * radius - distance * distance);
         out.emplace_back(projection + k * unit_vector);
         out.emplace_back(projection - k * unit_vector);
+
         // DLOG(INFO) << "GetIntersectionPointsBetweenCircleAndLine out.";
         return out;
     }
     // checked, correct
     Eigen::Vector2f FindProjectionPoint(const Eigen::Vector2f &point, const Eigen::Vector2f &start, const Eigen::Vector2f &unit_vector)
     {
+        // DLOG(INFO) << "FindProjectionPoint in:";
         if (IsPointOnLine(point, start, unit_vector))
         {
+            // DLOG(INFO) << "Point: " << point.x() << " " << point.y() << " is on the line start from " << start.x() << " " << start.y() << " unit vector is " << unit_vector.x() << " " << unit_vector.y();
             return point;
         }
         Eigen::Vector2f normal_vector(unit_vector.y(), -unit_vector.x());
@@ -1313,8 +1497,10 @@ namespace Utility
         Eigen::Vector2f potential_point_2 = point - distance * normal_vector;
         if (IsPointOnLine(potential_point_1, start, unit_vector))
         {
+            // DLOG(INFO) << "Point: " << point.x() << " " << point.y() << " has projection point: " << potential_point_1.x() << " " << potential_point_1.y() << " on the line start from " << start.x() << " " << start.y() << " unit vector is " << unit_vector.x() << " " << unit_vector.y();
             return potential_point_1;
         }
+        // DLOG(INFO) << "Point: " << point.x() << " " << point.y() << " has projection point: " << potential_point_2.x() << " " << potential_point_2.y() << " on the line start from " << start.x() << " " << start.y() << " unit vector is " << unit_vector.x() << " " << unit_vector.y();
         return potential_point_2;
     }
     // checked, correct
@@ -1322,7 +1508,20 @@ namespace Utility
                                  const AngleRange &ar2)
     {
         // DLOG(INFO) << "CombineAngleRange in:";
-        AngleRange out;
+        // DLOG(INFO) << "ar1 start " << ConvertRadToDeg(ar1.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(ar1)) << " ar2 start " << ConvertRadToDeg(ar2.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(ar2));
+        AngleRange out(-1, -1);
+        if (IsEqual(ar1, out) && !IsEqual(ar2, out))
+        {
+            out = ar2;
+            // DLOG(INFO) << "CombineAngleRange out.";
+            return out;
+        }
+        if (!IsEqual(ar1, out) && IsEqual(ar2, out))
+        {
+            out = ar1;
+            // DLOG(INFO) << "CombineAngleRange out.";
+            return out;
+        }
         // check if ar1 and ar2 are include?
         if (IsAngleRangeInclude(ar1, ar2))
         {
@@ -1339,20 +1538,198 @@ namespace Utility
         // check if ar1 and ar2 are overlap
         if (IsOverlap(ar1, ar2))
         {
+            float ar1_end = GetAngleRangeEnd(ar1);
+            float ar2_end = GetAngleRangeEnd(ar2);
+            if (IsAngleRangeInclude(ar1, ar2.first) && IsAngleRangeInclude(ar2, ar1_end))
+            {
+                out.first = ar1.first;
+                out.second = ar2_end - ar1.first;
+                if (out.second < 0)
+                {
+                    out.second = out.second + 2 * M_PI;
+                }
+                // do not use FindAngleRange since range might be greater than Pi
+                //  out = FindAngleRange(ar1.first, ar2_end);
+                return out;
+            }
+            if (IsAngleRangeInclude(ar1, ar2_end) && IsAngleRangeInclude(ar2, ar1.first))
+            {
+                out.first = ar2.first;
+                out.second = ar1_end - ar2.first;
+                if (out.second < 0)
+                {
+                    out.second = out.second + 2 * M_PI;
+                }
+                // do not use FindAngleRange since range might be greater than Pi
+                // out = FindAngleRange(ar2.first, ar1_end);
+            }
+            // DLOG(INFO) << "CombineAngleRange out.";
+            return out;
+        }
+        // ar1 and ar2 are not overlap and included, make start and range -1
 
-            float ar1_end = ar1.first + ar1.second;
+        // DLOG(INFO) << "two angle range have nothing in common, can`t combine them!!";
+        // DLOG(INFO)            << "CombineAngleRange out.";
+        return out;
+    }
+    // checked, correct
+    AngleRange FindCommonAngleRange(const AngleRange &ar1,
+                                    const AngleRange &ar2)
+    {
+        AngleRange out;
+        if (IsAngleRangeInclude(ar1, ar2))
+        {
+            out = ar2;
+            return out;
+        }
+        if (IsAngleRangeInclude(ar2, ar1))
+        {
+            out = ar1;
+            return out;
+        }
+        if (IsOverlap(ar1, ar2))
+        {
+            float ar1_end = GetAngleRangeEnd(ar1);
+            float ar2_end = GetAngleRangeEnd(ar2);
+            if (IsAngleRangeInclude(ar1, ar2.first) && IsAngleRangeInclude(ar2, ar1_end))
+            {
+                out = FindAngleRange(ar2.first, ar1_end);
+                return out;
+            }
+            if (IsAngleRangeInclude(ar1, ar2_end) && IsAngleRangeInclude(ar2, ar1.first))
+            {
+                out = FindAngleRange(ar1.first, ar2_end);
+            }
 
-            float ar2_end = ar2.first + ar2.second;
-            out.first = std::min(ar1.first, ar2.first);
-            out.second = std::max(ar1_end, ar2_end) - out.first;
+            // DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(ar1_end) << " is overlapped with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(ar2_end) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
             // DLOG(INFO) << "CombineAngleRange out.";
             return out;
         }
         // ar1 and ar2 are not overlap and included, make start and range -1
         out.first = -1;
         out.second = -1;
-        DLOG(INFO) << "CombineAngleRange out.";
+        return out;
+    }
+    float GetAngleRangeStart(const AngleRange &ar)
+    {
+        return ar.first;
+    }
+
+    float GetAngleRangeEnd(const AngleRange &ar)
+    {
+        return ar.first + ar.second;
+    }
+
+    bool Angle1RightAngle2(const float &a1, const float &a2)
+    {
+        bool out = false;
+        // a1 and a2 are in rad
+        // return true only if a1-a2> angle resolution(set to 0.1 deg)
+        if (GetAngleDistance(a1, a2) > ConvertDegToRad(0.001))
+        {
+            out = true;
+        }
+        // DLOG(INFO) << "a2: " << ConvertRadToDeg(a1) << " is at Left of a1: " << ConvertRadToDeg(a2) << " ???: " << out;
         return out;
     }
 
+    bool IsEqual(const float &a1, const float &a2)
+    {
+        // a1 and a2 are in rad
+        // return true only if a1-a2< angle resolution(set to 0.1 deg)
+        // what if a1 and a2 are greater than 2*pi??
+
+        if (abs(GetAngleDistance(a1, a2)) < ConvertDegToRad(0.001))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    float GetAngleDistance(const float &angle1, const float &angle2)
+    {
+        // just angle1 - angle2,normalization is needed.
+        float out = angle2 - angle1;
+
+        if (out > M_PI || out < -M_PI)
+        {
+            out = RadNormalization(out);
+        }
+        // DLOG(INFO) << "distance from a1: " << ConvertRadToDeg(angle1) << " to a2: " << ConvertRadToDeg(angle2) << " is " << ConvertRadToDeg(out);
+        return out;
+    }
+
+    std::vector<Edge> GetPolygonEdgesFacingPoint(const Polygon &polygon, const Eigen::Vector2f &point)
+    {
+        std::vector<Edge> out;
+        // check if point inside polygon, if yes, just return
+
+        // DLOG(INFO) << "Point " << point.x() << " " << point.y() << " . polygon  first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
+        if (IsInsidePolygon(polygon, point) > 0)
+        {
+            DLOG(INFO) << "point is inside polygon!!";
+            return out;
+        }
+
+        // find min distance from point to polygon
+        float min_distance = GetDistanceFromPolygonToPoint(polygon, point);
+        // count how many min_distance, if just one, there is only one edge facing point, if two, then two edges
+        // DLOG(INFO) << "min distance is " << min_distance << " . polygon size is " << polygon.size();
+        for (uint index = 0; index < polygon.size() - 1; ++index)
+        {
+            float distance = GetDistanceFromSegmentToPoint(polygon[index], polygon[index + 1], point);
+            // DLOG(INFO) << "distance is " << distance;
+            if (abs(distance - min_distance) < 1e-3)
+            {
+
+                out.emplace_back(Edge(polygon[index], polygon[index + 1]));
+                // DLOG(INFO) << "edge start from " << polygon[index].x() << " " << polygon[index].y() << " end at " << polygon[index + 1].x() << " " << polygon[index + 1].y() << " is facing point " << point.x() << " " << point.y();
+            }
+        }
+
+        return out;
+    }
+
+    bool IsEqual(const AngleRange &ar1, const AngleRange &ar2)
+    {
+
+        return IsEqual(ar1.first, ar2.first) &&
+               IsEqual(GetAngleRangeEnd(ar1), GetAngleRangeEnd(ar2));
+    }
+
+    bool ShareBoundary(const AngleRange &ar1, const AngleRange &ar2)
+    {
+        float ar1_end = GetAngleRangeEnd(ar1);
+        float ar2_end = GetAngleRangeEnd(ar2);
+        // DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(ar1_end) << " . ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(ar2_end);
+        if (IsAngleRangeInclude(ar1, ar2) || IsAngleRangeInclude(ar2, ar1))
+        {
+            // DLOG(INFO) << "ar1 and ar2 include each other.";
+            return false;
+        }
+        if (!IsOverlap(ar1, ar2))
+        {
+            // DLOG(INFO) << "ar1 and ar2 doesn`t overlap.";
+            return false;
+        }
+        if (IsEqual(ar1.first, ar2.first) || IsEqual(ar1_end, ar2_end) || IsEqual(ar1.first, ar2_end) || IsEqual(ar1_end, ar2.first))
+        {
+            // DLOG(INFO) << "ar1 and ar2 share boundary.";
+            return true;
+        }
+        return false;
+    }
+
+    std::vector<AngleRange> SortAngleRange(const std::vector<AngleRange> &ar_vec)
+    {
+        std::vector<AngleRange> out;
+        out = ar_vec;
+        sort(out.begin(), out.end(), AngleRange1RightAngleRange2);
+        return out;
+    }
+
+    bool AngleRange1RightAngleRange2(const AngleRange &ar1, const AngleRange &ar2)
+    {
+        return Angle1RightAngle2(ar1.first, ar2.first);
+    }
 } // namespace Utility

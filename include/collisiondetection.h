@@ -39,7 +39,7 @@ namespace HybridAStar
 
     nav_msgs::OccupancyGrid::Ptr GetMap() const { return grid_ptr_; };
     /**
-     * @brief find free angle range and obstacle angle range from a vector of <distance,angle> pair
+     * @brief find free angle range, obstacle angle range and their no collision distance, for free angle range, distance should be obstacle detection range, for obstacle angle range, distance should be min distance to obstacle
      *
      * @param node3d
      * @return std::vector<std::pair<float, Utility::AngleRange>> pair first is min distance, pair second is angle range
@@ -274,8 +274,8 @@ namespace HybridAStar
      */
     std::unordered_map<uint, std::vector<Utility::Polygon>> in_range_obstacle_map_;
     /**
-     * @brief key int: is the location index ,value is a vector of pair<distance to obstacle, and its angle range
-     * 
+     * @brief key int: is the location index ,value is a vector of pair<distance to obstacle, and its obstacle angle range
+     *
      */
     std::unordered_map<uint, std::vector<std::pair<float, Utility::AngleRange>>> distance_angle_range_map_;
 

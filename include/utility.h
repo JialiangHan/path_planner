@@ -18,6 +18,7 @@
 #include "glog/logging.h"
 #include "gflags/gflags.h"
 #include "computational_geometry.h"
+#include <bits/stdc++.h>
 namespace Utility
 {
     //******************typedef****************
@@ -25,6 +26,7 @@ namespace Utility
     typedef std::pair<float, float> AngleRange;
     typedef std::vector<AngleRange> AngleRangeVec;
     typedef std::vector<Eigen::Vector2f> Polygon;
+    typedef std::pair<Eigen::Vector2f, Eigen::Vector2f> Edge;
     //*******************type conversion*******************
     void ConvertRosPathToVectorVector3D(
         const nav_msgs::Path::ConstPtr &path,
@@ -278,8 +280,7 @@ namespace Utility
     AngleRange GetAngleRangeFromPointToPolygon(const Polygon &polygon,
                                                const Eigen::Vector2f &point, const float &radius);
     /**
-     * @brief find visible vertex of a polygon from a point view, current this
-     * function only work for rectangle
+     * @brief find visible vertex of a polygon from a point view, current this function only work for rectangle, return empty vector if point is on polygon
      *
      * @param polygon
      * @param point
@@ -308,7 +309,7 @@ namespace Utility
     bool IsAngleRangeInclude(const AngleRange &angle_range_1,
                              const AngleRange &angle_range_2);
     /**
-     * @brief determine is angle is inside this angle range
+     * @brief determine is angle is inside this angle range, if angle is on boundary ,still return true
      *
      * @param angle_range
      * @param angle rad
@@ -318,14 +319,31 @@ namespace Utility
     bool IsAngleRangeInclude(const AngleRange &angle_range, const float &angle);
 
     /**
- * @brief angle range 1 minus angle range 2,only for overlap condition, fully included is not considered
- * 
- * @param angle_range_1 this one should always be the free angle range
- * @param angle_range_2 should be obstacle angle range
- * @return AngleRange 
- */
-    AngleRange MinusAngleRange(const AngleRange &angle_range_1,
-                               const AngleRange &angle_range_2);
+     * @brief angle range 1 minus angle range 2,only for overlap condition, fully included is not considered, remove ar2 from ar1, return ar1 except parts in ar2
+     *
+     * @param angle_range_1 this one should always be the free angle range
+     * @param angle_range_2 should be obstacle angle range
+     * @return AngleRange
+     */
+    AngleRange MinusAngleRangeOverlap(const AngleRange &angle_range_1,
+                                      const AngleRange &angle_range_2);
+    /**
+     * @brief ar1 minus ar2, return should be a vector, size should be one only for ar1 and ar2 are overlap and size is two for ar1 include ar2
+     *
+     * @param ar1
+     * @param ar2
+     * @return std::vector<AngleRange>
+     */
+    std::vector<AngleRange> MinusAngleRange(const AngleRange &ar1, const AngleRange &ar2);
+    /**
+     * @brief find common angle range in ar1 and ar2;
+     *
+     * @param angle_range_1
+     * @param angle_range_2
+     * @return AngleRange
+     */
+    AngleRange FindCommonAngleRange(const AngleRange &ar1,
+                                    const AngleRange &ar2);
     /**
      * @brief combine angle range only if they have some range in common.
      *
@@ -345,13 +363,13 @@ namespace Utility
      */
     float CalculateCurvature(const Eigen::Vector2f &pre, const Eigen::Vector2f &current, const Eigen::Vector2f &succ);
     /**
-       * @brief determine if polygon1 is intersect with polygon2, 
-       * 
-       * @param polygon1 
-       * @param polygon2 
-       * @return true: intersect
-       * @return false: not intersect
-       */
+     * @brief determine if polygon1 is intersect with polygon2,
+     *
+     * @param polygon1
+     * @param polygon2
+     * @return true: intersect
+     * @return false: not intersect
+     */
     bool IsPolygonIntersectWithPolygon(const Polygon &polygon1, const Polygon &polygon2);
     /**
      * @brief determine if these two polygon are share edges, in another words, they are in neighbor
@@ -405,16 +423,16 @@ namespace Utility
      */
     std::vector<Eigen::Vector2f> GetIntersectionPointsBetweenCircleAndSegment(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end);
     /**
-     * @brief determine relationship between circle and polyon
+     * @brief determine relationship between circle and polygon
      *
      * @param center
      * @param radius
      * @param polygon
-     * @return int 1: polyon is fully inside circle, 0: polygon partially inside circle, -1: polygon is fully outside circle
+     * @return int 1: polygon is fully inside circle, 0: polygon partially inside circle, -1: polygon is fully outside circle
      */
     int IsPolygonInsideCircle(const Eigen::Vector2f &center, const float &radius, const Polygon &polygon);
     /**
-     * @brief determine if a point is inside circle, on circle is not considered.
+     * @brief determine if a point is inside circle, on circle is considered as outside.
      *
      * @param center
      * @param radius
@@ -433,11 +451,12 @@ namespace Utility
      * @return int 1: edge is fully inside circle, 0: edge partially inside circle, -1: edge is fully outside circle
      */
     int IsEdgeInsideCircle(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end);
+
     /**
      * @brief find angle range using two angle, whether start or end is not important. range must be smaller than Pi
      *
-     * @param a1 in rad
-     * @param a2 in rad
+     * @param a1 in rad, could be negative
+     * @param a2 in rad,could be negative
      * @return AngleRange
      */
     AngleRange FindAngleRange(const float &a1, const float &a2);
@@ -469,17 +488,80 @@ namespace Utility
      */
     Eigen::Vector2f FindProjectionPoint(const Eigen::Vector2f &center, const Eigen::Vector2f &start, const Eigen::Vector2f &unit_vector);
 
+    float GetAngleRangeStart(const AngleRange &ar);
+
+    float GetAngleRangeEnd(const AngleRange &ar);
+    /**
+     * @brief check if distance from a1 to a2 is positive or negative
+     * positive: CCW, negative: CW
+     * @param a1 in rad
+     * @param a2 in rad
+     * @return true distance is positive,
+     * @return false distance is negative
+     */
+    bool Angle1RightAngle2(const float &a1, const float &a2);
+    /**
+     * @brief check if distance from a1 to a2 is positive or negative
+     * positive: CCW, negative: CW
+     * @param a1 in rad
+     * @param a2 in rad
+     * @return true distance is positive,
+     * @return false distance is negative
+     */
+    bool AngleRange1RightAngleRange2(const AngleRange &ar1, const AngleRange &ar2);
+    /**
+     * @brief check if a1 is equal to a2.
+     *
+     * @param a1
+     * @param a2
+     * @return true
+     * @return false
+     */
+    bool IsEqual(const float &a1, const float &a2);
+    /**
+     * @brief Get the Polygon Edges which Facing Point, since polygon are rectangle, there must be one or two edges facing point.
+     *
+     * @param polygon
+     * @param point
+     * @return std::vector<Edge>
+     */
+    std::vector<Edge> GetPolygonEdgesFacingPoint(const Polygon &polygon, const Eigen::Vector2f &point);
+    /**
+     * @brief check if two angle range are equal
+     *
+     * @param ar1
+     * @param ar2
+     * @return true
+     * @return false
+     */
+    bool IsEqual(const AngleRange &ar1, const AngleRange &ar2);
+    /**
+     * @brief check if two angle range have the same boundary, same start or same end, include is not counted as share boundary
+     *
+     * @param ar1
+     * @param ar2
+     * @return true
+     * @return false
+     */
+    bool ShareBoundary(const AngleRange &ar1, const AngleRange &ar2);
+    /**
+     * @brief sort angle range vec by its start angle
+     *
+     * @param ar_vec
+     * @return std::vector<AngleRange>
+     */
+    std::vector<AngleRange> SortAngleRange(const std::vector<AngleRange> &ar_vec);
     //*************************other ***********************
 
     float Clamp(const float &number, const float &upper_bound,
                 const float &lower_bound);
 
     /**
- * @brief convert angle in deg into [-PI,Pi)
- *
- * @param deg
- * @return float
- */
+     * @brief convert angle in deg into [-PI,Pi)
+     *
+     * @param deg
+     * @return float
+     */
     float DegNormalization(const float &deg);
 
     float RadNormalization(const float &rad);
@@ -501,15 +583,23 @@ namespace Utility
     float GetDistance(const HybridAStar::Node2D &start,
                       const HybridAStar::Node2D &goal);
     /**
-    * @brief Get the Angle object
-    * 
-    * @param start 
-    * @param goal 
-    * @return float in [-pi,pi]
-    */
+     * @brief Get the Angle object
+     *
+     * @param start
+     * @param goal
+     * @return float in [-pi,pi]
+     */
     float GetAngle(const HybridAStar::Node3D &start,
                    const HybridAStar::Node3D &goal);
     float GetAngle(const HybridAStar::Node2D &start,
                    const HybridAStar::Node2D &goal);
     float GetAngle(const Eigen::Vector2f &start, const Eigen::Vector2f &goal);
+    /**
+     * @brief Get the  Distance from angle1 to angle 2, positive is CCW, negative is CW
+     *
+     * @param angle1 in rad
+     * @param angle2 in rad
+     * @return float
+     */
+    float GetAngleDistance(const float &angle1, const float &angle2);
 }
