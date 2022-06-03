@@ -602,4 +602,13 @@ namespace Utility
      * @return float
      */
     float GetAngleDistance(const float &angle1, const float &angle2);
+    /**
+     * @brief check if element is already inside vector
+     *
+     * @param vector
+     * @param element
+     * @return true yes, element is inside vector
+     * @return false no, element is not inside vector
+     */
+    bool DuplicateCheck(const std::vector<std::pair<float, float>> &vector, const std::pair<float, float> &element);
 }

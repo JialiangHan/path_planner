@@ -1732,4 +1732,19 @@ namespace Utility
     {
         return Angle1RightAngle2(ar1.first, ar2.first);
     }
+
+    bool DuplicateCheck(const std::vector<std::pair<float, float>> &vector, const std::pair<float, float> &element)
+    {
+        for (const auto &pair : vector)
+        {
+            if (abs(pair.first - element.first) < 1e-3)
+            {
+                if (abs(pair.second - element.second) < 1e-3)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 } // namespace Utility

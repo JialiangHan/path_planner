@@ -1066,9 +1066,14 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
     // if steering angle range is zero, that means current node is blocked by obstacles
     if (pair.second.second == 0)
     {
-      // DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
+      DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
       steering_angle = Utility::RadNormalization(-(pair.second.first - pred.GetT()));
-      out.emplace_back(std::pair<float, float>(pair.first, steering_angle));
+      std::pair<float, float> temp(pair.first, steering_angle);
+      if (!Utility::DuplicateCheck(out, temp))
+      {
+        out.emplace_back(temp);
+      }
+
       continue;
     }
     // 2. for free angle range, steering angle is angle range start + 1/(number of successors+1) * angle range.
@@ -1080,7 +1085,11 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
         if (Utility::IsAngleRangeInclude(pair.second, angle_to_goal))
         {
           DLOG(INFO) << "one more node is in free angle range!";
-          out.emplace_back(AddOneMoreStepSizeAndSteeringAngle(angle_to_goal, step_size_free, pred, goal));
+          std::pair<float, float> temp = AddOneMoreStepSizeAndSteeringAngle(angle_to_goal, step_size_free, pred, goal);
+          if (!Utility::DuplicateCheck(out, temp))
+          {
+            out.emplace_back(temp);
+          }
         }
       }
       // TODO how to automatically determine number of successors?
@@ -1092,14 +1101,23 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
           // target orientation=angle range start + (index/number of successor)* angle range range
           //  current orientation=current node theta
           steering_angle = Utility::RadNormalization(-(pair.second.first + index * pair.second.second / (number_of_successor + 1) - pred.GetT()));
-          out.emplace_back(std::pair<float, float>(step_size_free, steering_angle));
+          std::pair<float, float> temp(step_size_free, steering_angle);
+          if (!Utility::DuplicateCheck(out, temp))
+          {
+            out.emplace_back(temp);
+          }
+
           // DLOG(INFO) << "for free angle range, step size is " << step_size_free << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
         }
       }
       else
       {
         steering_angle = Utility::RadNormalization(-(pair.second.first + 0.5 * pair.second.second - pred.GetT()));
-        out.emplace_back(std::pair<float, float>(step_size_free, steering_angle));
+        std::pair<float, float> temp(step_size_free, steering_angle);
+        if (!Utility::DuplicateCheck(out, temp))
+        {
+          out.emplace_back(temp);
+        }
       }
     }
     // 3. for obstacle angle range, two successors are created, first steering angle is range start, second steering angle is range end.
@@ -1113,16 +1131,29 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
           if (Utility::IsAngleRangeInclude(pair.second, angle_to_goal))
           {
             DLOG(INFO) << "one more node is in obstacle angle range!";
-            out.emplace_back(AddOneMoreStepSizeAndSteeringAngle(angle_to_goal, step_size_obstacle, pred, goal));
+            std::pair<float, float> temp = AddOneMoreStepSizeAndSteeringAngle(angle_to_goal, step_size_obstacle, pred, goal);
+            if (!Utility::DuplicateCheck(out, temp))
+            {
+              out.emplace_back(temp);
+            }
           }
         }
       }
       // steering angle is range start
       steering_angle = Utility::RadNormalization(-(pair.second.first - pred.GetT()));
-      out.emplace_back(std::pair<float, float>(step_size_obstacle, steering_angle));
+      std::pair<float, float> temp(step_size_obstacle, steering_angle);
+      if (!Utility::DuplicateCheck(out, temp))
+      {
+        out.emplace_back(temp);
+      }
+
       // steering angle is range end
       steering_angle = Utility::RadNormalization(-(pair.second.first + pair.second.second - pred.GetT()));
-      out.emplace_back(std::pair<float, float>(step_size_obstacle, steering_angle));
+      std::pair<float, float> temp1(step_size_obstacle, steering_angle);
+      if (!Utility::DuplicateCheck(out, temp1))
+      {
+        out.emplace_back(temp1);
+      }
     }
   }
 
