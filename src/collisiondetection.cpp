@@ -1013,25 +1013,26 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   DLOG_IF(WARNING, weight_step_size == 0) << "weight_step_size is zero!!!!";
   // DLOG(INFO) << "normalized obstacle density is " << GetNormalizedObstacleDensity(pred) << " step size weight for current node is " << weight_step_size;
   // if rest distance to obstacle is less than 1/2 vehicle length,
-  float available_step_size = step_size_obstacle - 0.5 * params_.vehicle_length;
-  step_size_free = weight_step_size * (step_size_free - 0.5 * params_.vehicle_length);
-  if (available_step_size > 1)
+  float available_step_size_obstacle = step_size_obstacle - 0.5 * params_.vehicle_length;
+  float available_step_size_free = step_size_free - 0.5 * params_.vehicle_length;
+
+  if (available_step_size_obstacle > 1)
   {
-    step_size_obstacle = weight_step_size * available_step_size;
+    step_size_obstacle = weight_step_size * available_step_size_obstacle;
     // make sure step size is larger than a predefined min distance otherwise too many successors
 
     if (step_size_obstacle < 1)
     {
       // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
 
-      if (available_step_size > 1)
+      if (available_step_size_obstacle > 1)
       {
         step_size_obstacle = 1;
       }
       else
       {
-        DLOG(INFO) << "step size is " << step_size_obstacle << " available step size is " << available_step_size;
-        step_size_obstacle = available_step_size;
+        DLOG(INFO) << "step size is " << step_size_obstacle << " available step size is " << available_step_size_obstacle;
+        step_size_obstacle = available_step_size_obstacle;
       }
     }
   }
@@ -1040,9 +1041,34 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
     DLOG(WARNING) << "min distance to obstacle is less then 1/2*vehicle_length, make step size 0!!!";
     step_size_obstacle = 0;
   }
+  if (available_step_size_free > 1)
+  {
+    step_size_free = weight_step_size * available_step_size_free;
+    // make sure step size is larger than a predefined min distance otherwise too many successors
 
-  DLOG_IF(INFO, step_size_obstacle < 1) << "step size is " << step_size_obstacle;
+    if (step_size_free < 1)
+    {
+      // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
 
+      if (available_step_size_free > 1)
+      {
+        step_size_free = 1;
+      }
+      else
+      {
+        DLOG(INFO) << "free step size is " << step_size_free << " available step size is " << available_step_size_free;
+        step_size_free = available_step_size_free;
+      }
+    }
+  }
+  else
+  {
+    DLOG(WARNING) << "min distance to obstacle is less then 1/2*vehicle_length, make step size 0!!!";
+    step_size_free = 0;
+  }
+
+  DLOG_IF(WARNING, step_size_obstacle < 1) << "obstacle step size is " << step_size_obstacle;
+  DLOG_IF(WARNING, step_size_free < 1) << "free step size is " << step_size_free;
   // 3. find angle to goal
   // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
   float angle_to_goal;
