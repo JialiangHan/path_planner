@@ -1118,33 +1118,66 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
           }
         }
       }
-      // TODO how to automatically determine number of successors?
+      // TODO how to automatically determine number of successors?Answer: if range <5deg, just create one successor(avg),else, create n successors, each has (min+5*n)deg angles. DONE
+      // TODO how to automatically select steering angle in free angle range: use the way in RRT:1. create a random number in [0,1], if greater than 0.5 , use angle to goal, else fully random number in free angle range. concern is number of successor is too small.
       //  if free angle range is too small, then just create only one steering angle
-      if (pair.second.second / (number_of_successor + 1) >= Utility::ConvertDegToRad(5))
+      // DLOG(INFO) << "free angle range divide by (number of successor+1)= " << pair.second.second / (number_of_successor + 1);
+      // DLOG(INFO) << "Utility::ConvertDegToRad(5) is " << Utility::ConvertDegToRad(5);
+      // DLOG_IF(INFO, pair.second.second / (number_of_successor + 1) < Utility::ConvertDegToRad(5)) << "free angle range too small!!";
+      if (pair.second.second < Utility::ConvertDegToRad(3))
       {
-        for (int index = 1; index < number_of_successor + 1; ++index)
-        {
-          // target orientation=angle range start + (index/number of successor)* angle range range
-          //  current orientation=current node theta
-          steering_angle = Utility::RadNormalization(-(pair.second.first + index * pair.second.second / (number_of_successor + 1) - pred.GetT()));
-          std::pair<float, float> temp(step_size_free, steering_angle);
-          if (!Utility::DuplicateCheck(out, temp))
-          {
-            out.emplace_back(temp);
-          }
-
-          // DLOG(INFO) << "for free angle range, step size is " << step_size_free << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
-        }
-      }
-      else
-      {
-        steering_angle = Utility::RadNormalization(-(pair.second.first + 0.5 * pair.second.second - pred.GetT()));
+        DLOG(INFO) << "create successor for free angle range smaller than 5deg.";
+        steering_angle = Utility::RadNormalization(-(pair.second.first + pair.second.second * 0.5 - pred.GetT()));
         std::pair<float, float> temp(step_size_free, steering_angle);
         if (!Utility::DuplicateCheck(out, temp))
         {
           out.emplace_back(temp);
         }
       }
+      else
+      {
+        // TODO limit number of successor for free angle range
+        DLOG(INFO) << "create successor for free angle range larger than 5deg.";
+        float current_angle = pair.second.first;
+        // float steering_angle_step_size = pair.second.second / number_of_successor;
+        float steering_angle_step_size = Utility::ConvertDegToRad(5);
+        while (current_angle <= Utility::GetAngleRangeEnd(pair.second))
+        {
+          steering_angle = Utility::RadNormalization(-(current_angle - pred.GetT()));
+          std::pair<float, float> temp(step_size_free, steering_angle);
+          if (!Utility::DuplicateCheck(out, temp))
+          {
+            out.emplace_back(temp);
+          }
+          current_angle += steering_angle_step_size;
+        }
+      }
+      // if (pair.second.second / (number_of_successor + 1) >= Utility::ConvertDegToRad(5))
+      // {
+      //   for (int index = 1; index < number_of_successor + 1; ++index)
+      //   {
+      //     // target orientation=angle range start + (index/number of successor)* angle range range
+      //     //  current orientation=current node theta
+      //     DLOG(INFO) << "loop to create successor for free angle range.";
+      //     steering_angle = Utility::RadNormalization(-(pair.second.first + index * pair.second.second / (number_of_successor + 1) - pred.GetT()));
+      //     std::pair<float, float> temp(step_size_free, steering_angle);
+      //     if (!Utility::DuplicateCheck(out, temp))
+      //     {
+      //       out.emplace_back(temp);
+      //     }
+
+      //     // DLOG(INFO) << "for free angle range, step size is " << step_size_free << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+      //   }
+      // }
+      // else
+      // {
+      //   steering_angle = Utility::RadNormalization(-(pair.second.first + 0.5 * pair.second.second - pred.GetT()));
+      //   std::pair<float, float> temp(step_size_free, steering_angle);
+      //   if (!Utility::DuplicateCheck(out, temp))
+      //   {
+      //     out.emplace_back(temp);
+      //   }
+      // }
     }
     // 3. for obstacle angle range, two successors are created, first steering angle is range start, second steering angle is range end.
     else
