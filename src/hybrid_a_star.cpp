@@ -489,7 +489,7 @@ namespace HybridAStar
     float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle;
     int prem;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
-    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     for (const auto &pair : step_size_steering_angle_vec)
     {
       if (pair.first == 0)
@@ -531,7 +531,7 @@ namespace HybridAStar
       xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
       ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
       tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
-      // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+      DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
       std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
       out.emplace_back(temp);
       if (params_.reverse)
@@ -578,14 +578,15 @@ namespace HybridAStar
     out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors);
     // comment out due to less nodes explored when add one more step every time
     //  if (out.size() == 0)
-    if (params_.add_one_more_successor)
-    {
-      AddOneMoreStepSizeAndSteeringAngle(pred, out);
-    }
+    // // TODO move this part into function:SelectStepSizeAndSteeringAngle
+    // if (params_.add_one_more_successor)
+    // {
+    //   AddOneMoreStepSizeAndSteeringAngle(pred, out);
+    // }
 
     // for (const auto &pair : out)
     // {
-    // DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+    //   DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
     // }
     // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
     return out;
@@ -808,7 +809,7 @@ namespace HybridAStar
       steering_angle = angle_to_goal;
     }
 
-    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT()) << " one more step size is " << step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle);
+    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT()) << " one more step size is " << step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle);
 
     step_size_steering_angle_pair.emplace_back(std::pair<float, float>(step_size, steering_angle));
   }

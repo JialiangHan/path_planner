@@ -33,6 +33,8 @@ namespace HybridAStar
 
     bool add_one_more_successor_only_in_free_angle_range = false;
 
+    bool add_one_more_successor = true;
+
     bool map_boundary_obstacle = false;
   };
 
@@ -61,9 +63,7 @@ namespace HybridAStar
     // ParameterAStar a_star_params;
     bool analytical_expansion = true;
 
-    bool add_one_more_successor = true;
-
-    /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
+     /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
     float penalty_turning = 1.05;
     /// [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
     float penalty_reverse = 1;
