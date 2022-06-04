@@ -1747,4 +1747,9 @@ namespace Utility
         }
         return false;
     }
+
+    float GetAngleDistance(const float &angle, const AngleRange &ar)
+    {
+        return std::min(abs(GetAngleDistance(angle, ar.first)), abs(GetAngleDistance(angle, GetAngleRangeEnd(ar))));
+    }
 } // namespace Utility

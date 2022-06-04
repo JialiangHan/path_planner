@@ -248,6 +248,15 @@ namespace HybridAStar
     bool IsBoundaryObstacle(const Utility::Polygon &obstacle);
 
     std::pair<float, float> AddOneMoreStepSizeAndSteeringAngle(const float &angle_to_goal, const float &step_size, const Node3D &pred, const Node3D &goal);
+    /**
+     * @brief return angle1 or angle2 which is closest to free angle range of current node
+     *
+     * @param current
+     * @param angle1 in rad
+     * @param angle2 in rad
+     * @return float angle1 or angle2
+     */
+    float IsCloseToFreeAngleRange(const Node3D &current, const float &angle1, const float &angle2);
 
   private:
     ParameterCollisionDetection params_;

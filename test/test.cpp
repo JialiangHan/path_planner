@@ -551,15 +551,23 @@ TEST(Utility, MinusAngleRange)
 
 TEST(Utility, GetAngleDistance)
 {
-    float a1 = Utility::ConvertDegToRad(30), a2 = Utility::ConvertDegToRad(60), a3 = Utility::ConvertDegToRad(360);
-    ;
+    float a1 = Utility::ConvertDegToRad(-40), a2 = Utility::ConvertDegToRad(180), a3 = Utility::ConvertDegToRad(360);
 
-    float result1 = Utility::GetAngleDistance(a1, a2);
-    float result2 = Utility::GetAngleDistance(a2, a1);
-    float result3 = Utility::GetAngleDistance(a1, a3);
-    float result4 = Utility::GetAngleDistance(a3, a1);
-    EXPECT_FLOAT_EQ(result1, Utility::ConvertDegToRad(30));
-    EXPECT_FLOAT_EQ(result2, Utility::ConvertDegToRad(-30));
-    EXPECT_TRUE(Utility::IsEqual(result3, Utility::ConvertDegToRad(-30)));
-    EXPECT_TRUE(Utility::IsEqual(result4, Utility::ConvertDegToRad(30)));
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(30), Utility::ConvertDegToRad(30));
+
+    float result5 = Utility::GetAngleDistance(a1, ar1);
+    float result6 = Utility::GetAngleDistance(a2, ar1);
+    float result7 = Utility::GetAngleDistance(a3, ar1);
+    EXPECT_FLOAT_EQ(result5, Utility::ConvertDegToRad(70));
+    EXPECT_FLOAT_EQ(result6, Utility::ConvertDegToRad(120));
+    EXPECT_FLOAT_EQ(result7, Utility::ConvertDegToRad(30));
+
+    // float result1 = Utility::GetAngleDistance(a1, a2);
+    // float result2 = Utility::GetAngleDistance(a2, a1);
+    // float result3 = Utility::GetAngleDistance(a1, a3);
+    // float result4 = Utility::GetAngleDistance(a3, a1);
+    // EXPECT_FLOAT_EQ(result1, Utility::ConvertDegToRad(30));
+    // EXPECT_FLOAT_EQ(result2, Utility::ConvertDegToRad(-30));
+    // EXPECT_TRUE(Utility::IsEqual(result3, Utility::ConvertDegToRad(-30)));
+    // EXPECT_TRUE(Utility::IsEqual(result4, Utility::ConvertDegToRad(30)));
 }

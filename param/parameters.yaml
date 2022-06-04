@@ -35,7 +35,10 @@ piecewise_cubic_bezier_interpolation: false
 consider_steering_angle_range_for_obstacle_density: false
 # while this parameter is true, it will add four boundary obstacle to obstacle list
 map_boundary_obstacle: true
-
+# this parameter control how to generate steering angle in obstacle angle range
+steering_angle_towards_free_angle_range_for_obstacle_angle_range: true
+# 
+fixed_steering_angle_in_free_angle_range: true
 # obstacle_detection_range: 10
 
 #  COLLISION LOOKUP SPECIFIC

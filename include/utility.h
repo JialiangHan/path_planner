@@ -603,6 +603,14 @@ namespace Utility
      */
     float GetAngleDistance(const float &angle1, const float &angle2);
     /**
+     * @brief Get the Angle Distance  from an angle to an angle range, return min distance from angle to ar start and ar end.
+     *
+     * @param angle
+     * @param ar
+     * @return float always be positive
+     */
+    float GetAngleDistance(const float &angle, const AngleRange &ar);
+    /**
      * @brief check if element is already inside vector
      *
      * @param vector
