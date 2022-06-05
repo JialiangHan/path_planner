@@ -22,7 +22,7 @@ step_size : 1
 
 add_one_more_successor : true
 
-add_one_more_successor_only_in_free_angle_range: false
+add_one_more_successor_only_in_free_angle_range: true
 
 analytical_expansion: true
 # this parameter determine the frequency of analytical expansion, false means the way in the original paper
@@ -37,8 +37,11 @@ consider_steering_angle_range_for_obstacle_density: false
 map_boundary_obstacle: true
 # this parameter control how to generate steering angle in obstacle angle range
 steering_angle_towards_free_angle_range_for_obstacle_angle_range: true
-# 
-fixed_steering_angle_in_free_angle_range: true
+# if this is true, 
+#   then use number of successors to select steering angle in free angle angle:
+# else:
+#   use a fixed step size, so steering angle should be: free angle start, free angle start+ n*step_size(step size should be 5 deg).
+fixed_number_of_steering_angle_in_free_angle_range: false
 # obstacle_detection_range: 10
 
 #  COLLISION LOOKUP SPECIFIC

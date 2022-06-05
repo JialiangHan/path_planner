@@ -71,6 +71,9 @@ namespace HybridAStar
     ros_param_name = "steering_angle_towards_free_angle_range_for_obstacle_angle_range";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.steering_angle_towards_free_angle_range_for_obstacle_angle_range);
 
+    ros_param_name = "fixed_number_of_steering_angle_in_free_angle_range";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.fixed_number_of_steering_angle_in_free_angle_range);
+
     ros_param_name = "add_one_more_successor";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.add_one_more_successor);
 

@@ -151,7 +151,7 @@ namespace HybridAStar
      * @param node3d
      * @return Utility::AngleRange
      */
-    Utility::AngleRange GetNode3DAvailableAngleRange(const Node3D &node3d);
+    Utility::AngleRange GetNode3DAvailableSteeringAngleRange(const Node3D &node3d);
 
     void SetDistanceAngleRangeMap();
 
@@ -161,7 +161,7 @@ namespace HybridAStar
      *
      * @param polygon
      * @return true free
-     * @return false collsion
+     * @return false collision
      */
     bool CollisionCheck(const Utility::Polygon &polygon);
     /**
@@ -233,10 +233,10 @@ namespace HybridAStar
     /**
      * @brief Get the weight_step_size from normalized obstacle density
      *
-     * @param normalizied_obstacle_density this is from [0,1]
+     * @param normalized_obstacle_density this is from [0,1]
      * @return float output should be somehow in a (0,1) range
      */
-    float GetStepSizeWeight(const float &normalizied_obstacle_density);
+    float GetStepSizeWeight(const float &normalized_obstacle_density);
 
     void AddMapBoundaryAsObstacle(std::vector<Utility::Polygon> &obstacle_vec);
     /**
@@ -249,14 +249,15 @@ namespace HybridAStar
 
     std::pair<float, float> AddOneMoreStepSizeAndSteeringAngle(const float &angle_to_goal, const float &step_size, const Node3D &pred, const Node3D &goal);
     /**
-     * @brief return angle1 or angle2 which is closest to free angle range of current node
+     * @brief return angle1 or angle2 which is closest to free angle range of current node, if free angle range is in steering angle range, then return angle closest to this free angle.
      *
+     * @param available_angle_range_vec
      * @param current
-     * @param angle1 in rad
-     * @param angle2 in rad
-     * @return float angle1 or angle2
+     * @param angle1
+     * @param angle2
+     * @return float
      */
-    float IsCloseToFreeAngleRange(const Node3D &current, const float &angle1, const float &angle2);
+    float IsCloseToFreeAngleRange(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &current, const float &angle1, const float &angle2);
 
   private:
     ParameterCollisionDetection params_;
