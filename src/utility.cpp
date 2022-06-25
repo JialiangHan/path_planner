@@ -1643,6 +1643,7 @@ namespace Utility
         {
             return true;
         }
+        DLOG_IF(INFO, abs(GetAngleDistance(a1, a2)) >= 2 * M_PI) << "distance from " << ConvertRadToDeg(a1) << " to " << ConvertRadToDeg(a2) << " is " << ConvertRadToDeg(GetAngleDistance(a1, a2));
         return false;
     }
 

@@ -156,7 +156,7 @@ void Planner::SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr 
   startN.header.frame_id = "map";
   startN.header.stamp = ros::Time::now();
 
-  DLOG(INFO) << "I am seeing a new start x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t) << " deg";
+  // DLOG(INFO) << "I am seeing a new start x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t) << " deg";
 
   if (grid_->info.height >= y && y >= 0 && grid_->info.width >= x && x >= 0)
   {
@@ -187,7 +187,7 @@ void Planner::SetGoal(const geometry_msgs::PoseStamped::ConstPtr &end)
   float y = end->pose.position.y / params_.cell_size;
   float t = tf::getYaw(end->pose.orientation);
 
-  DLOG(INFO) << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t) << " deg";
+  // DLOG(INFO) << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t) << " deg";
 
   if (grid_->info.height >= y && y >= 0 && grid_->info.width >= x && x >= 0)
   {
