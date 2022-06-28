@@ -867,7 +867,7 @@ namespace Utility
         return false;
     }
 
-    Polygon CombinePolyon(const Polygon &polygon1, const Polygon &polygon2)
+    Polygon CombinePolygon(const Polygon &polygon1, const Polygon &polygon2)
     {
         Polygon out;
         if (!IsPolygonInNeighbor(polygon1, polygon2))

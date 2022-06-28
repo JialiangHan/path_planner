@@ -389,7 +389,7 @@ namespace Utility
      * @param polygon2
      * @return Polygon
      */
-    Polygon CombinePolyon(const Polygon &polygon1, const Polygon &polygon2);
+    Polygon CombinePolygon(const Polygon &polygon1, const Polygon &polygon2);
     /**
      * @brief Get the Angle Range From Point To Edge At some Radius
      *

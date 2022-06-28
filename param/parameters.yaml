@@ -20,19 +20,15 @@ curve_type : 2
 # step size to create successor
 step_size : 1
 
+adaptive_steering_angle_and_step_size: true
+
+# this parameter forces all step size larger than one
+make_step_size_larger_than_one: true
+
 add_one_more_successor : true
 
 add_one_more_successor_only_in_free_angle_range: true
 
-analytical_expansion: true
-# this parameter determine the frequency of analytical expansion, false means the way in the original paper
-analytical_expansion_every_point : true
-
-adaptive_steering_angle_and_step_size: true
-
-piecewise_cubic_bezier_interpolation: false
-
-consider_steering_angle_range_for_obstacle_density: false
 # while this parameter is true, it will add four boundary obstacle to obstacle list
 map_boundary_obstacle: true
 # this parameter control how to generate steering angle in obstacle angle range
@@ -41,8 +37,19 @@ steering_angle_towards_free_angle_range_for_obstacle_angle_range: true
 #   then use number of successors to select steering angle in free angle angle:
 # else:
 #   use a fixed step size, so steering angle should be: free angle start, free angle start+ n*step_size(step size should be 5 deg).
-fixed_number_of_steering_angle_in_free_angle_range: false
-# obstacle_detection_range: 10
+fixed_number_of_steering_angle_in_free_angle_range: true
+
+analytical_expansion: true
+# this parameter determine the frequency of analytical expansion, false means the way in the original paper
+analytical_expansion_every_point : true
+
+
+
+piecewise_cubic_bezier_interpolation: false
+
+consider_steering_angle_range_for_obstacle_density: false
+
+
 
 #  COLLISION LOOKUP SPECIFIC
 # [#] --- The sqrt of the number of discrete positions per cell

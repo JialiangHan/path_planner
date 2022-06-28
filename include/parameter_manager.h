@@ -40,6 +40,8 @@ namespace HybridAStar
     bool steering_angle_towards_free_angle_range_for_obstacle_angle_range = true;
 
     bool fixed_number_of_steering_angle_in_free_angle_range = true;
+
+    bool make_step_size_larger_than_one = true;
   };
 
   //this struct contains some used parameters in visualize class
