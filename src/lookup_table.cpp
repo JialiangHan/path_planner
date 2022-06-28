@@ -105,7 +105,7 @@ namespace HybridAStar
         }
         else
         {
-            // DLOG(INFO) << "index " << index << " not found in cubic bezier map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
+            DLOG(INFO) << "index " << index << " not found in cubic bezier map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
         }
         return out;
     }
@@ -121,7 +121,8 @@ namespace HybridAStar
     }
     int LookupTable::CalculateNode3DIndex(const float &x, const float &y, const float &theta) const
     {
-        int out;
+        // DLOG(INFO) << "x is " << x << " y is " << y << " theta is " << theta;
+        int out, x_index, y_index;
         const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
         float angle;
         if (abs(theta) < 1e-4)
@@ -135,8 +136,11 @@ namespace HybridAStar
         // DLOG(INFO) << "angle is " << angle;
         // DLOG(INFO) << "delta heading in rad is " << delta_heading_in_rad;
         // DLOG(INFO) << "(int)(theta / delta_heading_in_rad) " << (int)(theta / delta_heading_in_rad);
-        out = (int)(angle / delta_heading_in_rad) * map_width_ * map_height_ * params_.position_resolution * params_.position_resolution + (int)(y * params_.position_resolution) * map_width_ + (int)(x * params_.position_resolution);
+        x_index = (int)(x * params_.position_resolution);
+        y_index = (int)(y * params_.position_resolution);
 
+        out = (int)(angle / delta_heading_in_rad) * map_width_ * map_height_ * params_.position_resolution * params_.position_resolution + (int)(y_index * params_.position_resolution) * map_width_ + (int)(x_index);
+        // DLOG(INFO) << "index is " << out;
         return out;
     }
     void LookupTable::CalculateDubinsLookup()

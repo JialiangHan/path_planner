@@ -489,10 +489,10 @@ namespace HybridAStar
     float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle;
     int prem;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
-    DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+    // DLOG_IF(INFO, (pred.GetX() > 25) && (pred.GetX() < 26) && (pred.GetY() > 2) && (pred.GetY() < 3)) << "in create successor, current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     for (const auto &pair : step_size_steering_angle_vec)
     {
-      if (pair.first == 0)
+      if (pair.first <= 1e-3)
       {
         DLOG(INFO) << "current step size is zero, no need to create successor!!";
         continue;
@@ -531,7 +531,7 @@ namespace HybridAStar
       xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
       ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
       tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
-      DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+      // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
       std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
       out.emplace_back(temp);
       if (params_.reverse)
@@ -564,6 +564,7 @@ namespace HybridAStar
         out.emplace_back(temp);
       }
     }
+    DLOG_IF(WARNING, out.size() == 0) << "Number of successor is zero!!!!";
     return out;
   }
   // TODO this function need improve, less pair should be created for obstacle angle angle
