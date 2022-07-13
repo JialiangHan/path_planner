@@ -22,7 +22,7 @@ namespace HybridAStar
    class HybridAStar
    {
    public:
-      /// The deault constructor
+      /// The default constructor
       HybridAStar(){};
       HybridAStar(const ParameterHybridAStar &params,
                   const std::shared_ptr<Visualize> &visualization_ptr);

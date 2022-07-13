@@ -16,7 +16,7 @@ void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map)
   SetObstacleVec();
   // CombineInNeighborObstacles();
   obstacle_detection_range_ = 6 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
-  DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range_;
+  // DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range_;
   SetInRangeObstacle(obstacle_detection_range_);
   SetDistanceAngleRangeMap();
   BuildObstacleDensityMap(1.3 * obstacle_detection_range_);
@@ -185,7 +185,7 @@ bool CollisionDetection::configurationTest(const Eigen::Vector2f &start, const E
   collision_result = CollisionCheck(start, end);
   if (!collision_result)
   {
-    DLOG(INFO) << "in collision, segment start at " << start.x() << " " << start.y() << " end at " << end.x() << " " << end.y();
+    // DLOG(INFO) << "in collision, segment start at " << start.x() << " " << start.y() << " end at " << end.x() << " " << end.y();
   }
   return collision_result;
 }
@@ -1107,10 +1107,10 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
     }
   }
 
-  // for (const auto &pair : out)
-  // {
-  //   DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-  // }
+  for (const auto &pair : out)
+  {
+    DLOG_IF(INFO, (pred.GetX() > 76) && (pred.GetX() < 77) && (pred.GetY() > 1) && (pred.GetY() < 2)) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+  }
   // DLOG(INFO) << "SelectStepSizeAndSteeringAngle out.";
   return out;
 }

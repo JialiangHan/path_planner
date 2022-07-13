@@ -6,9 +6,9 @@ PLUGINLIB_EXPORT_CLASS(HybridAStar::Planner, nav_core::BaseGlobalPlanner)
 
 using namespace HybridAStar;
 
-// these function are for move base plugin
+//  these function are for move base plugin
 //###################################################
-//                                  Plugin functions
+//                                   Plugin functions
 //###################################################
 
 Planner::Planner(std::string name, costmap_2d::Costmap2DROS *costmap_ros)
@@ -233,8 +233,8 @@ void Planner::MakePlan()
     float t = tf::getYaw(start_.pose.pose.orientation);
     // set theta to a value (0,2PI]
 
-    x = 3;
-    y = height - 5;
+    x = 2;
+    y = height - 2;
     t = Utility::ConvertDegToRad(0);
     t = Utility::RadToZeroTo2P(t);
     Node3D nStart(x, y, t, 0, 0, nullptr);
@@ -246,8 +246,8 @@ void Planner::MakePlan()
     t = tf::getYaw(goal_.pose.orientation);
     // set theta to a value (0,2PI]
     t = Utility::RadToZeroTo2P(t);
-    x = width - 5;
-    y = 4;
+    x = width - 2;
+    y = 2;
     t = Utility::ConvertDegToRad(0);
     Node3D nGoal(x, y, t, 0, 0, nullptr);
 
