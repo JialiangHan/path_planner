@@ -92,6 +92,8 @@ def CreateParkingSpace(width,height,number_of_cars):
         parking_space(dictionary): key is parking space coordinate, value is 0,1 0: free, 1: occupant
     """    
     parking_space={}
+    if number_of_cars<=0:
+        return parking_space
     # a road width plus 1/2* parking space width
     low_limit_x=3.5+1.25
     # total map width minus a road width minus 1/2* parking space width
@@ -102,6 +104,7 @@ def CreateParkingSpace(width,height,number_of_cars):
     high_limit_y=low_limit_y+5.3
     parking_space_center=[low_limit_x,low_limit_y]
     count=0
+    
     # first row parking space 
     while parking_space_center[1]>=low_limit_y and parking_space_center[1]<=high_limit_y:
         while parking_space_center[0]>=low_limit_x and parking_space_center[0]<=high_limit_x:
@@ -179,8 +182,11 @@ def CreateMap(x,y,number_of_obstacle,show_map=False,save=False):
 def main():
     map_height=80
     map_width=50
-    number_of_obstacle=10
-    CreateMap(map_height, map_width, number_of_obstacle,True,True)
+    max_number_of_obstacle=60
+    count=0
+    while count<max_number_of_obstacle:
+        CreateMap(map_height, map_width, count,False,True)
+        count=count+1
 
 if __name__=='__main__':
     main()

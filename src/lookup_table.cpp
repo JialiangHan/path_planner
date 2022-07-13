@@ -56,7 +56,7 @@ namespace HybridAStar
     float LookupTable::GetDubinsCost(const Node3D &node3d)
     {
         std::unique_lock<std::mutex> lock(map_access_);
-        float out = 0;
+        float out = 1000000;
         int index = CalculateNode3DIndex(node3d);
         if (dubins_lookup_.find(index) != dubins_lookup_.end())
         {
@@ -70,7 +70,7 @@ namespace HybridAStar
             }
             else
             {
-                DLOG(WARNING) << "Warning: index : " << index << " not found in dubins map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
+                // DLOG(WARNING) << "Warning: index : " << index << " not found in dubins map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
             }
 
             // const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
@@ -82,7 +82,7 @@ namespace HybridAStar
     LookupTable::GetReedsSheppCost(const Node3D &node3d)
     {
         std::unique_lock<std::mutex> lock(map_access_);
-        float out = 0;
+        float out = 100000000;
         int index = CalculateNode3DIndex(node3d);
         if (reeds_shepp_lookup_.find(index) != reeds_shepp_lookup_.end())
         {
@@ -90,14 +90,15 @@ namespace HybridAStar
         }
         else
         {
-            DLOG(INFO) << "index not found in rs map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
+            // DLOG(INFO) << "index not found in rs map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
         }
         return out;
     }
     float LookupTable::GetCubicBezierCost(const Node3D &node3d)
     {
         std::unique_lock<std::mutex> lock(map_access_);
-        float out = 0;
+        // if index is not found, cost should be set to a very large number not zero
+        float out = 10000000;
         int index = CalculateNode3DIndex(node3d);
         if (cubic_bezier_lookup_.find(index) != cubic_bezier_lookup_.end())
         {
@@ -105,7 +106,7 @@ namespace HybridAStar
         }
         else
         {
-            DLOG(INFO) << "index " << index << " not found in cubic bezier map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
+            // DLOG(INFO) << "index " << index << " not found in cubic bezier map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
         }
         return out;
     }
