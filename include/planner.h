@@ -8,7 +8,7 @@
 #include "smoother.h"
 #include "lookup.h"
 #include "path_evaluator.h"
-
+#include "rrt.h"
 #include <ros/ros.h>
 #include <costmap_2d/costmap_2d_ros.h>
 #include <costmap_2d/costmap_2d.h>
@@ -107,5 +107,6 @@ private:
    std::shared_ptr<ParameterManager> param_manager_;
    ParameterPlanner params_;
    std::shared_ptr<HybridAStar> hybrid_a_star_ptr_;
+   std::shared_ptr<RRTPlanner::RRTPlanner> rrt_planner_ptr_;
 };
 }

@@ -11,6 +11,31 @@ namespace HybridAStar
     LoadPlannerParams();
     LoadPathParams();
     LoadVisualizeParams();
+    LoadRRTPlannerParams();
+  }
+
+  void ParameterManager::LoadRRTPlannerParams()
+  {
+    std::string ros_param_name;
+    std::string node_prefix = "/hybrid_astar/";
+
+    ros_param_name = "visualization";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.visualization);
+    ros_param_name = "max_iterations";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.max_iterations);
+
+    ros_param_name = "visualization2D";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.visualization2D);
+    ros_param_name = "goal_range";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.goal_range);
+
+    ros_param_name = "headings";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.headings);
+
+    ros_param_name = "possibility_to_goal";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.possibility_to_goal);
+
+    LoadCollisionDetectionParams();
   }
   void ParameterManager::LoadSmootherParams()
   {
@@ -121,6 +146,9 @@ namespace HybridAStar
 
     ros_param_name = "manual";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.manual);
+
+    ros_param_name = "use_rrt";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.use_rrt);
   }
   void ParameterManager::LoadHybridAStarParams()
   {
@@ -247,5 +275,10 @@ namespace HybridAStar
   ParameterCollisionDetection ParameterManager::GetCollisionDetectionParams()
   {
     return param_container_ptr_->collision_detection_params;
+  }
+
+  ParameterRRTPlanner ParameterManager::GetRRTPlannerParams()
+  {
+    return param_container_ptr_->rrt_planner_params;
   }
 }

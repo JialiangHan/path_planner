@@ -103,6 +103,27 @@ namespace HybridAStar
     // nubmer of direction to create successor for A-star algorithm
     int possible_direction = 8;
   };
+
+  struct ParameterRRTPlanner
+  {
+
+    ParameterCollisionDetection collision_detection_params;
+
+    /// A flag for the visualization of 3D nodes (true = on; false = off)
+    bool visualization = false;
+    /// A flag for the visualization of 2D nodes (true = on; false = off)
+    bool visualization2D = true;
+    // max iterations for smoother
+    int max_iterations = 10000;
+    // probability to choose goal rather than a random node
+    float possibility_to_goal = 0.5;
+
+    // the small number which will terminate loop if path difference smaller than this number.
+    float goal_range = 1e-3;
+
+    ///  --- The number of discretizations in heading,used in planner.cpp
+    int headings = 72;
+  };
   //this struct contains some used parameters in path class
   struct ParameterPathPublisher
   {
@@ -128,6 +149,8 @@ namespace HybridAStar
     int headings = 72;
 
     bool smooth = false;
+
+    bool use_rrt = false;
   };
 
   struct ParameterSmoother
@@ -164,6 +187,7 @@ namespace HybridAStar
     ParameterPlanner planner_params;
     ParameterVisualize visualize_params;
     ParameterCollisionDetection collision_detection_params;
+    ParameterRRTPlanner rrt_planner_params;
   };
 
   class ParameterManager
@@ -189,7 +213,11 @@ namespace HybridAStar
     virtual void LoadPlannerParams();
     virtual void LoadVisualizeParams();
     virtual void LoadCollisionDetectionParams();
+
+    virtual void LoadRRTPlannerParams();
+
     // virtual void LoadAStarParams();
+
     //load param by param name, member variable, param type
     template <typename T>
     void GetSingleParam(const std::string &param_name, T &param_data);
@@ -203,6 +231,7 @@ namespace HybridAStar
     ParameterHybridAStar GetHybridAStarParams();
     ParameterVisualize GetVisualizeParams();
     ParameterCollisionDetection GetCollisionDetectionParams();
+    ParameterRRTPlanner GetRRTPlannerParams();
     // ParameterAStar GetAStarParams();
 
   private:

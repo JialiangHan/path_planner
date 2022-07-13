@@ -58,7 +58,14 @@ Planner::Planner()
 
   visualization_ptr_.reset(new Visualize(param_manager_->GetVisualizeParams()));
 
-  hybrid_a_star_ptr_.reset(new HybridAStar(param_manager_->GetHybridAStarParams(), visualization_ptr_));
+  if (params_.use_rrt)
+  {
+    rrt_planner_ptr_.reset(new RRTPlanner::RRTPlanner(param_manager_->GetRRTPlannerParams(), visualization_ptr_));
+  }
+  else
+  {
+    hybrid_a_star_ptr_.reset(new HybridAStar(param_manager_->GetHybridAStarParams(), visualization_ptr_));
+  }
 
   // _________________
   // TOPICS TO PUBLISH
@@ -87,7 +94,15 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
 {
 
   grid_ = map;
-  hybrid_a_star_ptr_->Initialize(map);
+
+  if (params_.use_rrt)
+  {
+    rrt_planner_ptr_->Initialize(map);
+  }
+  else
+  {
+    hybrid_a_star_ptr_->Initialize(map);
+  }
   // create array for Voronoi diagram
   //  ros::Time t0 = ros::Time::now();
   int height = map->info.height;
@@ -255,8 +270,17 @@ void Planner::MakePlan()
     // ___________________________
     // START AND TIME THE PLANNING
     ros::Time t0 = ros::Time::now();
-    // FIND THE PATH
-    Path3D path = hybrid_a_star_ptr_->GetPath(nStart, nGoal, nodes3D, nodes2D);
+    Path3D path;
+    if (params_.use_rrt)
+    {
+      path = rrt_planner_ptr_->GetPath(nStart, nGoal);
+    }
+    else
+    {
+      // FIND THE PATH
+      path = hybrid_a_star_ptr_->GetPath(nStart, nGoal, nodes3D, nodes2D);
+    }
+
     // for (const auto &node : path)
     // {
     //   DLOG(INFO) << "node in path is " << node.GetX() << " " << node.GetY() << " " << node.GetT();

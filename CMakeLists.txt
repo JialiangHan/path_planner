@@ -66,6 +66,7 @@ ${CMAKE_CURRENT_SOURCE_DIR}/src/a_star.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/path_publisher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/piecewise_cubic_bezier.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/planner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/rrt.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/smoother.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/visualize.cpp
@@ -93,6 +94,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/piecewise_cubic_bezier.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/planner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/point.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/rrt.h 
     ${CMAKE_CURRENT_SOURCE_DIR}/include/smoother.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/utility.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/visualize.h
