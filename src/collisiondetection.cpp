@@ -639,12 +639,17 @@ Utility::AngleRangeVec CollisionDetection::FindFreeAngleRange(const Node3D &node
   return out;
 }
 
-std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeAngleRangeAndObstacleAngleRange(const Node3D &node3d)
+std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeAngleRangeAndObstacleAngleRange(const Node3D &node3d, bool consider_steering_angle_range)
 {
   // DLOG(INFO) << "FindFreeAngleRangeAndObstacleAngleRange in:";
   std::vector<std::pair<float, Utility::AngleRange>> out;
-  Utility::AngleRange steering_angle_range = GetNode3DAvailableSteeringAngleRange(node3d);
-  DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT()) << " . steering angle range: start from " << Utility::ConvertRadToDeg(steering_angle_range.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(steering_angle_range));
+  Utility::AngleRange steering_angle_range(0, Utility::ConvertDegToRad(359.9999));
+  if (consider_steering_angle_range)
+  {
+    steering_angle_range = GetNode3DAvailableSteeringAngleRange(node3d);
+  }
+
+  // DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT()) << " . steering angle range: start from " << Utility::ConvertRadToDeg(steering_angle_range.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(steering_angle_range));
   bool dead_end_flag = true;
   uint current_point_index = GetNode3DIndexOnGridMap(node3d);
   std::vector<Utility::AngleRange> free_angle_range_vec;
@@ -829,7 +834,7 @@ std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeA
   Utility::AngleRange total_ar(-1, -1);
   std::vector<Utility::AngleRange> ar_vec;
 
-  DLOG_IF(INFO, dead_end_flag) << "all steering angle is blocked by obstacle, it`s an dead end!!";
+  // DLOG_IF(INFO, dead_end_flag) << "all steering angle is blocked by obstacle, it`s an dead end!!";
   for (const auto &pair : out)
   {
     // DLOG(INFO) << "min distance is " << pair.first << " angle range start is " << Utility::ConvertRadToDeg(pair.second.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(pair.second));
@@ -851,7 +856,7 @@ std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeA
       ar_vec.emplace_back(pair.second);
     }
   }
-  DLOG_IF(WARNING, !Utility::IsEqual(steering_angle_range, total_ar)) << "total ar start from " << Utility::ConvertRadToDeg(total_ar.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(total_ar)) << " is not equal to steering angle range start from " << Utility::ConvertRadToDeg(steering_angle_range.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(steering_angle_range)) << ", Something wrong!!!";
+  // DLOG_IF(WARNING, !Utility::IsEqual(steering_angle_range, total_ar)) << "total ar start from " << Utility::ConvertRadToDeg(total_ar.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(total_ar)) << " is not equal to steering angle range start from " << Utility::ConvertRadToDeg(steering_angle_range.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(steering_angle_range)) << ", Something wrong!!!";
 
   DLOG_IF(WARNING, out.size() == 0) << "WARNING: Free angle range size is zero!!!!";
   // DLOG(INFO) << "FindFreeAngleRangeAndObstacleAngleRange out.";
@@ -1295,7 +1300,8 @@ uint CollisionDetection::GetNode3DFineIndex(const Node3D &node3d)
 void CollisionDetection::BuildNormalizedObstacleDensityMap()
 {
   // DLOG(INFO) << "BuildNormalizedObstacleDensityMap in:";
-  float normalized_obstacle_density;
+  // delta here is a small number to ensure denominator is not zero
+  float normalized_obstacle_density, delta = 0.01;
   float max_density = 0, min_density = 1000000;
   // normalize use formula = (x-min)/(max-min)
   for (const auto &element : in_range_obstacle_density_map_)
@@ -1317,7 +1323,7 @@ void CollisionDetection::BuildNormalizedObstacleDensityMap()
   // DLOG(INFO) << "max density is " << max_density;
   for (const auto &element : in_range_obstacle_density_map_)
   {
-    normalized_obstacle_density = (element.second - min_density) / (max_density - min_density);
+    normalized_obstacle_density = (element.second - min_density) / (max_density - min_density + delta);
     // treatment for zero
     // if (normalized_obstacle_density == 0)
     // {
@@ -1345,6 +1351,7 @@ float CollisionDetection::GetNormalizedObstacleDensity(const Node3D &node3d)
   if (normalized_obstacle_density_map_.find(current_index) != normalized_obstacle_density_map_.end())
   {
     obstacle_density = normalized_obstacle_density_map_[current_index];
+    DLOG_IF(WARNING, std::isnan(obstacle_density)) << "normalized obstacle density is NAN!!!";
   }
   else
   {

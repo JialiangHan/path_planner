@@ -567,14 +567,15 @@ namespace HybridAStar
     DLOG_IF(WARNING, out.size() == 0) << "Number of successor is zero!!!!";
     return out;
   }
-  // TODO this function need improve, less pair should be created for obstacle angle angle
+
   std::vector<std::pair<float, float>> HybridAStar::FindStepSizeAndSteeringAngle(const Node3D &pred)
   {
     // DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
     std::vector<std::pair<float, float>> out;
     // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
     // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
-    std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred);
+    bool consider_steering_angle_range = true;
+    std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred, consider_steering_angle_range);
     // 3. determine step size and steering angle from previous output
     out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors);
     // comment out due to less nodes explored when add one more step every time

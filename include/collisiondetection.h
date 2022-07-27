@@ -42,9 +42,10 @@ namespace HybridAStar
      * @brief find free angle range, obstacle angle range and their no collision distance, for free angle range, distance should be obstacle detection range, for obstacle angle range, distance should be min distance to obstacle
      *
      * @param node3d
+     * @param consider_steering_angle_range-a flag to consider available steering angle range(current orientation plus minus 30deg)
      * @return std::vector<std::pair<float, Utility::AngleRange>> pair first is min distance, pair second is angle range
      */
-    std::vector<std::pair<float, Utility::AngleRange>> FindFreeAngleRangeAndObstacleAngleRange(const Node3D &node3d);
+    std::vector<std::pair<float, Utility::AngleRange>> FindFreeAngleRangeAndObstacleAngleRange(const Node3D &node3d, bool consider_steering_angle_range);
 
     /**
      * @brief select step size and steering angle according to available angle range vec and current node, include add one more successor toward goal
