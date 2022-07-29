@@ -1003,9 +1003,7 @@ namespace Utility
             }
             else
             {
-                DLOG(INFO)
-                    << "two node distance is close enough but orientation is too far is "
-                    << Utility::ConvertRadToDeg(angle_diff);
+                // DLOG(INFO)                    << "two node distance is close enough but orientation is too far is "                    << Utility::ConvertRadToDeg(angle_diff);
                 return false;
             }
         }
@@ -1122,7 +1120,7 @@ namespace Utility
         float angle = RadToZeroTo2P(atan2(diff.y(), diff.x()));
         // make sure angle is in [0,2pi]
 
-        // DLOG(INFO) << "angle is " << ConvertRadToDeg(angle);
+        // DLOG(INFO) << "start node is " << start.x() << " " << start.y() << " goal is " << goal.x() << " " << goal.y() << " angle is " << ConvertRadToDeg(angle);
         return angle;
     }
 

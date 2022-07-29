@@ -108,7 +108,6 @@ namespace HybridAStar
   {
 
     ParameterCollisionDetection collision_detection_params;
-
     /// A flag for the visualization of 3D nodes (true = on; false = off)
     bool visualization = false;
     /// A flag for the visualization of 2D nodes (true = on; false = off)
@@ -117,7 +116,6 @@ namespace HybridAStar
     int max_iterations = 10000;
     // probability to choose goal rather than a random node
     float possibility_to_goal = 0.5;
-
     // the small number which will terminate loop if path difference smaller than this number.
     float goal_range = 1e-3;
 
