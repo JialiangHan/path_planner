@@ -5,6 +5,8 @@ manual : true
 visualization : true
 #  A flag for the visualization of 2D nodes (true = on; false = off)
 visualization2D : true 
+
+use_rrt: true
 #  A flag to toggle reversing (true = on; false = off)
 reverse : false
 # number of direction to create successor for A-star algorithm
@@ -43,13 +45,9 @@ analytical_expansion: true
 # this parameter determine the frequency of analytical expansion, false means the way in the original paper
 analytical_expansion_every_point : true
 
-
-
 piecewise_cubic_bezier_interpolation: false
 
 consider_steering_angle_range_for_obstacle_density: false
-
-
 
 #  COLLISION LOOKUP SPECIFIC
 # [#] --- The sqrt of the number of discrete positions per cell
@@ -113,3 +111,7 @@ weight_curvature : 0
 weight_smoothness : 0.2
 #weight for path length
 weight_length : 0.2
+
+# **********************rrt parameters*****************
+
+float possibility_to_goal: 0.8
