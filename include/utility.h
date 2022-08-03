@@ -451,15 +451,14 @@ namespace Utility
      * @return int 1: edge is fully inside circle, 0: edge partially inside circle, -1: edge is fully outside circle
      */
     int IsEdgeInsideCircle(const Eigen::Vector2f &center, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end);
-
     /**
-     * @brief find angle range using two angle, whether start or end is not important. range must be smaller than Pi
+     * @brief find angle range using two angle,a1 is start,a2 is end, if angle range is greater than Pi, make it two angle rangle
      *
-     * @param a1 in rad, could be negative
-     * @param a2 in rad,could be negative
-     * @return AngleRange
+     * @param a1 in rad, could be negative, start angle
+     * @param a2 in rad,could be negative, end angle
+     * @return  std::vector<AngleRange>
      */
-    AngleRange FindAngleRange(const float &a1, const float &a2);
+    std::vector<AngleRange> FindAngleRange(const float &a1, const float &a2);
     /**
      * @brief Get the Intersection Points Between Circle And Line, first assumption is there must be at least one intersection points
      *
@@ -619,4 +618,27 @@ namespace Utility
      * @return false no, element is not inside vector
      */
     bool DuplicateCheck(const std::vector<std::pair<float, float>> &vector, const std::pair<float, float> &element);
+    /**
+     * @brief compare first angle and second angle, return smaller and greater angle in a pair
+     *
+     * @param first_angle
+     * @param second_angle
+     * @return std::pair<float,float> pair first is smaller angle, second is greater angle
+     */
+    std::pair<float, float> CompareAngle(const float &first_angle, const float &second_angle);
+    /**
+     * @brief check which quadrant is this angle lie in.
+     *
+     * @param angle in rad
+     * @return int
+     */
+    int CheckAngleQuadrant(const float &angle);
+    /**
+     * @brief normalization two angles use the same way: normalize to 0-2Pi or -pi to pi;
+     *
+     * @param first_angle
+     * @param second_angle
+     * @return std::pair<float, float>
+     */
+    std::pair<float, float> AngleNormalization(const float &first_angle, const float &second_angle);
 }

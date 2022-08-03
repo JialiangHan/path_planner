@@ -189,16 +189,13 @@ TEST(Utility, GetDistanceFromSegmentToPoint)
 }
 TEST(Utility, IsAngleRangeInclude)
 {
-    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(60)), ar2(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(7)), ar3(Utility::ConvertDegToRad(60), Utility::ConvertDegToRad(7)), ar4(Utility::ConvertDegToRad(-30), Utility::ConvertDegToRad(40)), ar5(Utility::ConvertDegToRad(120), Utility::ConvertDegToRad(0));
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(180)), ar2(Utility::ConvertDegToRad(180), Utility::ConvertDegToRad(180));
 
-    bool result1 = Utility::IsAngleRangeInclude(ar1, ar2);
-    // bool result2 = Utility::IsAngleRangeInclude(ar1, ar3);
-    // bool result3 = Utility::IsAngleRangeInclude(ar1, ar4);
-    // bool result4 = Utility::IsAngleRangeInclude(ar1, ar5);
-    EXPECT_TRUE(result1);
-    // EXPECT_TRUE(!result2);
-    // EXPECT_TRUE(!result3);
-    // EXPECT_TRUE(result4);
+    // bool result1 = Utility::IsAngleRangeInclude(ar1, ar2);
+    bool result2 = Utility::IsAngleRangeInclude(ar2, ar1);
+
+    // EXPECT_FALSE(result1);
+    EXPECT_FALSE(result2);
 }
 TEST(Utility, MinusAngleRangeOverlap)
 {
@@ -308,23 +305,14 @@ TEST(Utility, IsAngleRangeIncludeAngle)
 
 TEST(Utility, FindAngleRange)
 {
-    // float a1 = Utility::ConvertDegToRad(150);
-    // float a2 = Utility::ConvertDegToRad(10);
+
     float a3 = Utility::ConvertDegToRad(-135);
     float a4 = Utility::ConvertDegToRad(95);
-    // Utility::AngleRange out1 = Utility::FindAngleRange(a1, a2);
-    // Utility::AngleRange out2 = Utility::FindAngleRange(a2, a3);
-    Utility::AngleRange out3 = Utility::FindAngleRange(a3, a4);
-    // Utility::AngleRange out4 = Utility::FindAngleRange(a4, a1);
 
-    // EXPECT_FLOAT_EQ(Utility::ConvertRadToDeg(out1.first), 10);
-    // EXPECT_FLOAT_EQ(Utility::ConvertRadToDeg(out1.second), 140);
-    // EXPECT_FLOAT_EQ(Utility::ConvertRadToDeg(out2.first), -150);
-    // EXPECT_FLOAT_EQ(Utility::ConvertRadToDeg(out2.second), 160);
+    Utility::AngleRange out3 = Utility::FindAngleRange(a4, a3)[0];
+
     EXPECT_FLOAT_EQ(Utility::ConvertRadToDeg(out3.first), 95);
-    EXPECT_FLOAT_EQ(Utility::ConvertRadToDeg(out3.second), 130);
-    // EXPECT_FLOAT_EQ(Utility::ConvertRadToDeg(out4.first), -10);
-    // EXPECT_FLOAT_EQ(Utility::ConvertRadToDeg(out4.second), 160);
+    EXPECT_FLOAT_EQ(Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out3)), 225);
 }
 
 TEST(Utility, IsPointInsideCircle)
@@ -482,21 +470,19 @@ TEST(Utility, GetAngleRangeFromPointToEdgeAtRadius)
 
 TEST(Utility, CombineAngleRange)
 {
-    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(30)), ar2(Utility::ConvertDegToRad(45), Utility::ConvertDegToRad(45)), ar3(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(45));
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(180)), ar2(Utility::ConvertDegToRad(180), Utility::ConvertDegToRad(180)), ar3(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(45));
 
-    Utility::AngleRange result1;
-    Utility::AngleRange result2;
-    Utility::AngleRange result3;
+    Utility::AngleRange result1, result2, result3;
 
     // result1 = Utility::CombineAngleRange(ar1, ar2);
-    result2 = Utility::CombineAngleRange(ar1, ar3);
-    result3 = Utility::CombineAngleRange(ar2, ar3);
+    result2 = Utility::CombineAngleRange(ar1, ar2);
+    result3 = Utility::CombineAngleRange(ar2, ar1);
     // EXPECT_EQ(result1.first, -1);
     // EXPECT_FLOAT_EQ(result1.second, -1);
-    EXPECT_EQ(result2.first, 0);
-    EXPECT_EQ(result2.second, Utility::ConvertDegToRad(45));
+    EXPECT_FLOAT_EQ(result2.first, 0);
+    EXPECT_FLOAT_EQ(result2.second, Utility::ConvertDegToRad(360));
     EXPECT_FLOAT_EQ(result3.first, Utility::ConvertDegToRad(0));
-    EXPECT_FLOAT_EQ(result3.second, Utility::ConvertDegToRad(90));
+    EXPECT_FLOAT_EQ(result3.second, Utility::ConvertDegToRad(360));
 }
 
 TEST(Utility, GetAngleRangeFromPointToPolygonAtRadius)
@@ -558,16 +544,99 @@ TEST(Utility, GetAngleDistance)
     float result5 = Utility::GetAngleDistance(a1, ar1);
     float result6 = Utility::GetAngleDistance(a2, ar1);
     float result7 = Utility::GetAngleDistance(a3, ar1);
-    EXPECT_FLOAT_EQ(result5, Utility::ConvertDegToRad(70));
-    EXPECT_FLOAT_EQ(result6, Utility::ConvertDegToRad(120));
-    EXPECT_FLOAT_EQ(result7, Utility::ConvertDegToRad(30));
+    EXPECT_TRUE(abs(result5 - Utility::ConvertDegToRad(70)) < 0.001);
+    EXPECT_TRUE(abs(result6 - Utility::ConvertDegToRad(120)) < 0.001);
+    EXPECT_TRUE(abs(result7 - Utility::ConvertDegToRad(30)) < 0.001);
+}
 
-    // float result1 = Utility::GetAngleDistance(a1, a2);
-    // float result2 = Utility::GetAngleDistance(a2, a1);
-    // float result3 = Utility::GetAngleDistance(a1, a3);
-    // float result4 = Utility::GetAngleDistance(a3, a1);
-    // EXPECT_FLOAT_EQ(result1, Utility::ConvertDegToRad(30));
-    // EXPECT_FLOAT_EQ(result2, Utility::ConvertDegToRad(-30));
-    // EXPECT_TRUE(Utility::IsEqual(result3, Utility::ConvertDegToRad(-30)));
-    // EXPECT_TRUE(Utility::IsEqual(result4, Utility::ConvertDegToRad(30)));
+TEST(Utility, AngleNormalization)
+{
+    float a1 = Utility::ConvertDegToRad(40), a2 = Utility::ConvertDegToRad(120), a3 = Utility::ConvertDegToRad(200), a4 = Utility::ConvertDegToRad(300);
+
+    float result1 = Utility::AngleNormalization(a1, a2).first;
+    float result2 = Utility::AngleNormalization(a1, a2).second;
+    EXPECT_FLOAT_EQ(result1, Utility::ConvertDegToRad(40));
+    EXPECT_FLOAT_EQ(result2, Utility::ConvertDegToRad(120));
+
+    float result3 = Utility::AngleNormalization(a2, a3).first;
+    float result4 = Utility::AngleNormalization(a2, a3).second;
+    EXPECT_FLOAT_EQ(result3, Utility::ConvertDegToRad(120));
+    EXPECT_FLOAT_EQ(result4, Utility::ConvertDegToRad(200));
+
+    float result5 = Utility::AngleNormalization(a3, a4).first;
+    float result6 = Utility::AngleNormalization(a3, a4).second;
+    EXPECT_FLOAT_EQ(result5, Utility::ConvertDegToRad(200));
+    EXPECT_FLOAT_EQ(result6, Utility::ConvertDegToRad(300));
+
+    float result7 = Utility::AngleNormalization(a1, a4).first;
+    float result8 = Utility::AngleNormalization(a1, a4).second;
+    EXPECT_FLOAT_EQ(result7, Utility::RadNormalization(Utility::ConvertDegToRad(40)));
+    EXPECT_FLOAT_EQ(result8, Utility::RadNormalization(Utility::ConvertDegToRad(300)));
+}
+
+TEST(Utility, CheckAngleQuadrant)
+{
+    float a1 = Utility::ConvertDegToRad(40), a2 = Utility::ConvertDegToRad(120), a3 = Utility::ConvertDegToRad(200), a4 = Utility::ConvertDegToRad(300);
+
+    int result1 = Utility::CheckAngleQuadrant(a1);
+    int result2 = Utility::CheckAngleQuadrant(a2);
+    int result3 = Utility::CheckAngleQuadrant(a3);
+    int result4 = Utility::CheckAngleQuadrant(a4);
+    EXPECT_FLOAT_EQ(result1, 1);
+    EXPECT_FLOAT_EQ(result2, 2);
+    EXPECT_FLOAT_EQ(result3, 3);
+    EXPECT_FLOAT_EQ(result4, 4);
+}
+
+TEST(Utility, IsEqual)
+{
+    float a1 = Utility::ConvertDegToRad(0), a2 = Utility::ConvertDegToRad(180), a3 = Utility::ConvertDegToRad(180), a4 = Utility::ConvertDegToRad(360);
+
+    bool result1 = Utility::IsEqual(a1, a2);
+    bool result2 = Utility::IsEqual(a2, a3);
+    bool result3 = Utility::IsEqual(a3, a2);
+    bool result4 = Utility::IsEqual(a4, a1);
+    EXPECT_FALSE(result1);
+    EXPECT_TRUE(result2);
+    EXPECT_TRUE(result3);
+    EXPECT_TRUE(result4);
+}
+
+TEST(Utility, ShareBoundary)
+{
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(180));
+    Utility::AngleRange ar2(Utility::ConvertDegToRad(180), Utility::ConvertDegToRad(180));
+
+    bool result1 = Utility::ShareBoundary(ar1, ar2);
+    bool result2 = Utility::ShareBoundary(ar2, ar1);
+
+    EXPECT_TRUE(result1);
+    EXPECT_TRUE(result2);
+}
+
+TEST(Utility, Angle1RightAngle2)
+{
+    float a1 = Utility::ConvertDegToRad(0), a2 = Utility::ConvertDegToRad(150), a3 = Utility::ConvertDegToRad(180), a4 = Utility::ConvertDegToRad(360);
+
+    bool result1 = Utility::Angle1RightAngle2(a1, a2);
+    bool result2 = Utility::Angle1RightAngle2(a1, a3);
+    bool result3 = Utility::Angle1RightAngle2(a1, a4);
+    bool result4 = Utility::Angle1RightAngle2(a4, a1);
+    EXPECT_TRUE(result1);
+    EXPECT_TRUE(result2);
+    EXPECT_TRUE(result3);
+    EXPECT_TRUE(result4);
+}
+
+TEST(Utility, AngleRange1RightAngleRange2)
+{
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(180));
+    Utility::AngleRange ar2(Utility::ConvertDegToRad(10), Utility::ConvertDegToRad(180));
+    Utility::AngleRange ar3(Utility::ConvertDegToRad(180), Utility::ConvertDegToRad(180));
+
+    bool result1 = Utility::AngleRange1RightAngleRange2(ar1, ar2);
+    bool result2 = Utility::AngleRange1RightAngleRange2(ar1, ar3);
+
+    EXPECT_TRUE(!result1);
+    EXPECT_TRUE(!result2);
 }
