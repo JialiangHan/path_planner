@@ -153,7 +153,10 @@ namespace HybridAStar
      * @return Utility::AngleRange
      */
     Utility::AngleRange GetNode3DAvailableSteeringAngleRange(const Node3D &node3d);
-
+    /**
+     * @brief Set the Distance Angle Range Map, distance is min distance to obstacle, if no obstacle , set to obstacle distance range, angle range is angle range from current node to obstacle.
+     *
+     */
     void SetDistanceAngleRangeMap();
 
     void BuildCollisionLookupTable();
@@ -201,9 +204,11 @@ namespace HybridAStar
      *
      * @param node3d
      * @param radius
+     * @param consider_steering_angle, if this is true, just sweep in steering angle range, if false, sweep from 0deg to 359deg
      * @return std::vector<std::pair<float, float>>, first is angle, second is distance.
      */
-    std::vector<std::pair<float, float>> SweepDistanceAndAngle(const Node3D &node3d, const float &radius);
+
+    std::vector<std::pair<float, float>> SweepDistanceAndAngle(const Node3D &node3d, const float &radius, bool consider_steering_angle);
     /**
      * @brief   find max distance which has no collision on current map in certain range, range is equal to in range obstacle map
      *
@@ -219,7 +224,14 @@ namespace HybridAStar
      * @param node3d
      * @return Utility::AngleRangeVec,angle range is pair of start angle and angle range
      */
-    Utility::AngleRangeVec FindFreeAngleRange(const Node3D &node3d);
+    // Utility::AngleRangeVec FindFreeAngleRange(const Node3D &node3d);
+    /**
+     * @brief find min distance and angle range pair for node3d
+     *
+     * @param node3d
+     * @return std::vector<std::pair<float,Utility::AngleRange>>
+     */
+    std::vector<std::pair<float, Utility::AngleRange>> FindObstacleAngleRangeAndMinDistance(const Node3D &node3d);
     /**
      * @brief build in range obstacle density map according to map info
      *
@@ -285,7 +297,7 @@ namespace HybridAStar
      */
     std::unordered_map<uint, std::vector<Utility::Polygon>> in_range_obstacle_map_;
     /**
-     * @brief key int: is the location index ,value is a vector of pair<distance to obstacle, and its obstacle angle range
+     * @brief key int: is the location index ,value is a vector of pair<distance to obstacle, angle range(both free angle range and obstacle angle range)>
      *
      */
     std::unordered_map<uint, std::vector<std::pair<float, Utility::AngleRange>>> distance_angle_range_map_;

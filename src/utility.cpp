@@ -94,6 +94,15 @@ namespace Utility
         HybridAStar::Node3D node3d(x, y, t, 0, 0, nullptr);
         return node3d;
     }
+
+    HybridAStar::Node3D ConvertVector2fToNode3D(const Eigen::Vector2f &vector2d)
+    {
+        float x = vector2d.x();
+        float y = vector2d.y();
+        HybridAStar::Node3D node3d(x, y, 0, 0, 0, nullptr);
+        return node3d;
+    }
+
     //**********************computational geometry****************
 
     bool OnSegment(const Eigen::Vector2f &p1, const Eigen::Vector2f &p3,
