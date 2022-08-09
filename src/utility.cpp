@@ -546,7 +546,7 @@ namespace Utility
         // DLOG(INFO) << "GetAngleRangeFromPointToSegment out.";
         if (out.size() > 1)
         {
-            DLOG(WARNING) << "Something Wrong!!!";
+            DLOG(WARNING) << "WARNING: Something Wrong!!!";
         }
         return out[0];
     }
@@ -817,7 +817,7 @@ namespace Utility
 
         if (pre == current || current == succ)
         {
-            DLOG(WARNING) << "In CalculateCurvature: some points are equal, skip these points for curvature calculation!!";
+            DLOG(WARNING) << "WARNING: In CalculateCurvature: some points are equal, skip these points for curvature calculation!!";
             return curvature;
         }
 
@@ -1139,11 +1139,13 @@ namespace Utility
     float GetAngle(const HybridAStar::Node3D &start,
                    const HybridAStar::Node3D &goal)
     {
-        return GetAngle(ConvertNode3DToNode2D(start), ConvertNode3DToNode2D(goal));
+        DLOG(INFO) << "start node is " << start.GetX() << " " << start.GetY() << " goal is " << goal.GetX() << " " << goal.GetY();
+        return GetAngle(ConvertVector3fToVector2f(ConvertNode3DToVector3f(start)), ConvertVector3fToVector2f(ConvertNode3DToVector3f(goal)));
     }
     float GetAngle(const HybridAStar::Node2D &start,
                    const HybridAStar::Node2D &goal)
     {
+        DLOG(INFO) << "start node is " << start.GetX() << " " << start.GetY() << " goal is " << goal.GetX() << " " << goal.GetY();
         return GetAngle(ConvertNod2DToVector2f(start), ConvertNod2DToVector2f(goal));
     }
     // checked, correct
@@ -1153,8 +1155,8 @@ namespace Utility
         diff = goal - start;
         float angle = RadToZeroTo2P(atan2(diff.y(), diff.x()));
         // make sure angle is in [0,2pi]
-
-        // DLOG(INFO) << "start node is " << start.x() << " " << start.y() << " goal is " << goal.x() << " " << goal.y() << " angle is " << ConvertRadToDeg(angle);
+        // TODO might be wrong here
+        DLOG(INFO) << "start node is " << start.x() << " " << start.y() << " goal is " << goal.x() << " " << goal.y() << " angle is " << ConvertRadToDeg(angle) << " atan2 is " << ConvertRadToDeg(atan2(diff.y(), diff.x()));
         return angle;
     }
 
@@ -1254,7 +1256,7 @@ namespace Utility
         // intersection_points size must be two.
         if (intersection_points.size() != 2)
         {
-            DLOG(WARNING) << "more than two intersection points found, impossible!!!";
+            DLOG(WARNING) << "WARNING: more than two intersection points found, impossible!!!";
             out.second = 0;
             // DLOG(INFO) << "GetAngleRangeFromPointToEdgeAtRadius out.";
             return out;
@@ -1265,7 +1267,7 @@ namespace Utility
 
         std::pair<float, float> angle_pair = CompareAngle(first_angle, second_angle);
         std::vector<AngleRange> temp = FindAngleRange(angle_pair.first, angle_pair.second);
-        DLOG_IF(WARNING, temp.size() > 1) << "angle range size greater than one!!!";
+        DLOG_IF(WARNING, temp.size() > 1) << "WARNING: angle range size greater than one!!!";
         out = temp[0];
         // DLOG(INFO) << "out start from " << ConvertRadToDeg(out.first) << " end is " << ConvertRadToDeg(GetAngleRangeEnd(out));
         return out;
@@ -1661,8 +1663,7 @@ namespace Utility
         // a1 and a2 are in rad
         // return true only if a1-a2< angle resolution(set to 0.1 deg)
         // what if a1 and a2 are greater than 2*pi??
-
-        if (abs(GetAngleDistance(a1, a2)) < ConvertDegToRad(0.001))
+        if (abs(GetAngleDistance(a1, a2)) < ConvertDegToRad(0.01))
         {
             return true;
         }
