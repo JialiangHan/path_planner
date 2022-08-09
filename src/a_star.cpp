@@ -195,7 +195,7 @@ namespace HybridAStar
         }
         else
         {
-            DLOG(WARNING) << "Wrong possible_dir!!!";
+            DLOG(WARNING) << "WARNING: Wrong possible_dir!!!";
         }
         // for (const auto &element : successor_vec)
         // {

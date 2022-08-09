@@ -564,7 +564,7 @@ namespace HybridAStar
         out.emplace_back(temp);
       }
     }
-    DLOG_IF(WARNING, out.size() == 0) << "Number of successor is zero!!!!";
+    DLOG_IF(WARNING, out.size() == 0) << "WARNING: Number of successor is zero!!!!";
     return out;
   }
 
@@ -761,7 +761,7 @@ namespace HybridAStar
     // 2. if distance to goal is less than step size above. than make it new step size, otherwise use old one
 
     float step_size, steering_angle;
-    // DLOG_IF(WARNING, step_size_steering_angle_pair.size() == 0) << "step_size_steering_angle_pair size is zero!!!";
+    DLOG_IF(WARNING, step_size_steering_angle_pair.size() == 0) << "WARNING: step_size_steering_angle_pair size is zero!!!";
     if (step_size_steering_angle_pair.size() != 0)
     {
       step_size = step_size_steering_angle_pair.back().first;

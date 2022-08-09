@@ -60,8 +60,6 @@ namespace HybridAStar
 
     float GetObstacleDetectionRange() const { return obstacle_detection_range_; };
 
-    // float GetObstacleDensity(const Node3D &node3d);
-
     float GetNormalizedObstacleDensity(const Node3D &node3d);
     bool IsOnGrid(const float &x, const float &y) const;
 

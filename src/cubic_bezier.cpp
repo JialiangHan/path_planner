@@ -171,7 +171,7 @@ namespace CubicBezier
         CalculateLength();
         // uint size = GetLength() / 2;
         uint size = number_of_points;
-        DLOG_IF(WARNING, size == 0) << "path size is zero!!!";
+        DLOG_IF(WARNING, size == 0) << "WARNING: path size is zero!!!";
         for (uint i = 0; i < size + 1; ++i)
         {
             Eigen::Vector3f point3d;

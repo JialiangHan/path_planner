@@ -114,4 +114,4 @@ weight_length : 0.2
 
 # **********************rrt parameters*****************
 
-float possibility_to_goal: 0.8
+float possibility_to_goal: 0.5

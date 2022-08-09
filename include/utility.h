@@ -39,7 +39,6 @@ namespace Utility
         const std::vector<Eigen::Vector3f> &vector_3d_vec);
 
     Eigen::Vector2f ConvertVector3fToVector2f(const Eigen::Vector3f &vector_3d);
-
     Eigen::Vector3f ConvertVector2fToVector3f(const Eigen::Vector2f &vector_2d);
 
     Eigen::Vector3f ConvertNode3DToVector3f(const HybridAStar::Node3D &node3d);
@@ -47,6 +46,9 @@ namespace Utility
     Eigen::Vector2f ConvertNod3DToVector2f(const HybridAStar::Node3D &node3d);
 
     HybridAStar::Node3D ConvertVector3fToNode3D(const Eigen::Vector3f &vector3d);
+
+    HybridAStar::Node3D ConvertVector2fToNode3D(const Eigen::Vector2f &vector2d);
+
     HybridAStar::Node2D ConvertNode3DToNode2D(const HybridAStar::Node3D &node3d);
     //**********************computational geometry****************
 
@@ -535,7 +537,7 @@ namespace Utility
      */
     bool IsEqual(const AngleRange &ar1, const AngleRange &ar2);
     /**
-     * @brief check if two angle range have the same boundary, same start or same end, include is not counted as share boundary
+     * @brief check if two angle range have the same boundary, same start or same end, include are not counted as share boundary
      *
      * @param ar1
      * @param ar2
