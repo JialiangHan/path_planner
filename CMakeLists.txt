@@ -16,13 +16,12 @@ else()
 endif()
 
 set(CMAKE_BUILD_TYPE Debug)
-
 find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
     tf
-    steering_functions
+    # steering_functions
     # base_global_planner
     costmap_2d
     costmap_converter
@@ -36,17 +35,19 @@ find_package(catkin REQUIRED COMPONENTS
     pluginlib
     visualization_msgs
     )
-find_package(PythonLibs REQUIRED)
+
 FIND_PACKAGE(Glog REQUIRED)
 FIND_PACKAGE(Gflags)
 find_package(GTest REQUIRED)
-find_package(Python COMPONENTS Interpreter Development NumPy)
-if (${Python_FOUND})
-  include_directories(${Python_INCLUDE_DIRS})
-  include_directories(${Python_NumPy_INCLUDE_DIRS})
-else()
-  message(FATAL_ERROR "Python3 not found, please install it.")
-endif()
+find_package(Python3 COMPONENTS Interpreter Development NumPy)
+find_package(PythonLibs 3.0 REQUIRED)
+include_directories(${Python3_INCLUDE_DIRS} ${NumPy_INCLUDE_DIRS})
+# if (${Python_FOUND})
+#   include_directories(${Python_INCLUDE_DIRS})
+#   include_directories(${Python_NumPy_INCLUDE_DIRS})
+# else()
+#   message(FATAL_ERROR "Python3 not found, please install it.")
+# endif()
 find_package(Eigen3 REQUIRED)
 
 include_directories(${EIGEN3_INCLUDE_DIRS})
