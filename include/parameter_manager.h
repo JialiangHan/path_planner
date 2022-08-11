@@ -106,7 +106,6 @@ namespace HybridAStar
 
   struct ParameterRRTPlanner
   {
-
     ParameterCollisionDetection collision_detection_params;
     /// A flag for the visualization of 3D nodes (true = on; false = off)
     bool visualization = false;
@@ -118,7 +117,6 @@ namespace HybridAStar
     float possibility_to_goal = 0.5;
     // the small number which will terminate loop if path difference smaller than this number.
     float goal_range = 1e-3;
-
     ///  --- The number of discretizations in heading,used in planner.cpp
     int headings = 72;
   };

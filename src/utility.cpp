@@ -1139,13 +1139,13 @@ namespace Utility
     float GetAngle(const HybridAStar::Node3D &start,
                    const HybridAStar::Node3D &goal)
     {
-        DLOG(INFO) << "start node is " << start.GetX() << " " << start.GetY() << " goal is " << goal.GetX() << " " << goal.GetY();
+        // DLOG(INFO) << "start node is " << start.GetX() << " " << start.GetY() << " goal is " << goal.GetX() << " " << goal.GetY();
         return GetAngle(ConvertVector3fToVector2f(ConvertNode3DToVector3f(start)), ConvertVector3fToVector2f(ConvertNode3DToVector3f(goal)));
     }
     float GetAngle(const HybridAStar::Node2D &start,
                    const HybridAStar::Node2D &goal)
     {
-        DLOG(INFO) << "start node is " << start.GetX() << " " << start.GetY() << " goal is " << goal.GetX() << " " << goal.GetY();
+        // DLOG(INFO) << "start node is " << start.GetX() << " " << start.GetY() << " goal is " << goal.GetX() << " " << goal.GetY();
         return GetAngle(ConvertNod2DToVector2f(start), ConvertNod2DToVector2f(goal));
     }
     // checked, correct
@@ -1155,8 +1155,7 @@ namespace Utility
         diff = goal - start;
         float angle = RadToZeroTo2P(atan2(diff.y(), diff.x()));
         // make sure angle is in [0,2pi]
-        // TODO might be wrong here
-        DLOG(INFO) << "start node is " << start.x() << " " << start.y() << " goal is " << goal.x() << " " << goal.y() << " angle is " << ConvertRadToDeg(angle) << " atan2 is " << ConvertRadToDeg(atan2(diff.y(), diff.x()));
+        // DLOG(INFO) << "start node is " << start.x() << " " << start.y() << " goal is " << goal.x() << " " << goal.y() << " angle is " << ConvertRadToDeg(angle) << " atan2 is " << ConvertRadToDeg(atan2(diff.y(), diff.x()));
         return angle;
     }
 

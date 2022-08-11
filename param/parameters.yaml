@@ -71,7 +71,7 @@ max_steering_angle: 30
 # */
 tie_breaker : 0.01
 # range for goal test
-goal_range: 0.1
+goal_range: 0.2
 # [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
 penalty_turning : 1.05
 # [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
