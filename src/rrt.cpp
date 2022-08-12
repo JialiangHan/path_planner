@@ -61,6 +61,7 @@ namespace RRTPlanner
         // DLOG(INFO) << "In GetPath!!!";
         start_ = start;
         goal_ = goal;
+        rrt_.clear();
         Planning();
         return path_;
     }
@@ -238,11 +239,9 @@ namespace RRTPlanner
     {
         // DLOG(INFO) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " random node is " << random_node.GetX() << " " << random_node.GetY() << " " << Utility::ConvertRadToDeg(random_node.GetT());
         float step_size = 0, steering_angle = 0;
-        // 1. use closest_node find obstacle density
-        // 2. use obstacle density to determine step size like hybrid a star
-        float distance_to_goal = Utility::GetDistance(closest_node, random_node);
+
+        float distance_to_goal = Utility::GetDistance(closest_node, goal_);
         // DLOG(INFO) << "distance to goal is " << distance_to_goal;
-        // 2. if distance to goal is less than step size above. than make it new step size, otherwise use old one
         // 3. steering angle is the angle between closest node and random node, and when close to goal(distance to goal < some certain number), steering angle need to be goal.GetT()- closest node.GetT()
         float angle_between_two_nodes;
         if (goal_ == random_node)
@@ -260,56 +259,67 @@ namespace RRTPlanner
         {
             angle_between_two_nodes = Utility::GetAngle(closest_node, random_node);
         }
-
         // DLOG(INFO) << "angle between two node is " << Utility::ConvertRadToDeg(angle_between_two_nodes);
         steering_angle = -Utility::RadNormalization(closest_node.GetT() - angle_between_two_nodes);
-
-        float step_size_obstacle = 10000;
-        bool consider_steering_angle_range = false;
-        std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(closest_node, consider_steering_angle_range);
-        // find distance to obstacle in steering angle direction
-        for (const auto &pair : available_angle_range_vec)
+        // 2. use obstacle density to determine step size like hybrid a star
+        if (params_.adaptive_step_size)
         {
-            if (Utility::IsAngleRangeInclude(pair.second, angle_between_two_nodes))
+            float step_size_obstacle = 10000;
+            bool consider_steering_angle_range = false;
+            std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(closest_node, consider_steering_angle_range);
+            // find distance to obstacle in steering angle direction
+            for (const auto &pair : available_angle_range_vec)
             {
-                // DLOG(INFO) << "distance is " << pair.first << " angle range start from " << Utility::ConvertRadToDeg(pair.second.first) << " end at " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(pair.second)) << " angle between two nodes is " << Utility::ConvertRadToDeg(angle_between_two_nodes);
-                step_size_obstacle = pair.first;
-                // DLOG(INFO) << "angle is included by angle range, set distance to step size obstacle";
-                break;
-            }
-        }
-        float weight_step_size = -0.8 * configuration_space_ptr_->GetNormalizedObstacleDensity(closest_node) + 0.9;
-        float available_step_size_obstacle = ((step_size_obstacle - 0.5 * params_.collision_detection_params.vehicle_length) > 0) ? (step_size_obstacle - 0.5 * params_.collision_detection_params.vehicle_length) : 0;
-        if (available_step_size_obstacle != 0)
-        {
-            // DLOG(INFO) << "available_step_size_obstacle is " << available_step_size_obstacle;
-            if (available_step_size_obstacle > distance_to_goal)
-            {
-                available_step_size_obstacle = distance_to_goal;
-                // DLOG(INFO) << "weight step size is " << weight_step_size << " distance to goal is " << distance_to_goal;
-            }
-            step_size = weight_step_size * available_step_size_obstacle;
-            DLOG(INFO) << "step_size is " << step_size << " weight is " << weight_step_size;
-            DLOG(INFO) << "available step size obstacle is " << available_step_size_obstacle;
-            if (step_size < 1)
-            {
-                if (available_step_size_obstacle > 1)
+                if (Utility::IsAngleRangeInclude(pair.second, angle_between_two_nodes))
                 {
-                    step_size = 1;
-                    DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
+                    // DLOG(INFO) << "distance is " << pair.first << " angle range start from " << Utility::ConvertRadToDeg(pair.second.first) << " end at " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(pair.second)) << " angle between two nodes is " << Utility::ConvertRadToDeg(angle_between_two_nodes);
+                    step_size_obstacle = pair.first;
+                    // DLOG(INFO) << "angle is included by angle range, set distance to step size obstacle";
+                    break;
                 }
-                else
+            }
+            float weight_step_size = -0.8 * configuration_space_ptr_->GetNormalizedObstacleDensity(closest_node) + 0.9;
+            float available_step_size_obstacle = ((step_size_obstacle - 0.5 * params_.collision_detection_params.vehicle_length) > 0) ? (step_size_obstacle - 0.5 * params_.collision_detection_params.vehicle_length) : 0;
+            if (available_step_size_obstacle != 0)
+            {
+                // DLOG(INFO) << "available_step_size_obstacle is " << available_step_size_obstacle;
+                if (available_step_size_obstacle > distance_to_goal)
                 {
-                    step_size = available_step_size_obstacle;
-                    DLOG(INFO) << "step size is smaller than  predefined min distance, make it to available step size: " << available_step_size_obstacle << " !!";
+                    available_step_size_obstacle = distance_to_goal;
+                    // DLOG(INFO) << "weight step size is " << weight_step_size << " distance to goal is " << distance_to_goal;
                 }
+                step_size = weight_step_size * available_step_size_obstacle;
+                DLOG(INFO) << "step_size is " << step_size << " weight is " << weight_step_size;
+                DLOG(INFO) << "available step size obstacle is " << available_step_size_obstacle;
+                if (step_size < 1)
+                {
+                    if (available_step_size_obstacle > 1)
+                    {
+                        step_size = 1;
+                        DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
+                    }
+                    else
+                    {
+                        step_size = available_step_size_obstacle;
+                        DLOG(INFO) << "step size is smaller than  predefined min distance, make it to available step size: " << available_step_size_obstacle << " !!";
+                    }
+                }
+            }
+            else
+            {
+                // DLOG(INFO) << "min distance to obstacle is " << step_size_obstacle << " weight is " << weight_step_size;
+                // DLOG(INFO) << "available step size obstacle is " << available_step_size_obstacle;
+                DLOG(WARNING) << "WARNING: step size is zero!!!";
             }
         }
         else
         {
-            // DLOG(INFO) << "min distance to obstacle is " << step_size_obstacle << " weight is " << weight_step_size;
-            // DLOG(INFO) << "available step size obstacle is " << available_step_size_obstacle;
-            DLOG(WARNING) << "WARNING: step size is zero!!!";
+            step_size = 1;
+            if (step_size > distance_to_goal)
+            {
+                step_size = distance_to_goal;
+                // DLOG(INFO) << "weight step size is " << weight_step_size << " distance to goal is " << distance_to_goal;
+            }
         }
 
         DLOG(INFO) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);

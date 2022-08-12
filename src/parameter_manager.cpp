@@ -35,6 +35,9 @@ namespace HybridAStar
     ros_param_name = "possibility_to_goal";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.possibility_to_goal);
 
+    ros_param_name = "adaptive_step_size";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.adaptive_step_size);
+
     LoadCollisionDetectionParams();
   }
   void ParameterManager::LoadSmootherParams()
@@ -163,8 +166,7 @@ namespace HybridAStar
 
     ros_param_name = "adaptive_steering_angle_and_step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_steering_angle_and_step_size);
-    ros_param_name = "adaptive_step_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_step_size);
+
     ros_param_name = "step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.step_size);
     ros_param_name = "adaptive_steering_angle";
