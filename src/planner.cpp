@@ -309,9 +309,17 @@ void Planner::MakePlan()
     valid_start_ = false;
     valid_goal_ = false;
   }
+  else if (valid_start_ && !valid_goal_)
+  {
+    DLOG(INFO) << "missing goal!!!";
+  }
+  else if (!valid_start_ && valid_goal_)
+  {
+    DLOG(INFO) << "missing start!!!";
+  }
   else
   {
-    DLOG(INFO) << "missing goal or start";
+    DLOG(INFO) << "missing start and goal!!!";
   }
 }
 
