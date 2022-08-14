@@ -120,6 +120,8 @@ namespace HybridAStar
     int headings = 72;
     // use adaptive step size or not
     bool adaptive_step_size = false;
+    // parameter used in goal check, false means just consider coordinate not orientation
+    bool consider_orientation = false;
   };
   //this struct contains some used parameters in path class
   struct ParameterPathPublisher

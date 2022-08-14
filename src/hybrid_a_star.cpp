@@ -126,7 +126,7 @@ namespace HybridAStar
           TracePath(nPred);
           return path_;
         }
-        else if (Utility::IsCloseEnough(*nPred, goal, params_.goal_range, 2 * M_PI / params_.headings))
+        else if (Utility::IsCloseEnough(*nPred, goal, params_.goal_range, 2 * M_PI / params_.headings, true))
         {
           // DLOG(INFO) << "current node is " << nPred->GetX() << " " << nPred->GetY() << " " << Utility::ConvertRadToDeg(nPred->GetT());
           // DLOG(INFO) << "goal is " << goal.GetX() << " " << goal.GetY() << " " << Utility::ConvertRadToDeg(goal.GetT());

@@ -1019,26 +1019,32 @@ namespace Utility
     }
     bool IsCloseEnough(const HybridAStar::Node3D &start,
                        const HybridAStar::Node3D &goal, const float &distance_range,
-                       const float &angle_range)
+                       const float &angle_range, bool consider_orientation)
     {
         float distance = GetDistance(start, goal);
         if (distance < distance_range)
         {
-            float angle_diff = RadNormalization(start.GetT() - goal.GetT());
-
-            if (abs(angle_diff) <= angle_range)
+            if (consider_orientation)
             {
-                DLOG(INFO)
-                    << "two node distance and orientation are close enough, return true";
-                // DLOG(INFO) << "current node is " << start.GetX() << " " << start.GetY() << " " << Utility::ConvertRadToDeg(start.GetT());
-                // DLOG(INFO) << "goal is " << goal.GetX() << " " << goal.GetY() << " " << Utility::ConvertRadToDeg(goal.GetT());
-                // DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
-                return true;
+                float angle_diff = RadNormalization(start.GetT() - goal.GetT());
+                if (abs(angle_diff) <= angle_range)
+                {
+                    DLOG(INFO)
+                        << "two node distance and orientation are close enough, return true";
+                    // DLOG(INFO) << "current node is " << start.GetX() << " " << start.GetY() << " " << Utility::ConvertRadToDeg(start.GetT());
+                    // DLOG(INFO) << "goal is " << goal.GetX() << " " << goal.GetY() << " " << Utility::ConvertRadToDeg(goal.GetT());
+                    // DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
+                    return true;
+                }
+                else
+                {
+                    // DLOG(INFO)                    << "two node distance is close enough but orientation is too far is "                    << Utility::ConvertRadToDeg(angle_diff);
+                    return false;
+                }
             }
             else
             {
-                // DLOG(INFO)                    << "two node distance is close enough but orientation is too far is "                    << Utility::ConvertRadToDeg(angle_diff);
-                return false;
+                return true;
             }
         }
         else

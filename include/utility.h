@@ -577,7 +577,7 @@ namespace Utility
 
     bool IsCloseEnough(const HybridAStar::Node3D &start,
                        const HybridAStar::Node3D &goal, const float &distance_range,
-                       const float &angle_range);
+                       const float &angle_range, bool consider_orientation);
 
     float GetDistance(const HybridAStar::Node3D &start,
                       const HybridAStar::Node3D &goal);

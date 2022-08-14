@@ -73,7 +73,7 @@ namespace RRTPlanner
          *
          * @return int: index of goal node
          */
-        int GoalCheck();
+        int GoalCheck(bool consider_orientation);
         /**
          * @brief add node3d to a rrt
          *

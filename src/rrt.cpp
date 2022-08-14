@@ -34,10 +34,11 @@ namespace RRTPlanner
         int number_of_iterations = 0;
         // VISUALIZATION DELAY
         ros::Duration delay(0.003);
+
         while (number_of_iterations < params_.max_iterations)
         {
             // goal check
-            if (GoalCheck() >= 0)
+            if (GoalCheck(params_.consider_orientation) >= 0)
             {
                 break;
             }
@@ -70,7 +71,7 @@ namespace RRTPlanner
     {
         // DLOG(INFO) << "In TracePath!!!";
         path_.clear();
-        int goal_index = GoalCheck();
+        int goal_index = GoalCheck(params_.consider_orientation);
         std::shared_ptr<Node3D> node3d_ptr = std::make_shared<Node3D>(rrt_[goal_index]);
         while (node3d_ptr != nullptr)
         {
@@ -86,7 +87,7 @@ namespace RRTPlanner
         std::reverse(path_.begin(), path_.end());
     }
 
-    int RRTPlanner::GoalCheck()
+    int RRTPlanner::GoalCheck(bool consider_orientation)
     {
         // DLOG(INFO) << "In GoalCheck!!!";
         // goal index, default is -1
@@ -99,7 +100,7 @@ namespace RRTPlanner
         // loop all the node in rrt
         for (size_t i = 0; i < rrt_.size(); i++)
         {
-            if (Utility::IsCloseEnough(rrt_[i], goal_, params_.goal_range, 2 * M_PI / params_.headings))
+            if (Utility::IsCloseEnough(rrt_[i], goal_, params_.goal_range, 2 * M_PI / params_.headings, consider_orientation))
             {
                 DLOG(INFO) << "Goal reached, index is: " << i;
                 index = i;
@@ -239,28 +240,45 @@ namespace RRTPlanner
     {
         // DLOG(INFO) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " random node is " << random_node.GetX() << " " << random_node.GetY() << " " << Utility::ConvertRadToDeg(random_node.GetT());
         float step_size = 0, steering_angle = 0;
-
+        //  float distance_to_goal = Utility::GetDistance(closest_node, random_node);
         float distance_to_goal = Utility::GetDistance(closest_node, goal_);
-        // DLOG(INFO) << "distance to goal is " << distance_to_goal;
+        // float distance_from_start_to_goal = Utility::GetDistance(start_, goal_);
+        // this weighting is a measure that how close is current node from goal node, 1 means current node is start node, 0 means goal reached
+        // float weighting = distance_to_goal / distance_from_start_to_goal;
+        // float weighting = 0.5;
+        // DLOG(INFO) << "distance to goal is " << distance_to_goal << " weighting is " << weighting;
         // 3. steering angle is the angle between closest node and random node, and when close to goal(distance to goal < some certain number), steering angle need to be goal.GetT()- closest node.GetT()
-        float angle_between_two_nodes;
-        if (goal_ == random_node)
-        {
-            if (distance_to_goal < configuration_space_ptr_->GetObstacleDetectionRange())
-            {
-                angle_between_two_nodes = random_node.GetT();
-            }
-            else
-            {
-                angle_between_two_nodes = Utility::GetAngle(closest_node, random_node);
-            }
-        }
-        else
-        {
-            angle_between_two_nodes = Utility::GetAngle(closest_node, random_node);
-        }
+        float angle_between_two_nodes = Utility::RadNormalization(Utility::GetAngle(closest_node, random_node));
+        // float weight_angle_between_two_nodes, weight_goal_orientation;
+        // if (distance_to_goal < configuration_space_ptr_->GetObstacleDetectionRange())
+        // {
+        //     weight_angle_between_two_nodes = 0.2;
+        //     weight_goal_orientation = 0.8;
+        // }
+        // else
+        // {
+        //     weight_angle_between_two_nodes = 0.8;
+        //     weight_goal_orientation = 0.2;
+        // }
+        // float target_angle = weighting * angle_between_two_nodes + (1 - weighting) * Utility::RadNormalization(random_node.GetT());
+        // DLOG(INFO) << "angle between two nodes is " << Utility::ConvertRadToDeg(angle_between_two_nodes) << " goal angle is " << Utility::ConvertRadToDeg(random_node.GetT()) << " target angle is " << Utility::ConvertRadToDeg(target_angle);
+        // if (goal_ == random_node)
+        // {
+        //     if (distance_to_goal < configuration_space_ptr_->GetObstacleDetectionRange())
+        //     {
+        //         angle_between_two_nodes = random_node.GetT();
+        //     }
+        //     else
+        //     {
+        //         angle_between_two_nodes = Utility::GetAngle(closest_node, random_node);
+        //     }
+        // }
+        // else
+        // {
+        //     angle_between_two_nodes = Utility::GetAngle(closest_node, random_node);
+        // }
         // DLOG(INFO) << "angle between two node is " << Utility::ConvertRadToDeg(angle_between_two_nodes);
-        steering_angle = -Utility::RadNormalization(closest_node.GetT() - angle_between_two_nodes);
+        steering_angle = -Utility::RadNormalization(Utility::RadNormalization(closest_node.GetT()) - angle_between_two_nodes);
         // 2. use obstacle density to determine step size like hybrid a star
         if (params_.adaptive_step_size)
         {
