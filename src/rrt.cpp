@@ -6,10 +6,8 @@ namespace RRTPlanner
     RRTPlanner::RRTPlanner(const ParameterRRTPlanner &params,
                            const std::shared_ptr<Visualize> &visualization_ptr)
     {
-
         params_ = params;
         configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params));
-
         visualization_ptr_ = visualization_ptr;
     }
 
@@ -20,7 +18,6 @@ namespace RRTPlanner
         configuration_space_ptr_->UpdateGrid(map);
         map_width_ = configuration_space_ptr_->GetMap()->info.width;
         map_height_ = configuration_space_ptr_->GetMap()->info.height;
-
         // DLOG(INFO) << "hybrid a star initialized done.   ";
     }
 
@@ -28,7 +25,6 @@ namespace RRTPlanner
     {
         // DLOG(INFO) << "In Planning!!!";
         // actually no current node for RRT
-
         AddNodeToRRT(start_);
         Node3D current;
         int number_of_iterations = 0;
@@ -83,7 +79,6 @@ namespace RRTPlanner
             // DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
             node3d_ptr = node3d_ptr->GetPred();
         }
-
         std::reverse(path_.begin(), path_.end());
     }
 
@@ -243,40 +238,9 @@ namespace RRTPlanner
         //  float distance_to_goal = Utility::GetDistance(closest_node, random_node);
         float distance_to_goal = Utility::GetDistance(closest_node, goal_);
         // float distance_from_start_to_goal = Utility::GetDistance(start_, goal_);
-        // this weighting is a measure that how close is current node from goal node, 1 means current node is start node, 0 means goal reached
-        // float weighting = distance_to_goal / distance_from_start_to_goal;
-        // float weighting = 0.5;
-        // DLOG(INFO) << "distance to goal is " << distance_to_goal << " weighting is " << weighting;
         // 3. steering angle is the angle between closest node and random node, and when close to goal(distance to goal < some certain number), steering angle need to be goal.GetT()- closest node.GetT()
         float angle_between_two_nodes = Utility::RadNormalization(Utility::GetAngle(closest_node, random_node));
-        // float weight_angle_between_two_nodes, weight_goal_orientation;
-        // if (distance_to_goal < configuration_space_ptr_->GetObstacleDetectionRange())
-        // {
-        //     weight_angle_between_two_nodes = 0.2;
-        //     weight_goal_orientation = 0.8;
-        // }
-        // else
-        // {
-        //     weight_angle_between_two_nodes = 0.8;
-        //     weight_goal_orientation = 0.2;
-        // }
-        // float target_angle = weighting * angle_between_two_nodes + (1 - weighting) * Utility::RadNormalization(random_node.GetT());
         // DLOG(INFO) << "angle between two nodes is " << Utility::ConvertRadToDeg(angle_between_two_nodes) << " goal angle is " << Utility::ConvertRadToDeg(random_node.GetT()) << " target angle is " << Utility::ConvertRadToDeg(target_angle);
-        // if (goal_ == random_node)
-        // {
-        //     if (distance_to_goal < configuration_space_ptr_->GetObstacleDetectionRange())
-        //     {
-        //         angle_between_two_nodes = random_node.GetT();
-        //     }
-        //     else
-        //     {
-        //         angle_between_two_nodes = Utility::GetAngle(closest_node, random_node);
-        //     }
-        // }
-        // else
-        // {
-        //     angle_between_two_nodes = Utility::GetAngle(closest_node, random_node);
-        // }
         // DLOG(INFO) << "angle between two node is " << Utility::ConvertRadToDeg(angle_between_two_nodes);
         steering_angle = -Utility::RadNormalization(Utility::RadNormalization(closest_node.GetT()) - angle_between_two_nodes);
         // 2. use obstacle density to determine step size like hybrid a star

@@ -10,7 +10,6 @@ inline bool isCusp(const std::vector<Node3D>& path, int i) {
   bool revi = path[i].GetPrim() > 3;
   bool revip1 = path[i + 1].GetPrim() > 3;
   //  bool revip2 = path[i + 2].GetPrim() > 3 ;
-
   return (revim2 != revim1 || revim1 != revi || revi != revip1);
 }
 
@@ -30,10 +29,8 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
   this->map_height_ = voronoi.getSizeY();
   // current number of iterations of the gradient descent smoother
   int iterations = 0;
-
   // remove duplicate points
   PreprocessPath();
-
   // path objects with all nodes oldPath the original, smoothed_path the resulting smoothed path
   std::vector<Node3D> smoothed_path = preprocessed_path_;
   std::vector<Node3D> path_before_smooth = preprocessed_path_;
@@ -65,7 +62,6 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
       // choose the first three nodes of the path
       for (uint i = 2; i < path_before_smooth.size() - 2; ++i)
       {
-
         Eigen::Vector2f xim2(path_before_smooth[i - 2].GetX(), path_before_smooth[i - 2].GetY());
         Eigen::Vector2f xim1(path_before_smooth[i - 1].GetX(), path_before_smooth[i - 1].GetY());
         Eigen::Vector2f xi(path_before_smooth[i].GetX(), path_before_smooth[i].GetY());

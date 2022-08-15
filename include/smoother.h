@@ -25,7 +25,7 @@ namespace HybridAStar
       /*!
      \brief This function takes a path consisting of nodes and attempts to iteratively smooth the same using gradient descent.
 
-     During the different interations the following cost are being calculated
+     During the different iterations the following cost are being calculated
      obstacleCost
      curvatureCost
      smoothnessCost
