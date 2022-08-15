@@ -103,6 +103,13 @@ namespace RRTPlanner
         void Initialize(nav_msgs::OccupancyGrid::Ptr map);
 
         Path3D GetPath(const Node3D &start, const Node3D &goal);
+        /**
+         * @brief short cut the path since rrt path will have some unnecessary path point
+         *
+         * @param consider_steering_angle_limit, if true, consider vehicle steering angle limit.
+         * @return Path3D
+         */
+        Path3D ShortCut(bool consider_steering_angle_limit);
     };
 
 }

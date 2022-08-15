@@ -102,6 +102,24 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
   // DLOG(INFO) << "IsTraversable out.";
   return false;
 }
+
+bool CollisionDetection::IsTraversable(const Node3D &current_node, const Node3D &previous_node)
+{ // DLOG(INFO) << "IsTraversable in: current node is x " << node3d.GetX() << " y " << node3d.GetY() << " angle is " << Utility::ConvertRadToDeg(node3d.GetT());
+  if (!IsOnGrid(current_node) || !IsOnGrid(previous_node))
+  {
+    // DLOG(INFO) << "IsTraversable out.";
+    return false;
+  }
+
+  // if (configurationTest(x, y, t))
+  if (configurationTest(current_node.GetX(), current_node.GetY(), current_node.GetT()) && configurationTest(current_node, previous_node) && configurationTest(previous_node.GetX(), previous_node.GetY(), previous_node.GetT()))
+  {
+    // DLOG(INFO) << "IsTraversable out.";
+    return true;
+  }
+  // DLOG(INFO) << "IsTraversable out.";
+  return false;
+}
 bool CollisionDetection::IsOnGrid(const Eigen::Vector2f &point) const
 {
   return IsOnGrid(point.x(), point.y());

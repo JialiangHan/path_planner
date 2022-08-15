@@ -31,6 +31,8 @@ namespace HybridAStar
     bool IsTraversable(const std::shared_ptr<Node3D> &nod3d_ptr);
     bool IsTraversable(const Node3D &nod3d_ptr);
 
+    bool IsTraversable(const Node3D &current_node, const Node3D &previous_node);
+
     // TODO need a function to convert occupancygrid to a configuration space map
     /*!
      \brief updates the grid with the world map

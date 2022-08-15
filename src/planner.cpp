@@ -274,6 +274,10 @@ void Planner::MakePlan()
     if (params_.use_rrt)
     {
       path = rrt_planner_ptr_->GetPath(nStart, nGoal);
+      if (true)
+      {
+        path = rrt_planner_ptr_->ShortCut(false);
+      }
     }
     else
     {
