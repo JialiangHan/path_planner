@@ -2,11 +2,11 @@
  * @file path_evaluator.cpp
  * @author Jialiang Han
  * @brief this file is to evaluate path from planner, using metrics: curvature, smoothness,....maybe more.
- * @version 0.2
+ * @version 0.3
  * @date 2021-12-17
- * 
+ *
  * @copyright Copyright (c) 2021
- * 
+ *
  **/
 #include "path_evaluator.h"
 
@@ -113,6 +113,50 @@ namespace PathEvaluator
         }
         return 1;
     }
+
+    int PathEvaluator::CalculateSteeringAngle(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name)
+    {
+        if (path.size() < 3)
+        {
+            DLOG(WARNING) << "In CalculateSteeringAngle: path does not have enough points!!!";
+            return 0;
+        }
+        // steering angle = angle between x[i+1] and x[i] minus angle between x[i-1] and x[i]
+        std::vector<float> steering_angle_vec;
+        float steering_angle;
+        for (uint i = 0; i < path.size() - 2; ++i)
+        {
+            // get three points from path
+            Eigen::Vector2f xp(path[i].x(), path[i].y());
+            Eigen::Vector2f xi(path[i + 1].x(), path[i + 1].y());
+            Eigen::Vector2f xs(path[i + 2].x(), path[i + 2].y());
+            if (xp == xi || xi == xs)
+            {
+                DLOG(WARNING) << "In CalculateSteeringAngle: some points are equal, skip these points for curvature calculation!!";
+                continue;
+            }
+            // get two vector between these three nodes
+            Eigen::Vector2f pre_vector = xi - xp;
+            Eigen::Vector2f succ_vector = xs - xi;
+
+            double cosValNew = pre_vector.dot(succ_vector) / (pre_vector.norm() * succ_vector.norm()); //角度cos值
+            steering_angle = acos(cosValNew) * 180 / M_PI;
+            steering_angle_vec.emplace_back(steering_angle);
+        }
+        if (steering_angle_map_.count(topic_name) > 0)
+        {
+            steering_angle_map_.at(topic_name).clear();
+            steering_angle_map_.at(topic_name) = steering_angle_vec;
+            // DLOG(INFO) << "In CalculateSteeringAngle:" << topic_name << " is already in steering_angle map, clear vector and put new curvature into vector.";
+        }
+        else
+        {
+            steering_angle_map_.insert({topic_name, steering_angle_vec});
+            // DLOG(INFO) << "In CalculateSteeringAngle:" << topic_name << " is not in the steering_angle map, insert into the map.";
+        }
+        return 1;
+    }
+
     int PathEvaluator::CalculateClearance(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name)
     {
         if (path.size() < 1)
@@ -179,69 +223,54 @@ namespace PathEvaluator
         CalculateCurvature(vector_3d_vec, topic_name);
         CalculateSmoothness(vector_3d_vec, topic_name);
         CalculateClearance(vector_3d_vec, topic_name);
+        CalculateSteeringAngle(vector_3d_vec, topic_name);
     }
 
     void PathEvaluator::Plot()
     {
         matplotlibcpp::ion();
         matplotlibcpp::clf();
-        matplotlibcpp::subplot(2, 2, 1);
-        for (const auto &curvature_vec : curvature_map_)
+        std::vector<std::string> title_vec = {"curvature", "smoothness", "clearance", "steering_angle"};
+        for (size_t i = 0; i < title_vec.size(); i++)
         {
-            if (curvature_vec.first == "/path")
+            matplotlibcpp::subplot(2, 2, i + 1);
+            std::unordered_map<std::string, std::vector<float>> map;
+            if (title_vec[i] == "curvature")
             {
-                matplotlibcpp::plot(curvature_vec.second, {{"label", "raw path"}});
+                map = curvature_map_;
             }
-            else
+            if (title_vec[i] == "smoothness")
             {
-                matplotlibcpp::plot(curvature_vec.second, {{"label", "smoothed path"}});
+                map = smoothness_map_;
+            }
+            if (title_vec[i] == "clearance")
+            {
+                map = clearance_map_;
+            }
+            if (title_vec[i] == "steering_angle")
+            {
+                map = steering_angle_map_;
             }
 
-            matplotlibcpp::legend({{"loc", "upper right"}});
-            // DLOG(INFO) << "Plot curvature for topic: " << curvature_vec.first;
-        }
-        matplotlibcpp::title("curvature");
-        matplotlibcpp::ylabel("curvature");
-        matplotlibcpp::ylim(0, 1);
-        matplotlibcpp::grid(true);
+            for (const auto &curvature_vec : map)
+            {
+                if (curvature_vec.first == "/path")
+                {
+                    matplotlibcpp::plot(curvature_vec.second, {{"label", "raw path"}});
+                }
+                else
+                {
+                    matplotlibcpp::plot(curvature_vec.second, {{"label", "smoothed path"}});
+                }
 
-        matplotlibcpp::subplot(2, 2, 2);
-        for (const auto &smoothness_vec : smoothness_map_)
-        {
-            if (smoothness_vec.first == "/path")
-            {
-                matplotlibcpp::plot(smoothness_vec.second, {{"label", "raw path"}});
+                matplotlibcpp::legend({{"loc", "upper right"}});
+                // DLOG(INFO) << "Plot curvature for topic: " << curvature_vec.first;
             }
-            else
-            {
-                matplotlibcpp::plot(smoothness_vec.second, {{"label", "smoothed path"}});
-            }
-            // DLOG(INFO) << "Plot smoothness for topic: " << smoothness_vec.first;
-            matplotlibcpp::legend({{"loc", "upper right"}});
+            matplotlibcpp::title(title_vec[i]);
+            matplotlibcpp::ylabel(title_vec[i]);
+            // matplotlibcpp::ylim(0, 1);
+            matplotlibcpp::grid(true);
         }
-        matplotlibcpp::title("smoothness");
-        matplotlibcpp::ylabel("smoothness");
-        matplotlibcpp::ylim(0, 1);
-        matplotlibcpp::grid(true);
-
-        matplotlibcpp::subplot(2, 2, 3);
-        for (const auto &clearance_vec : clearance_map_)
-        {
-            if (clearance_vec.first == "/path")
-            {
-                matplotlibcpp::plot(clearance_vec.second, {{"label", "raw path"}});
-            }
-            else
-            {
-                matplotlibcpp::plot(clearance_vec.second, {{"label", "smoothed path"}});
-            }
-            matplotlibcpp::legend({{"loc", "upper right"}});
-            // DLOG(INFO) << "Plot clearance for topic: " << clearance_vec.first;
-        }
-        matplotlibcpp::title("clearance");
-        matplotlibcpp::ylabel("clearance");
-        matplotlibcpp::ylim(0, 10);
-        matplotlibcpp::grid(true);
 
         matplotlibcpp::pause(0.1);
     }

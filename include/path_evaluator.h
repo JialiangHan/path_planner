@@ -10,6 +10,7 @@
 **/
 #pragma once
 #include <vector>
+#include <string>
 #include "ros/ros.h"
 #include <unordered_map>
 #include <nav_msgs/OccupancyGrid.h>
@@ -53,6 +54,8 @@ namespace PathEvaluator
         int CalculateClearance(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name);
 
         int CalculateSmoothness(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name);
+
+        int CalculateSteeringAngle(const std::vector<Eigen::Vector3f> &path, const std::string &topic_name);
         /**
          * @brief plot all the metrics for the path.
          * 
@@ -80,10 +83,12 @@ namespace PathEvaluator
 
         std::unordered_map<std::string, std::vector<float>> smoothness_map_;
 
+        std::unordered_map<std::string, std::vector<float>> steering_angle_map_;
+
         float vehicle_width_;
 
         float vehicle_length_;
 
-        // /some kind of map is need for the clearacne
+        // /some kind of map is need for the clearance
     };
 }
