@@ -179,7 +179,7 @@ namespace HybridAStar
                 Path3D analytical_path = AnalyticExpansions(*nPred, goal);
                 if (analytical_path.size() != 0)
                 {
-                  DLOG(INFO) << "Found path through anallytical expansion";
+                  DLOG(INFO) << "Found path through analytical expansion";
                   DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
                   TracePath(nPred);
                   analytical_expansion_index_ = path_.size();

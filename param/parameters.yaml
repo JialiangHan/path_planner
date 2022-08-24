@@ -116,6 +116,6 @@ weight_length : 0.2
 
 float possibility_to_goal: 0.5
 
-adaptive_step_size: false
+adaptive_step_size: true
 
 consider_orientation: false

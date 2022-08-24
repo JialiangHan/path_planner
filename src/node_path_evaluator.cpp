@@ -20,6 +20,8 @@ int main(int argc, char **argv)
 
     google::InstallFailureSignalHandler();
 
+    google::EnableLogCleaner(5);
+
     ros::init(argc, argv, "path_evaluator");
     std::string path_topic = "/path";
     std::string smooth_path_topic = "/sPath";
