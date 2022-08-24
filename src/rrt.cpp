@@ -322,12 +322,12 @@ namespace RRTPlanner
         previous_point = path_[path_.size() - 2];
         for (uint index1 = path_.size() - 1; index1 >= 0;)
         {
-            DLOG(INFO) << "index1 is " << index1;
+            // DLOG(INFO) << "index1 is " << index1;
             current_point = path_[index1];
             out.emplace_back(current_point);
             for (uint index2 = index1 - 1; index2 >= 0; index2--)
             {
-                DLOG(INFO) << "index2 is " << index2;
+                // DLOG(INFO) << "index2 is " << index2;
                 if (configuration_space_ptr_->IsTraversable(current_point, path_[index2]))
                 {
                     previous_point = path_[index2];
@@ -362,6 +362,42 @@ namespace RRTPlanner
             }
         }
         std::reverse(out.begin(), out.end());
+        return out;
+    }
+
+    Path3D RRTPlanner::PiecewiseCubicBezier(const Path3D &path)
+    { // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath in:";
+        std::vector<Eigen::Vector3f> anchor_points_vec;
+        Path3D out;
+        for (uint index = 1; index < path.size() - 1; ++index)
+        {
+            // DLOG(INFO) << "path point is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+            // not necessary to do this check, greater than 1
+
+            anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path[index]));
+            // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+        }
+        // DLOG(INFO) << "end point is " << end_point.GetX() << " " << end_point.GetY() << " " << Utility::ConvertRadToDeg(end_point.GetT());
+        HybridAStar::PiecewiseCubicBezier pwcb(Utility::ConvertNode3DToVector3f(start_), Utility::ConvertNode3DToVector3f(goal_));
+        pwcb.SetAnchorPoints(anchor_points_vec);
+        // for (const auto &point : anchor_points_vec)
+        // {
+        //   DLOG(INFO) << "anchor point is " << point.x() << " " << point.y() << " " << Utility::ConvertRadToDeg(point.z());
+        // }
+        std::vector<Eigen::Vector3f> points_vec = pwcb.GetPointsVec();
+        // for (const auto &point : points_vec)
+        // {
+        //   DLOG(INFO) << "all point is " << point.x() << " " << point.y() << " " << Utility::ConvertRadToDeg(point.z());
+        // }
+        std::vector<Eigen::Vector3f> path_vec = pwcb.ConvertPiecewiseCubicBezierToVector3f(10);
+        for (const auto &vector : path_vec)
+        {
+            // DLOG(INFO) << "vector is " << vector.x() << " " << vector.y() << " " << Utility::ConvertRadToDeg(vector.z());
+            Node3D node3d = Utility::ConvertVector3fToNode3D(vector);
+            out.emplace_back(node3d);
+            // DLOG(INFO) << "point is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
+        }
+        // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath out.";
         return out;
     }
 }

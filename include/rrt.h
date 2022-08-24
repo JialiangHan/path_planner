@@ -14,6 +14,7 @@
 #include "collisiondetection.h"
 #include "utility.h"
 #include "visualize.h"
+#include "piecewise_cubic_bezier.h"
 
 using namespace HybridAStar;
 
@@ -110,6 +111,8 @@ namespace RRTPlanner
          * @return Path3D
          */
         Path3D ShortCut(bool consider_steering_angle_limit);
+
+        Path3D PiecewiseCubicBezier(const Path3D &path);
     };
 
 }

@@ -270,13 +270,14 @@ void Planner::MakePlan()
     // ___________________________
     // START AND TIME THE PLANNING
     ros::Time t0 = ros::Time::now();
-    Path3D path;
+    Path3D path, temp;
     if (params_.use_rrt)
     {
-      path = rrt_planner_ptr_->GetPath(nStart, nGoal);
+      temp = rrt_planner_ptr_->GetPath(nStart, nGoal);
       if (true)
       {
-        path = rrt_planner_ptr_->ShortCut(false);
+        temp = rrt_planner_ptr_->ShortCut(false);
+        path = rrt_planner_ptr_->PiecewiseCubicBezier(temp);
       }
     }
     else
