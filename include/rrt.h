@@ -110,7 +110,7 @@ namespace RRTPlanner
          * @param consider_steering_angle_limit, if true, consider vehicle steering angle limit.
          * @return Path3D
          */
-        Path3D ShortCut(bool consider_steering_angle_limit);
+        Path3D ShortCut(const Path3D &path, bool consider_steering_angle_limit);
 
         Path3D PiecewiseCubicBezier(const Path3D &path);
     };

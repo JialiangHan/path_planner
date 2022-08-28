@@ -314,53 +314,67 @@ namespace RRTPlanner
         DLOG(INFO) << "add node " << current.GetX() << " " << current.GetY() << " " << Utility::ConvertRadToDeg(current.GetT());
     }
 
-    Path3D RRTPlanner::ShortCut(bool consider_steering_angle_limit)
+    Path3D RRTPlanner::ShortCut(const Path3D &path, bool consider_steering_angle_limit)
     {
-        Path3D out;
+        Path3D out, input;
         // start from last point of path, check if segment between end point and path[n-1] is in collision, if not, then check end point and path[n-2] is in collision
-        Node3D current_point, previous_point;
-        previous_point = path_[path_.size() - 2];
-        for (uint index1 = path_.size() - 1; index1 >= 0;)
+        input = path;
+        while (1)
         {
-            // DLOG(INFO) << "index1 is " << index1;
-            current_point = path_[index1];
-            out.emplace_back(current_point);
-            for (uint index2 = index1 - 1; index2 >= 0; index2--)
+            Node3D current_point, previous_point;
+            previous_point = input[input.size() - 2];
+            for (uint index1 = input.size() - 1; index1 >= 0;)
             {
-                // DLOG(INFO) << "index2 is " << index2;
-                if (configuration_space_ptr_->IsTraversable(current_point, path_[index2]))
+                // DLOG(INFO) << "index1 is " << index1;
+                current_point = input[index1];
+                out.emplace_back(current_point);
+                for (uint index2 = index1 - 1; index2 >= 0; index2--)
                 {
-                    previous_point = path_[index2];
-                    // end check
-                    if (index2 == 0)
+                    // DLOG(INFO) << "index2 is " << index2;
+                    if (configuration_space_ptr_->IsTraversable(current_point, input[index2]))
                     {
-                        out.emplace_back(previous_point);
-                    }
-                }
-                else
-                {
-                    out.emplace_back(previous_point);
-                    if (index2 == 0)
-                    {
-                        index1 = 0;
+                        previous_point = input[index2];
+                        // end check
+                        if (index2 == 0)
+                        {
+                            out.emplace_back(previous_point);
+                        }
                     }
                     else
                     {
-                        index1 = index2 - 1;
+                        out.emplace_back(previous_point);
+                        if (index2 == 0)
+                        {
+                            index1 = 0;
+                        }
+                        else
+                        {
+                            index1 = index2 - 1;
+                        }
+                        break;
                     }
-                    break;
+                    if (index2 == 0)
+                    {
+                        index1 = 0;
+                        break;
+                    }
                 }
-                if (index2 == 0)
+                if (index1 == 0)
                 {
-                    index1 = 0;
                     break;
                 }
             }
-            if (index1 == 0)
+            if (input == out)
             {
                 break;
             }
+            else
+            {
+                input = out;
+                out.clear();
+            }
         }
+
         std::reverse(out.begin(), out.end());
         return out;
     }
