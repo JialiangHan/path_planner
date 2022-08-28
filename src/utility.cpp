@@ -514,7 +514,7 @@ namespace Utility
         // return of acos is in [0,pi]
         float angle = std::acos(v1.dot(v2) / v1.norm() / v2.norm());
         float sign = CrossProduct(v1, v2);
-        // DLOG(INFO) << "angle is " << ConvertRadToDeg(angle) << " sign is " << ConvertRadToDeg(sign);
+        DLOG(INFO) << "angle is " << ConvertRadToDeg(angle) << " sign is " << ConvertRadToDeg(sign);
         if (sign >= 0)
         {
             // DLOG(INFO) << "GetAngleBetweenTwoVector out.";

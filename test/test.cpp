@@ -108,23 +108,17 @@ TEST(Utility, IsInsidePolygon)
 TEST(Utility, GetAngleBetweenTwoVector)
 {
     Eigen::Vector2f p1(0, 0), p2(1, 0), p3(-1, -1), p4(1, 1), p5(-1, 1),
-        p6(1, -1), p7(-1, 0);
+        p6(1, -1), p7(-1, 0), p8(0, 1);
 
-    // float expect_1 = Utility::ConvertDegToRad(-135);
-    // float result_1 = Utility::GetAngleBetweenTwoVector(p1, p2, p1, p3);
-    // EXPECT_FLOAT_EQ(expect_1, result_1);
-    // float expect_2 = (Utility::ConvertDegToRad(45));
-    // float result_2 = Utility::GetAngleBetweenTwoVector(p1, p2, p1, p4);
-    // EXPECT_FLOAT_EQ(expect_2, result_2);
-    // float expect_3 = (Utility::ConvertDegToRad(135));
-    // float result_3 = Utility::GetAngleBetweenTwoVector(p1, p2, p1, p5);
-    // EXPECT_FLOAT_EQ(expect_3, result_3);
-    // float expect_4 = (Utility::ConvertDegToRad(-45));
-    // float result_4 = Utility::GetAngleBetweenTwoVector(p1, p2, p1, p6);
     // EXPECT_FLOAT_EQ(expect_4, result_4);
-    float expect_1 = Utility::ConvertDegToRad(180);
-    float result_1 = Utility::GetAngleBetweenTwoVector(p1, p2, p1, p7);
+    float expect_1 = Utility::ConvertDegToRad(135);
+    float result_1 = Utility::GetAngleBetweenTwoVector(p1, p4, p4, p2);
+
+    float expect_2 = Utility::ConvertDegToRad(135);
+    float result_2 = Utility::GetAngleBetweenTwoVector(p1, p4, p4, p8);
+
     EXPECT_FLOAT_EQ(expect_1, result_1);
+    EXPECT_FLOAT_EQ(expect_2, result_2);
 }
 TEST(Utility, GetAngleRangeFromPointToSegment)
 {

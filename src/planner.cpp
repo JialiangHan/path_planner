@@ -265,7 +265,7 @@ void Planner::MakePlan()
     y = 2;
     t = Utility::ConvertDegToRad(0);
     Node3D nGoal(x, y, t, 0, 0, nullptr);
-
+    std::srand(0);
     Clear();
     // ___________________________
     // START AND TIME THE PLANNING
@@ -273,11 +273,13 @@ void Planner::MakePlan()
     Path3D path, temp;
     if (params_.use_rrt)
     {
-      temp = rrt_planner_ptr_->GetPath(nStart, nGoal);
+      path = rrt_planner_ptr_->GetPath(nStart, nGoal);
       if (true)
       {
-        temp = rrt_planner_ptr_->ShortCut(false);
-        path = rrt_planner_ptr_->PiecewiseCubicBezier(temp);
+        // temp = rrt_planner_ptr_->ShortCut(path,false);
+        // path = rrt_planner_ptr_->PiecewiseCubicBezier(temp);
+        path = rrt_planner_ptr_->ShortCut(path, false);
+        // path = rrt_planner_ptr_->ShortCut(path,false);
       }
     }
     else

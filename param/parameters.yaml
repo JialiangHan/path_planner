@@ -6,7 +6,7 @@ visualization : true
 #  A flag for the visualization of 2D nodes (true = on; false = off)
 visualization2D : true 
 
-use_rrt: true
+
 #  A flag to toggle reversing (true = on; false = off)
 reverse : false
 # number of direction to create successor for A-star algorithm
@@ -22,7 +22,7 @@ curve_type : 2
 # step size to create successor
 step_size : 1
 
-adaptive_steering_angle_and_step_size: true
+adaptive_steering_angle_and_step_size: false
 
 # this parameter forces all step size larger than one
 make_step_size_larger_than_one: true
@@ -113,9 +113,11 @@ weight_smoothness : 0.2
 weight_length : 0.2
 
 # **********************rrt parameters*****************
+use_rrt: false
 
 float possibility_to_goal: 0.5
 
-adaptive_step_size: true
+adaptive_step_size: false
 
 consider_orientation: false
+
