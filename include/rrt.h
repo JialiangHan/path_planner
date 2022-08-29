@@ -15,6 +15,7 @@
 #include "utility.h"
 #include "visualize.h"
 #include "piecewise_cubic_bezier.h"
+#include "cubic_bezier.h"
 
 using namespace HybridAStar;
 
@@ -81,6 +82,8 @@ namespace RRTPlanner
          * @param current
          */
         void AddNodeToRRT(const Node3D &current);
+
+        void AddNodeToRRT(const Path3D &current);
         /**
          * @brief find closet node to this random node on rrt tree
          *
@@ -89,7 +92,16 @@ namespace RRTPlanner
          */
         Node3D FindClosestNode(const Node3D &random_node);
 
+        Node3D FindDirectionNode();
+
         void Planning();
+        /**
+         * @brief this function is similar to the one in hybrid a star. 1. find node on rrt closest to goal. 2. if there is a no-collision curve from the node in first step to goal, then put this curve into rrt and return true
+         *
+         * @return true
+         * @return false
+         */
+        bool AnalyticExpansion(const Node3D &start, Node3D &goal);
 
     public:
         RRTPlanner();

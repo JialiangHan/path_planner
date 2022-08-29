@@ -274,13 +274,13 @@ void Planner::MakePlan()
     if (params_.use_rrt)
     {
       path = rrt_planner_ptr_->GetPath(nStart, nGoal);
-      if (true)
-      {
-        // temp = rrt_planner_ptr_->ShortCut(path,false);
-        // path = rrt_planner_ptr_->PiecewiseCubicBezier(temp);
-        path = rrt_planner_ptr_->ShortCut(path, false);
-        // path = rrt_planner_ptr_->ShortCut(path,false);
-      }
+      // if (true)
+      // {
+      //   // temp = rrt_planner_ptr_->ShortCut(path,false);
+      //   // path = rrt_planner_ptr_->PiecewiseCubicBezier(temp);
+      //   // path = rrt_planner_ptr_->ShortCut(path, false);
+      //   // path = rrt_planner_ptr_->ShortCut(path,false);
+      // }
     }
     else
     {

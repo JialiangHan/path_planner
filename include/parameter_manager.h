@@ -122,6 +122,8 @@ namespace HybridAStar
     bool adaptive_step_size = false;
     // parameter used in goal check, false means just consider coordinate not orientation
     bool consider_orientation = false;
+    /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
+    float curve_step_size = 1;
   };
   //this struct contains some used parameters in path class
   struct ParameterPathPublisher

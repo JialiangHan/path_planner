@@ -47,6 +47,10 @@ namespace RRTPlanner
                 visualization_ptr_->publishNode3DPose(current);
                 delay.sleep();
             }
+            if (AnalyticExpansion(current, goal_))
+            {
+                break;
+            }
             number_of_iterations++;
         }
         DLOG(INFO) << "number of nodes explored is " << rrt_.size();
@@ -76,7 +80,7 @@ namespace RRTPlanner
             {
                 break;
             }
-            // DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
+            // DLOG(INFO) << "current node is " << node3d_ptr->GetX() << " " << node3d_ptr->GetY() << " and its pred is " << node3d_ptr->GetPred()->GetX() << " " << node3d_ptr->GetPred()->GetY();
             node3d_ptr = node3d_ptr->GetPred();
         }
         std::reverse(path_.begin(), path_.end());
@@ -110,19 +114,9 @@ namespace RRTPlanner
         Node3D successor, direction_node, closest_node;
         while (1)
         {
+            direction_node = FindDirectionNode();
             std::pair<float, float> step_size_steering_angle_pair;
-            float random_number = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-            // 1. if probability greater than parameter, then find a random node, otherwise use goal node
-            if (random_number > params_.possibility_to_goal)
-            {
-                // DLOG(INFO) << "Towards Random node!";
-                direction_node = SelectRandomNode();
-            }
-            else
-            {
-                // DLOG(INFO) << "Towards Goal!";
-                direction_node = goal_;
-            }
+
             // 2. find closet node on rrt to this random node
             closest_node = FindClosestNode(direction_node);
             // 3. find step size and steering angle using random node
@@ -139,6 +133,24 @@ namespace RRTPlanner
         }
         DLOG(INFO) << "successor is " << successor.GetX() << " " << successor.GetY() << " " << Utility::ConvertRadToDeg(successor.GetT());
         return successor;
+    }
+
+    Node3D RRTPlanner::FindDirectionNode()
+    {
+        Node3D direction_node;
+        float random_number = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        // 1. if probability greater than parameter, then find a random node, otherwise use goal node
+        if (random_number > params_.possibility_to_goal)
+        {
+            // DLOG(INFO) << "Towards Random node!";
+            direction_node = SelectRandomNode();
+        }
+        else
+        {
+            // DLOG(INFO) << "Towards Goal!";
+            direction_node = goal_;
+        }
+        return direction_node;
     }
 
     Node3D RRTPlanner::GenerateSuccessor(const Node3D &closest_node, const std::pair<float, float> stepsize_steering_angle)
@@ -311,7 +323,7 @@ namespace RRTPlanner
     {
         // DLOG(INFO) << "In AddNodeToRRT!!!";
         rrt_.emplace_back(current);
-        DLOG(INFO) << "add node " << current.GetX() << " " << current.GetY() << " " << Utility::ConvertRadToDeg(current.GetT());
+        // DLOG(INFO) << "add node " << current.GetX() << " " << current.GetY() << " " << Utility::ConvertRadToDeg(current.GetT());
     }
 
     Path3D RRTPlanner::ShortCut(const Path3D &path, bool consider_steering_angle_limit)
@@ -413,5 +425,83 @@ namespace RRTPlanner
         }
         // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath out.";
         return out;
+    }
+
+    bool RRTPlanner::AnalyticExpansion(const Node3D &start, Node3D &goal)
+    {
+        Path3D path_vec;
+        int i = 0;
+        float x = 0.f;
+        Eigen::Vector3f vector3d_start = Utility::ConvertNode3DToVector3f(start);
+        // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
+        Eigen::Vector3f vector3d_goal = Utility::ConvertNode3DToVector3f(goal);
+
+        CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width_, map_height_);
+        float length = cubic_bezier.GetLength();
+        path_vec.clear();
+        Node3D node3d;
+        std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(start);
+        while (x < length)
+        {
+            if (x == 0)
+            {
+                node3d = start;
+            }
+            else
+            {
+                node3d = Utility::ConvertVector3fToNode3D(cubic_bezier.GetValueAt(x / length));
+                node3d.SetPred(pred_ptr);
+            }
+            // DLOG(INFO) << i << "th iteration";
+            float curvature = cubic_bezier.GetCurvatureAt(x / length);
+            node3d.setT(cubic_bezier.GetAngleAt(x / length));
+            // DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY();
+            // collision check
+            if (configuration_space_ptr_->IsTraversable(node3d))
+            {
+                if (curvature <= 1 / params_.collision_detection_params.min_turning_radius)
+                {
+                    path_vec.emplace_back(node3d);
+                    x += params_.curve_step_size;
+                    i++;
+                    pred_ptr = std::make_shared<Node3D>(node3d);
+                }
+                else
+                {
+                    // DLOG(INFO) << "cubic bezier curvature greater than 1/min_turning_radius, discarding the path";
+                    path_vec.clear();
+                    break;
+                }
+            }
+            else
+            {
+                // DLOG(INFO) << "cubic bezier collided, discarding the path";
+                path_vec.clear();
+                break;
+                // return nullptr;
+            }
+            // DLOG(INFO) << "goal point is " << vector3d_goal.x() << " " << vector3d_goal.y();
+        }
+        // Some kind of collision detection for all curves
+        if (path_vec.size() != 0)
+        {
+            goal.SetPred(pred_ptr);
+            path_vec.emplace_back(goal);
+            DLOG(INFO) << "Analytical expansion connected, returning path";
+            AddNodeToRRT(path_vec);
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    void RRTPlanner::AddNodeToRRT(const Path3D &current)
+    {
+        // DLOG(INFO) << "In AddNodeToRRT!!!";
+        for (const auto &item : current)
+        {
+            AddNodeToRRT(item);
+        }
     }
 }
