@@ -16,7 +16,7 @@ namespace PathEvaluator
     {
         if (path.size() < 3)
         {
-            DLOG(WARNING) << "In CalculateCurvature: path does not have enough points!!!";
+            // DLOG(WARNING) << "In CalculateCurvature: path does not have enough points!!!";
             return 0;
         }
 
@@ -75,7 +75,7 @@ namespace PathEvaluator
     {
         if (path.size() < 3)
         {
-            DLOG(WARNING) << "In CalculateSmoothness: path does not have enough points!!!";
+            // DLOG(WARNING) << "In CalculateSmoothness: path does not have enough points!!!";
             return 0;
         }
         // smoothness = (deltax(i+1)-delta(xi))^2
@@ -118,7 +118,7 @@ namespace PathEvaluator
     {
         if (path.size() < 3)
         {
-            DLOG(WARNING) << "In CalculateSteeringAngle: path does not have enough points!!!";
+            // DLOG(WARNING) << "In CalculateSteeringAngle: path does not have enough points!!!";
             return 0;
         }
         // steering angle = angle between x[i+1] and x[i] minus angle between x[i-1] and x[i]
@@ -135,12 +135,9 @@ namespace PathEvaluator
                 DLOG(WARNING) << "In CalculateSteeringAngle: some points are equal, skip these points for curvature calculation!!";
                 continue;
             }
-            // get two vector between these three nodes
-            Eigen::Vector2f pre_vector = xi - xp;
-            Eigen::Vector2f succ_vector = xs - xi;
 
-            double cosValNew = pre_vector.dot(succ_vector) / (pre_vector.norm() * succ_vector.norm()); //角度cos值
-            steering_angle = acos(cosValNew) * 180 / M_PI;
+            steering_angle = Utility::ConvertRadToDeg(Utility::GetAngleBetweenTwoVector(xp, xi, xi, xs));
+            DLOG(INFO) << i << "th steering angle is " << steering_angle;
             steering_angle_vec.emplace_back(steering_angle);
         }
         if (steering_angle_map_.count(topic_name) > 0)
@@ -161,7 +158,7 @@ namespace PathEvaluator
     {
         if (path.size() < 1)
         {
-            DLOG(WARNING) << "In CalculateClearance: path does not have enough points!!!";
+            // DLOG(WARNING) << "In CalculateClearance: path does not have enough points!!!";
             return 0;
         }
         // for clearance, node2d is enough, here clearance is the distance for current point to nearest obstacle.

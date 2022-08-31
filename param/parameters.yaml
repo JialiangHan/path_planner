@@ -113,7 +113,7 @@ weight_smoothness : 0.2
 weight_length : 0.2
 
 # **********************rrt parameters*****************
-use_rrt: false
+use_rrt: true
 
 float possibility_to_goal: 0.5
 
