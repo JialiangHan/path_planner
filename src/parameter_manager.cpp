@@ -41,7 +41,11 @@ namespace HybridAStar
     ros_param_name = "consider_orientation";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.consider_orientation);
     ros_param_name = "curve_step_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.curve_step_size);
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.curve_step_size);
+
+    ros_param_name = "analytical_expansion";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.analytical_expansion);
+
     LoadCollisionDetectionParams();
   }
   void ParameterManager::LoadSmootherParams()

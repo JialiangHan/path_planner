@@ -65,7 +65,7 @@ namespace HybridAStar
     bool adaptive_steering_angle = false;
 
     ParameterCollisionDetection collision_detection_params;
-    // ParameterAStar a_star_params;
+
     bool analytical_expansion = true;
 
      /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
@@ -105,6 +105,8 @@ namespace HybridAStar
 
   struct ParameterRRTPlanner
   {
+
+    bool analytical_expansion = true;
     ParameterCollisionDetection collision_detection_params;
     /// A flag for the visualization of 3D nodes (true = on; false = off)
     bool visualization = false;
