@@ -50,7 +50,11 @@ namespace RRTPlanner
          * @param current
          * @return std::pair<float, float> first is step size, second is steering angle
          */
-        std::pair<float, float> FindStepSizeAndSteeringAngle(const Node3D &closest_node, const Node3D &random_node);
+        std::pair<float, float> FindStepSizeAndSteeringAngle(const Node3D &closest_node, const Node3D &direction_node);
+
+        float FindSteeringAngle(const Node3D &closest_node, const Node3D &direction_node);
+
+        float FindStepSize(const Node3D &closest_node, const Node3D &direction_node);
         /**
          * @brief generate a collision-free successor
          *
