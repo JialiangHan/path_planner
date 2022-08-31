@@ -258,15 +258,12 @@ namespace RRTPlanner
         return steering_angle;
     }
 
-    std::pair<float, float> RRTPlanner::FindStepSizeAndSteeringAngle(const Node3D &closest_node, const Node3D &direction_node)
+    float RRTPlanner::FindStepSize(const Node3D &closest_node, const Node3D &direction_node)
     {
-        // DLOG(INFO) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " random node is " << random_node.GetX() << " " << random_node.GetY() << " " << Utility::ConvertRadToDeg(random_node.GetT());
-        float step_size = 0, steering_angle = FindSteeringAngle(closest_node, direction_node);
+        float step_size;
         float distance_to_goal = Utility::GetDistance(closest_node, goal_);
         // 3. steering angle is the angle between closest node and random node, and when close to goal(distance to goal < some certain number), steering angle need to be goal.GetT()- closest node.GetT()
         float angle_between_two_nodes = Utility::RadNormalization(Utility::GetAngle(closest_node, direction_node));
-        // DLOG(INFO) << "angle between two nodes is " << Utility::ConvertRadToDeg(angle_between_two_nodes) << " goal angle is " << Utility::ConvertRadToDeg(random_node.GetT()) << " target angle is " << Utility::ConvertRadToDeg(target_angle);
-        // DLOG(INFO) << "angle between two node is " << Utility::ConvertRadToDeg(angle_between_two_nodes);
         // 2. use obstacle density to determine step size like hybrid a star
         if (params_.adaptive_step_size)
         {
@@ -327,6 +324,14 @@ namespace RRTPlanner
                 // DLOG(INFO) << "weight step size is " << weight_step_size << " distance to goal is " << distance_to_goal;
             }
         }
+        return step_size;
+    }
+
+    std::pair<float, float> RRTPlanner::FindStepSizeAndSteeringAngle(const Node3D &closest_node, const Node3D &direction_node)
+    {
+        // DLOG(INFO) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " random node is " << random_node.GetX() << " " << random_node.GetY() << " " << Utility::ConvertRadToDeg(random_node.GetT());
+        float step_size = FindStepSize(closest_node, direction_node);
+        float steering_angle = FindSteeringAngle(closest_node, direction_node);
         DLOG(INFO) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
         return std::make_pair(step_size, steering_angle);
     }
