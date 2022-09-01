@@ -255,25 +255,53 @@ namespace RRTPlanner
         // DLOG(INFO) << "angle between two nodes is " << Utility::ConvertRadToDeg(angle_between_two_nodes) << " goal angle is " << Utility::ConvertRadToDeg(random_node.GetT()) << " target angle is " << Utility::ConvertRadToDeg(target_angle);
         // DLOG(INFO) << "angle between two node is " << Utility::ConvertRadToDeg(angle_between_two_nodes);
         steering_angle = -Utility::RadNormalization(Utility::RadNormalization(closest_node.GetT()) - angle_between_two_nodes);
+        steering_angle = SelectRandomSteeringAngle(Utility::ConvertDegToRad(30), closest_node);
         return steering_angle;
     }
+    float RRTPlanner::SelectRandomSteeringAngle(const float &max_steering_angle, const Node3D &current)
+    {
+        float steering_angle, random_number = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        // 1. if probability greater than parameter, then find a random node, otherwise use goal node
+        if (random_number > params_.possibility_to_goal)
+        {
+            DLOG(INFO) << "Randomly Steering!";
+            steering_angle = -max_steering_angle + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (2 * max_steering_angle)));
+        }
+        else
+        {
+            DLOG(INFO) << "Towards Goal!";
+            float angle_between_current_goal = Utility::GetAngle(current, goal_);
+            if (angle_between_current_goal > max_steering_angle)
+            {
+                steering_angle = max_steering_angle;
+            }
+            else if (angle_between_current_goal < -max_steering_angle)
+            {
+                steering_angle = -max_steering_angle;
+            }
 
-    float RRTPlanner::FindStepSize(const Node3D &closest_node, const Node3D &direction_node)
+            {
+                steering_angle = angle_between_current_goal;
+            }
+        }
+        DLOG(INFO) << " random steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+        return steering_angle;
+    }
+    float RRTPlanner::FindStepSize(const Node3D &closest_node, const float &steering_angle)
     {
         float step_size;
         float distance_to_goal = Utility::GetDistance(closest_node, goal_);
-        // 3. steering angle is the angle between closest node and random node, and when close to goal(distance to goal < some certain number), steering angle need to be goal.GetT()- closest node.GetT()
-        float angle_between_two_nodes = Utility::RadNormalization(Utility::GetAngle(closest_node, direction_node));
         // 2. use obstacle density to determine step size like hybrid a star
         if (params_.adaptive_step_size)
         {
             float step_size_obstacle = 10000;
             bool consider_steering_angle_range = false;
             std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(closest_node, consider_steering_angle_range);
+            float final_orientation = Utility::RadNormalization(steering_angle + Utility::RadNormalization(closest_node.GetT()));
             // find distance to obstacle in steering angle direction
             for (const auto &pair : available_angle_range_vec)
             {
-                if (Utility::IsAngleRangeInclude(pair.second, angle_between_two_nodes))
+                if (Utility::IsAngleRangeInclude(pair.second, final_orientation))
                 {
                     // DLOG(INFO) << "distance is " << pair.first << " angle range start from " << Utility::ConvertRadToDeg(pair.second.first) << " end at " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(pair.second)) << " angle between two nodes is " << Utility::ConvertRadToDeg(angle_between_two_nodes);
                     step_size_obstacle = pair.first;
@@ -292,19 +320,19 @@ namespace RRTPlanner
                     // DLOG(INFO) << "weight step size is " << weight_step_size << " distance to goal is " << distance_to_goal;
                 }
                 step_size = weight_step_size * available_step_size_obstacle;
-                DLOG(INFO) << "step_size is " << step_size << " weight is " << weight_step_size;
-                DLOG(INFO) << "available step size obstacle is " << available_step_size_obstacle;
+                // DLOG(INFO) << "step_size is " << step_size << " weight is " << weight_step_size;
+                // DLOG(INFO) << "available step size obstacle is " << available_step_size_obstacle;
                 if (step_size < 1)
                 {
                     if (available_step_size_obstacle > 1)
                     {
                         step_size = 1;
-                        DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
+                        // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
                     }
                     else
                     {
                         step_size = available_step_size_obstacle;
-                        DLOG(INFO) << "step size is smaller than  predefined min distance, make it to available step size: " << available_step_size_obstacle << " !!";
+                        // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to available step size: " << available_step_size_obstacle << " !!";
                     }
                 }
             }
@@ -330,8 +358,9 @@ namespace RRTPlanner
     std::pair<float, float> RRTPlanner::FindStepSizeAndSteeringAngle(const Node3D &closest_node, const Node3D &direction_node)
     {
         // DLOG(INFO) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " random node is " << random_node.GetX() << " " << random_node.GetY() << " " << Utility::ConvertRadToDeg(random_node.GetT());
-        float step_size = FindStepSize(closest_node, direction_node);
+
         float steering_angle = FindSteeringAngle(closest_node, direction_node);
+        float step_size = FindStepSize(closest_node, steering_angle);
         DLOG(INFO) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
         return std::make_pair(step_size, steering_angle);
     }
