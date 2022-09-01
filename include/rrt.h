@@ -45,6 +45,14 @@ namespace RRTPlanner
          */
         Node3D SelectRandomNode();
         /**
+         * @brief
+         *
+         * @param max_steering_angle in rad
+         * @param current
+         * @return float
+         */
+        float SelectRandomSteeringAngle(const float &max_steering_angle, const Node3D &current);
+        /**
          * @brief find step size and steering angle for current node
          *
          * @param current
@@ -54,7 +62,7 @@ namespace RRTPlanner
 
         float FindSteeringAngle(const Node3D &closest_node, const Node3D &direction_node);
 
-        float FindStepSize(const Node3D &closest_node, const Node3D &direction_node);
+        float FindStepSize(const Node3D &closest_node, const float &steering_angle);
         /**
          * @brief generate a collision-free successor
          *
