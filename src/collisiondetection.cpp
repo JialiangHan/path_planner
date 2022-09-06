@@ -824,7 +824,7 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
             std::pair<float, float> temp(step_size_free, steering_angle);
             if (!Utility::DuplicateCheck(out, temp))
             {
-              DLOG(INFO) << "steering angle for free angle range is " << Utility::ConvertRadToDeg(steering_angle);
+              // DLOG(INFO) << "steering angle for free angle range is " << Utility::ConvertRadToDeg(steering_angle);
               out.emplace_back(temp);
             }
 

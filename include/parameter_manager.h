@@ -126,6 +126,7 @@ namespace HybridAStar
     bool consider_orientation = false;
     /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
     float curve_step_size = 1;
+    bool consider_steering_angle_range = false;
   };
   //this struct contains some used parameters in path class
   struct ParameterPathPublisher

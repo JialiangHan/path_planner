@@ -46,6 +46,9 @@ namespace HybridAStar
     ros_param_name = "analytical_expansion";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.analytical_expansion);
 
+    ros_param_name = "consider_steering_angle_range";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.consider_steering_angle_range);
+
     LoadCollisionDetectionParams();
   }
   void ParameterManager::LoadSmootherParams()
