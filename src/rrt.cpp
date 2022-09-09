@@ -296,7 +296,7 @@ namespace RRTPlanner
     }
     float RRTPlanner::FindStepSize(const Node3D &closest_node, const float &steering_angle)
     {
-        float step_size;
+        float step_size = 0;
         float distance_to_goal = Utility::GetDistance(closest_node, goal_);
         // 2. use obstacle density to determine step size like hybrid a star
         if (params_.adaptive_step_size)
@@ -310,7 +310,7 @@ namespace RRTPlanner
             {
                 if (Utility::IsAngleRangeInclude(pair.second, final_orientation))
                 {
-                    // DLOG(INFO) << "distance is " << pair.first << " angle range start from " << Utility::ConvertRadToDeg(pair.second.first) << " end at " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(pair.second)) << " angle between two nodes is " << Utility::ConvertRadToDeg(angle_between_two_nodes);
+                    DLOG(INFO) << "distance is " << pair.first << " angle range start from " << Utility::ConvertRadToDeg(pair.second.first) << " end at " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(pair.second)) << " final orientation is " << Utility::ConvertRadToDeg(final_orientation);
                     step_size_obstacle = pair.first;
                     // DLOG(INFO) << "angle is included by angle range, set distance to step size obstacle";
                     break;
@@ -318,7 +318,7 @@ namespace RRTPlanner
             }
             float weight_step_size = -0.8 * configuration_space_ptr_->GetNormalizedObstacleDensity(closest_node) + 0.9;
             float available_step_size_obstacle = ((step_size_obstacle - 0.5 * params_.collision_detection_params.vehicle_length) > 0) ? (step_size_obstacle - 0.5 * params_.collision_detection_params.vehicle_length) : 0;
-            if (available_step_size_obstacle != 0)
+            if (available_step_size_obstacle > 0.5)
             {
                 // DLOG(INFO) << "available_step_size_obstacle is " << available_step_size_obstacle;
                 if (available_step_size_obstacle > distance_to_goal)
@@ -327,8 +327,7 @@ namespace RRTPlanner
                     // DLOG(INFO) << "weight step size is " << weight_step_size << " distance to goal is " << distance_to_goal;
                 }
                 step_size = weight_step_size * available_step_size_obstacle;
-                // DLOG(INFO) << "step_size is " << step_size << " weight is " << weight_step_size;
-                // DLOG(INFO) << "available step size obstacle is " << available_step_size_obstacle;
+                // DLOG(INFO) << "step_size is " << step_size << " weight is " << weight_step_size << " available step size obstacle is " << available_step_size_obstacle;
                 if (step_size < 1)
                 {
                     if (available_step_size_obstacle > 1)
