@@ -119,7 +119,7 @@ float possibility_to_goal: 0.5
 
 adaptive_step_size: true
 # for goal check
-consider_orientation: false
+consider_orientation: true
 # consider steering angle range, if not, just random steering
 consider_steering_angle_range: true
 

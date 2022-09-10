@@ -97,7 +97,7 @@ namespace RRTPlanner
         int index = -1;
         if (rrt_.size() == 0)
         {
-            DLOG(WARNING) << "WARNING: size of rrt is zero!!";
+            // DLOG(WARNING) << "WARNING: size of rrt is zero!!";
             return index;
         }
         // loop all the node in rrt
@@ -105,7 +105,7 @@ namespace RRTPlanner
         {
             if (Utility::IsCloseEnough(rrt_[i], goal_, params_.goal_range, 2 * M_PI / params_.headings, consider_orientation))
             {
-                DLOG(INFO) << "Goal reached, index is: " << i;
+                // DLOG(INFO) << "Goal reached, index is: " << i;
                 index = i;
             }
         }
@@ -134,7 +134,7 @@ namespace RRTPlanner
                 }
             }
         }
-        DLOG(INFO) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.GetX() << " " << successor.GetY() << " " << Utility::ConvertRadToDeg(successor.GetT());
+        // DLOG_IF(INFO, (step_size_steering_angle_pair.second > Utility::ConvertDegToRad(30)) || (step_size_steering_angle_pair.second < Utility::ConvertDegToRad(-30))) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.GetX() << " " << successor.GetY() << " " << Utility::ConvertRadToDeg(successor.GetT());
         return successor;
     }
 
@@ -261,8 +261,10 @@ namespace RRTPlanner
         {
             steering_angle = -Utility::RadNormalization(Utility::RadNormalization(closest_node.GetT()) - angle_between_two_nodes);
         }
+        // DLOG_IF(INFO, (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < Utility::ConvertDegToRad(-30))) << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
         return steering_angle;
     }
+
     float RRTPlanner::SelectRandomSteeringAngle(const float &max_steering_angle, const Node3D &current)
     {
         float steering_angle, random_number = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
@@ -278,20 +280,21 @@ namespace RRTPlanner
         {
             // DLOG(INFO) << "Towards Goal!";
             float angle_between_current_goal = Utility::RadNormalization(Utility::GetAngle(current, goal_));
-            if (angle_between_current_goal > max_steering_angle)
+            steering_angle = Utility::RadNormalization(angle_between_current_goal - Utility ::RadNormalization(current.GetT()));
+            if (steering_angle > max_steering_angle)
             {
                 steering_angle = max_steering_angle;
             }
-            else if (angle_between_current_goal < -max_steering_angle)
+            else if (steering_angle < -max_steering_angle)
             {
                 steering_angle = -max_steering_angle;
             }
-            else
+            if ((steering_angle > max_steering_angle) || (steering_angle < -max_steering_angle))
             {
-                steering_angle = Utility::RadNormalization(angle_between_current_goal - Utility ::RadNormalization(current.GetT()));
+                // DLOG(INFO) << " steering angle is " << Utility::ConvertRadToDeg(steering_angle) << " angle between current node and goal is " << Utility::ConvertRadToDeg(angle_between_current_goal) << " current node orientation is " << Utility ::ConvertRadToDeg(current.GetT());
             }
         }
-        // DLOG(INFO) << " random steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+        // DLOG_IF(INFO, (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < Utility::ConvertDegToRad(-30))) << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
         return steering_angle;
     }
     float RRTPlanner::FindStepSize(const Node3D &closest_node, const float &steering_angle)
@@ -310,7 +313,7 @@ namespace RRTPlanner
             {
                 if (Utility::IsAngleRangeInclude(pair.second, final_orientation))
                 {
-                    DLOG(INFO) << "distance is " << pair.first << " angle range start from " << Utility::ConvertRadToDeg(pair.second.first) << " end at " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(pair.second)) << " final orientation is " << Utility::ConvertRadToDeg(final_orientation);
+                    // DLOG(INFO) << "distance is " << pair.first << " angle range start from " << Utility::ConvertRadToDeg(pair.second.first) << " end at " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(pair.second)) << " final orientation is " << Utility::ConvertRadToDeg(final_orientation);
                     step_size_obstacle = pair.first;
                     // DLOG(INFO) << "angle is included by angle range, set distance to step size obstacle";
                     break;
@@ -366,14 +369,13 @@ namespace RRTPlanner
 
         float steering_angle = FindSteeringAngle(closest_node, direction_node);
         float step_size = FindStepSize(closest_node, steering_angle);
-        // DLOG(INFO) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+        // DLOG_IF(INFO, (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < Utility::ConvertDegToRad(-30))) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
         return std::make_pair(step_size, steering_angle);
     }
 
     void RRTPlanner::AddNodeToRRT(const Node3D &current)
     {
         // DLOG(INFO) << "In AddNodeToRRT!!!";
-        // TODO: duplicate check
         if (std::find(rrt_.begin(), rrt_.end(), current) != rrt_.end())
         {
             DLOG(INFO) << "node already inside rrt_, do not add element!!";
