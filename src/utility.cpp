@@ -1038,7 +1038,7 @@ namespace Utility
                 }
                 else
                 {
-                    // DLOG(INFO)                    << "two node distance is close enough but orientation is too far is "                    << Utility::ConvertRadToDeg(angle_diff);
+                    DLOG(INFO) << "two node distance is close enough but orientation is too far is " << Utility::ConvertRadToDeg(angle_diff);
                     return false;
                 }
             }
@@ -1049,7 +1049,7 @@ namespace Utility
         }
         else
         {
-            // DLOG(INFO) << "too far, distance is " << distance;
+            DLOG(INFO) << "too far, distance is " << distance;
             return false;
         }
     }

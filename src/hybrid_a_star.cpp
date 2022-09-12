@@ -578,13 +578,6 @@ namespace HybridAStar
     std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred, consider_steering_angle_range);
     // 3. determine step size and steering angle from previous output
     out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors);
-    // comment out due to less nodes explored when add one more step every time
-    //  if (out.size() == 0)
-    // // TODO move this part into function:SelectStepSizeAndSteeringAngle
-    // if (params_.add_one_more_successor)
-    // {
-    //   AddOneMoreStepSizeAndSteeringAngle(pred, out);
-    // }
 
     // for (const auto &pair : out)
     // {
