@@ -81,7 +81,7 @@ namespace RRTPlanner
          * @brief trace path using a rrt
          *
          */
-        void TracePath();
+        void TracePath(const int &goal_index);
         /**
          * @brief check if current rrt reach goal?
          *

@@ -41,7 +41,7 @@ steering_angle_towards_free_angle_range_for_obstacle_angle_range: true
 #   use a fixed step size, so steering angle should be: free angle start, free angle start+ n*step_size(step size should be 5 deg).
 fixed_number_of_steering_angle_in_free_angle_range: true
 
-analytical_expansion: true
+analytical_expansion: false
 # this parameter determine the frequency of analytical expansion, false means the way in the original paper
 analytical_expansion_every_point : true
 
@@ -71,7 +71,7 @@ max_steering_angle: 30
 # */
 tie_breaker : 0.01
 # range for goal test
-goal_range: 0.2
+goal_range: 0.4
 # [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
 penalty_turning : 1.05
 # [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
@@ -117,9 +117,9 @@ use_rrt: true
 
 float possibility_to_goal: 0.5
 
-adaptive_step_size: true
+adaptive_step_size: false
 # for goal check
-consider_orientation: true
+consider_orientation: false
 # consider steering angle range, if not, just random steering
 consider_steering_angle_range: true
 
