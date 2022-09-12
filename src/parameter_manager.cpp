@@ -52,6 +52,9 @@ namespace HybridAStar
     ros_param_name = "steering_angle_resolution";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.steering_angle_resolution);
 
+    ros_param_name = "step_size";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.step_size);
+
     LoadCollisionDetectionParams();
   }
   void ParameterManager::LoadSmootherParams()

@@ -30,11 +30,12 @@ namespace RRTPlanner
         int number_of_iterations = 0;
         // VISUALIZATION DELAY
         ros::Duration delay(0.003);
-
+        int goal_index;
         while (number_of_iterations < params_.max_iterations)
         {
             // goal check
-            if (GoalCheck(params_.consider_orientation) >= 0)
+            goal_index = GoalCheck(params_.consider_orientation);
+            if (goal_index >= 0)
             {
                 break;
             }
@@ -57,7 +58,7 @@ namespace RRTPlanner
             number_of_iterations++;
         }
         DLOG(INFO) << "number of nodes explored is " << rrt_.size();
-        TracePath();
+        TracePath(goal_index);
     }
 
     Path3D RRTPlanner::GetPath(const Node3D &start, const Node3D &goal)
@@ -70,11 +71,11 @@ namespace RRTPlanner
         return path_;
     }
 
-    void RRTPlanner::TracePath()
+    void RRTPlanner::TracePath(const int &goal_index)
     {
         // DLOG(INFO) << "In TracePath!!!";
         path_.clear();
-        int goal_index = GoalCheck(params_.consider_orientation);
+        // int goal_index = GoalCheck(params_.consider_orientation);
         std::shared_ptr<Node3D> node3d_ptr = std::make_shared<Node3D>(rrt_[goal_index]);
         while (node3d_ptr != nullptr)
         {
@@ -133,7 +134,7 @@ namespace RRTPlanner
                 }
             }
         }
-        // DLOG_IF(INFO, (step_size_steering_angle_pair.second > Utility::ConvertDegToRad(30)) || (step_size_steering_angle_pair.second < Utility::ConvertDegToRad(-30)) || (step_size_steering_angle_pair.first < 0.5)) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.GetX() << " " << successor.GetY() << " " << Utility::ConvertRadToDeg(successor.GetT());
+        DLOG_IF(INFO, (step_size_steering_angle_pair.second > Utility::ConvertDegToRad(30)) || (step_size_steering_angle_pair.second < Utility::ConvertDegToRad(-30)) || (step_size_steering_angle_pair.first < params_.step_size)) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.GetX() << " " << successor.GetY() << " " << Utility::ConvertRadToDeg(successor.GetT());
         // DLOG(INFO) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.GetX() << " " << successor.GetY() << " " << Utility::ConvertRadToDeg(successor.GetT());
         return successor;
     }
@@ -335,28 +336,19 @@ namespace RRTPlanner
             }
             float weight_step_size = -0.8 * configuration_space_ptr_->GetNormalizedObstacleDensity(closest_node) + 0.9;
             float available_step_size_obstacle = ((step_size_obstacle - 0.5 * params_.collision_detection_params.vehicle_length) > 0) ? (step_size_obstacle - 0.5 * params_.collision_detection_params.vehicle_length) : 0;
-            if (available_step_size_obstacle > 0.5)
+            if (available_step_size_obstacle > params_.step_size)
             {
                 // DLOG(INFO) << "available_step_size_obstacle is " << available_step_size_obstacle;
-                // if (available_step_size_obstacle > distance_to_goal)
-                // {
-                //     available_step_size_obstacle = distance_to_goal;
-                //     // DLOG(INFO) << "weight step size is " << weight_step_size << " distance to goal is " << distance_to_goal;
-                // }
                 step_size = distance_to_goal / distance_start_to_goal * weight_step_size * available_step_size_obstacle;
-                DLOG_IF(INFO, step_size < 0.5) << "step_size is " << step_size << " weight is " << weight_step_size << " available step size obstacle is " << available_step_size_obstacle;
-                if (step_size < 1)
+                // DLOG_IF(INFO, step_size < params_.step_size) << "step_size is " << step_size << " weight is " << weight_step_size << " available step size obstacle is " << available_step_size_obstacle;
+                if (step_size < params_.step_size)
                 {
-                    if (available_step_size_obstacle > 1)
-                    {
-                        step_size = 1;
-                        // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
-                    }
-                    else
-                    {
-                        step_size = available_step_size_obstacle;
-                        // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to available step size: " << available_step_size_obstacle << " !!";
-                    }
+                    step_size = available_step_size_obstacle;
+                    // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to available step size: " << available_step_size_obstacle << " !!";
+                }
+                if (step_size > distance_to_goal)
+                {
+                    step_size = distance_to_goal;
                 }
             }
             else
@@ -368,7 +360,7 @@ namespace RRTPlanner
         }
         else
         {
-            step_size = 1;
+            step_size = params_.step_size;
             if (step_size > distance_to_goal)
             {
                 step_size = distance_to_goal;
