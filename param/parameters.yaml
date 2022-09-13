@@ -25,7 +25,7 @@ step_size : 1
 adaptive_steering_angle_and_step_size: false
 
 # this parameter forces all step size larger than one
-make_step_size_larger_than_one: true
+# make_step_size_larger_than_one: true
 
 add_one_more_successor : true
 
@@ -113,7 +113,7 @@ weight_smoothness : 0.2
 weight_length : 0.2
 
 # **********************rrt parameters*****************
-use_rrt: true
+use_rrt: false
 
 float possibility_to_goal: 0.5
 

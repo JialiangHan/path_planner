@@ -442,7 +442,7 @@ namespace HybridAStar
     // DLOG(INFO) << "CreateSuccessor in:";
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
-
+    std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec;
     // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
@@ -453,32 +453,25 @@ namespace HybridAStar
       // float distance_offset=sqrt()
       // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
 
-      std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec = FindStepSizeAndSteeringAngle(pred);
-      // 2. create successor using step size and steering angle
-      out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
+      available_steering_angle_and_step_size_vec = FindStepSizeAndSteeringAngle(pred);
       // DLOG(INFO) << "CreateSuccessor out.";
-      return out;
     }
-
     else
     {
-      float step_size;
       // DLOG(INFO) << "fixed steering angle and step size";
       // assume constant speed.
       float theta = Utility::ConvertDegToRad(params_.steering_angle);
-      step_size = params_.step_size;
-      // step_size = params_.min_turning_radius * theta;
+
       std::vector<float> available_steering_angle_vec = {theta, 0, -theta};
-      std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec;
       std::pair<float, float> pair;
-      pair.first = step_size;
+      pair.first = params_.step_size;
       for (const auto &element : available_steering_angle_vec)
       {
         pair.second = element;
         available_steering_angle_and_step_size_vec.emplace_back(pair);
       }
-      out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
     }
+    out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
     // DLOG(INFO) << "CreateSuccessor out.";
     return out;
   }

@@ -710,11 +710,8 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   {
     step_size_obstacle = std::min(step_size_obstacle, pair.first);
   }
-
   // weight for step size should be inverse proportional to normalized obstacle density
-
-  float weight_step_size;
-  weight_step_size = GetStepSizeWeight(GetNormalizedObstacleDensity(pred));
+  float weight_step_size = GetStepSizeWeight(GetNormalizedObstacleDensity(pred));
 
   DLOG_IF(WARNING, weight_step_size == 0) << "WARNING: weight_step_size is zero!!!!";
   // DLOG(INFO) << "normalized obstacle density is " << GetNormalizedObstacleDensity(pred) << " step size weight for current node is " << weight_step_size;
@@ -725,20 +722,18 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   step_size_obstacle = weight_step_size * available_step_size_obstacle;
   step_size_free = weight_step_size * available_step_size_free;
   // make sure step size is larger than a predefined min distance otherwise too many successors
-  if (params_.make_step_size_larger_than_one)
+  if (step_size_obstacle < 1)
   {
-    if (step_size_obstacle < 1)
-    {
-      // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
+    // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
 
-      if (available_step_size_obstacle > 1)
-      {
-        step_size_obstacle = 1;
-      }
-      else
-      {
-        step_size_obstacle = available_step_size_obstacle;
-      }
+    if (available_step_size_obstacle > 1)
+    {
+      step_size_obstacle = 1;
+    }
+    else
+    {
+      step_size_obstacle = available_step_size_obstacle;
+    }
     }
     // make sure step size is larger than a predefined min distance otherwise too many successors
     if (step_size_free < 1)
@@ -753,7 +748,7 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
         step_size_free = available_step_size_free;
       }
     }
-  }
+
   // DLOG(INFO) << "obstacle step size is " << step_size_obstacle << " available step size is " << available_step_size_obstacle << " weighting is " << weight_step_size;
   // DLOG(INFO) << "free step size is " << step_size_free << " available step size is " << available_step_size_free << " weighting is " << weight_step_size;
   // DLOG_IF(WARNING, step_size_obstacle < 1) << "obstacle step size is " << step_size_obstacle;
@@ -920,7 +915,6 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
         {
           out.emplace_back(temp);
         }
-
         // steering angle is range end
         steering_angle = Utility::RadNormalization((pair.second.first + pair.second.second - pred.GetT()));
         std::pair<float, float> temp1(step_size_obstacle, steering_angle);
