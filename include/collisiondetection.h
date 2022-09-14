@@ -58,12 +58,20 @@ namespace HybridAStar
      * @param number_of_successor
      * @return std::vector<std::pair<float, float>> first is step size, second is steering angle
      */
-    std::vector<std::pair<float, float>> SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred, const Node3D &goal, const int &number_of_successor);
+    std::vector<std::pair<float, float>> SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred, const Node3D &goal, const int &number_of_successor, const float &step_size);
 
     float GetObstacleDetectionRange() const { return obstacle_detection_range_; };
 
     float GetNormalizedObstacleDensity(const Node3D &node3d);
     bool IsOnGrid(const float &x, const float &y) const;
+    /**
+     * @brief make steering angle inside steering angle limit
+     *
+     * @param steering_angle
+     * @param steering_angle_limit
+     * @return float limited steering angle limit
+     */
+    float LimitSteeringAngle(const float &steering_angle, const float &steering_angle_limit);
 
   private:
     bool IsOnGrid(const Node3D &node3d) const;
