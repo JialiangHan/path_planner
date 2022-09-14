@@ -22,7 +22,7 @@ curve_type : 2
 # step size to create successor
 step_size : 1
 
-adaptive_steering_angle_and_step_size: false
+adaptive_steering_angle_and_step_size: true
 
 # this parameter forces all step size larger than one
 # make_step_size_larger_than_one: true

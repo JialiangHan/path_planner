@@ -1049,7 +1049,7 @@ namespace Utility
         }
         else
         {
-            DLOG(INFO) << "too far, distance is " << distance;
+            // DLOG(INFO) << "too far, distance is " << distance;
             return false;
         }
     }

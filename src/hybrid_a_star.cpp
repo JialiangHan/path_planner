@@ -151,7 +151,7 @@ namespace HybridAStar
               Path3D analytical_path = AnalyticExpansions(*nPred, goal);
               if (analytical_path.size() != 0)
               {
-                DLOG(INFO) << "Found path through anallytical expansion";
+                DLOG(INFO) << "Found path through analytical expansion";
                 DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
                 TracePath(nPred);
                 analytical_expansion_index_ = path_.size();
@@ -186,12 +186,10 @@ namespace HybridAStar
                   path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
                   if (params_.piecewise_cubic_bezier_interpolation)
                   {
-
                     ConvertToPiecewiseCubicBezierPath();
                     piecewise_cubic_bezier_path_.insert(piecewise_cubic_bezier_path_.end(), analytical_path.begin(), analytical_path.end());
                     DLOG(INFO) << "piecewise cubic bezier interpolation.";
                     // DLOG(INFO) << "piecewise_cubic_bezier_path_ size is " << piecewise_cubic_bezier_path_.size();
-
                     return piecewise_cubic_bezier_path_;
                   }
                   return path_;
@@ -231,8 +229,7 @@ namespace HybridAStar
                   // same cell expansion
                   if (iPred == iSucc)
                   {
-                    DLOG(INFO) << "successor total cost is " << nSucc->GetTotalCost();
-                    DLOG(INFO) << "pred total cost is " << nPred->GetTotalCost();
+                    DLOG(INFO) << "successor total cost is " << nSucc->GetTotalCost() << " pred total cost is " << nPred->GetTotalCost();
                     // no need to reset tie-breaker
                     //  if the successor is in the same cell but the C value is larger
                     if (nSucc->GetTotalCost() > nPred->GetTotalCost() + params_.tie_breaker)
@@ -262,8 +259,7 @@ namespace HybridAStar
         }
       }
     }
-    DLOG(INFO) << "open list is empty, end hybrid a star.";
-    DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+    DLOG(INFO) << "open list is empty, end hybrid a star. number of nodes explored is " << number_nodes_explored;
     return path_;
   }
 
@@ -340,48 +336,7 @@ namespace HybridAStar
     Path3D path_vec;
     int i = 0;
     float x = 0.f;
-    // if (params_.curve_type == 0)
-    // {
 
-    //   // start
-    //   float q0[] = {start.GetX(), start.GetY(), start.GetT()};
-    //   // goal
-    //   float q1[] = {goal.GetX(), goal.GetY(), goal.GetT()};
-    //   // initialize the path
-    //   DubinsPath path;
-    //   // calculate the path
-    //   dubins_init(q0, q1, params_.min_turning_radius, &path);
-
-    //   float length = dubins_path_length(&path);
-
-    //   while (x < length)
-    //   {
-    //     float q[3];
-    //     dubins_path_sample(&path, x, q);
-    //     Node3D *node3d;
-    //     node3d->setX(q[0]);
-    //     node3d->setY(q[1]);
-    //     node3d->setT(Utility::RadToZeroTo2P(q[2]));
-
-    //     // collision check
-    //     if (configuration_space_ptr_->IsTraversable(node3d))
-    //     {
-
-    //       path_vec.emplace_back(*node3d);
-    //       x += params_.curve_step_size;
-    //       i++;
-    //     }
-    //     else
-    //     {
-    //       DLOG(INFO) << "Dubins shot collided, discarding the path";
-    //       path_vec.clear();
-    //       break;
-    //       // return nullptr;
-    //     }
-    //   }
-    // }
-    // else if (params_.curve_type == 1)
-    // {
     Eigen::Vector3f vector3d_start = Utility::ConvertNode3DToVector3f(start);
     // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
     Eigen::Vector3f vector3d_goal = Utility::ConvertNode3DToVector3f(goal);
@@ -479,10 +434,10 @@ namespace HybridAStar
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred, const std::vector<std::pair<float, float>> &step_size_steering_angle_vec)
   {
     std::vector<std::shared_ptr<Node3D>> out;
-    float dx, dy, dt, xSucc, ySucc, tSucc, turning_radius, steering_angle;
+    float dx, dy, xSucc, ySucc, tSucc, turning_radius, steering_angle;
     int prem;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
-    DLOG_IF(INFO, (pred.GetX() > 76) && (pred.GetX() < 77) && (pred.GetY() > 1) && (pred.GetY() < 2)) << "in create successor, current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+
     for (const auto &pair : step_size_steering_angle_vec)
     {
       if (pair.first <= 1e-3)
@@ -493,8 +448,6 @@ namespace HybridAStar
       steering_angle = pair.second;
 
       turning_radius = pair.first / abs(steering_angle);
-      dt = steering_angle;
-      // DLOG(INFO) << "step size is " << pair.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle);
       // forward, checked
       // right
       if (steering_angle < 0)
@@ -520,11 +473,10 @@ namespace HybridAStar
         prem = 0;
         // DLOG(INFO) << "forward straight";
       }
-
       xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
       ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
-      tSucc = Utility::RadToZeroTo2P(pred.GetT() + dt);
-      DLOG_IF(INFO, (pred.GetX() > 76) && (pred.GetX() < 77) && (pred.GetY() > 1) && (pred.GetY() < 2)) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+      tSucc = Utility::RadToZeroTo2P(pred.GetT() + steering_angle);
+      DLOG_IF(INFO, (pair.first < 1) || (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < -Utility::ConvertDegToRad(30))) << "in create successor, current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << pair.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle) << " successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
       std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
       out.emplace_back(temp);
       if (params_.reverse)
@@ -548,10 +500,9 @@ namespace HybridAStar
           prem = 3;
           // DLOG(INFO) << "backward straight";
         }
-        // DLOG(INFO) << "dx is " << dx << " dy " << dy << " dt " << dt;
         xSucc = pred.GetX() - dx * cos(pred.GetT()) - dy * sin(pred.GetT());
         ySucc = pred.GetY() - dx * sin(pred.GetT()) + dy * cos(pred.GetT());
-        tSucc = Utility::RadToZeroTo2P(pred.GetT() - dt);
+        tSucc = Utility::RadToZeroTo2P(pred.GetT() - steering_angle);
         // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
         std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
         out.emplace_back(temp);
@@ -570,12 +521,12 @@ namespace HybridAStar
     bool consider_steering_angle_range = true;
     std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred, consider_steering_angle_range);
     // 3. determine step size and steering angle from previous output
-    out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors);
+    out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors, params_.step_size);
 
-    // for (const auto &pair : out)
-    // {
-    //   DLOG(INFO) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-    // }
+    for (const auto &pair : out)
+    {
+      DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+    }
     // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
     return out;
   }

@@ -338,7 +338,7 @@ namespace Utility
      */
     std::vector<AngleRange> MinusAngleRange(const AngleRange &ar1, const AngleRange &ar2);
     /**
-     * @brief find common angle range in ar1 and ar2;
+     * @brief find common angle range in ar1 and ar2, if nothing in common, return (-1,-1);
      *
      * @param angle_range_1
      * @param angle_range_2
