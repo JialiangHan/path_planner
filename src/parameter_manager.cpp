@@ -55,6 +55,9 @@ namespace HybridAStar
     ros_param_name = "step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.step_size);
 
+    ros_param_name = "adaptive_possibility_to_goal";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.adaptive_possibility_to_goal);
+
     LoadCollisionDetectionParams();
   }
   void ParameterManager::LoadSmootherParams()

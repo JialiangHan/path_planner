@@ -29,7 +29,7 @@ adaptive_steering_angle_and_step_size: true
 
 add_one_more_successor : true
 
-add_one_more_successor_only_in_free_angle_range: true
+add_one_more_successor_only_in_free_angle_range: false
 
 # while this parameter is true, it will add four boundary obstacle to obstacle list
 map_boundary_obstacle: true
@@ -71,7 +71,7 @@ max_steering_angle: 30
 # */
 tie_breaker : 0.01
 # range for goal test
-goal_range: 0.4
+goal_range: 1
 # [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
 penalty_turning : 1.05
 # [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
@@ -113,7 +113,7 @@ weight_smoothness : 0.2
 weight_length : 0.2
 
 # **********************rrt parameters*****************
-use_rrt: false
+use_rrt: true
 
 float possibility_to_goal: 0.5
 
@@ -122,5 +122,7 @@ adaptive_step_size: false
 consider_orientation: false
 # consider steering angle range, if not, just random steering
 consider_steering_angle_range: true
+
+adaptive_possibility_to_goal: false
 
 
