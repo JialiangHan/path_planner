@@ -908,16 +908,6 @@ namespace Utility
         {
             return out;
         }
-        // // put all vertex in out
-        // out.insert(out.end(), polygon1.begin(), polygon1.end());
-        // out.insert(out.end(), polygon2.begin(), polygon2.end());
-
-        // // sort by x and then y
-        // std::sort(out.begin(), out.end(), [](Eigen::Vector2f a, Eigen::Vector2f b) -> bool
-        //           { return a.x() < b.x() ? a.x() < b.x() : a.y() < b.y(); });
-        // // remove duplicates
-        // out.erase(unique(out.begin(), out.end()), out.end());
-        // out.insert(out.end(), out[0]);
         // if polygon2 is on top of polygon1
         if (polygon2[0].y() > polygon1[0].y())
         {

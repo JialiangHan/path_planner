@@ -705,7 +705,7 @@ std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeA
 }
 
 // checked, it`s correct for free angle range.
-std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred, const Node3D &goal, const int &number_of_successor, const float &fixed_step_size)
+std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred, const Node3D &goal, const int &number_of_successor, const float &fixed_step_size, const float &distance_start_to_goal)
 {
   std::vector<std::pair<float, float>> out;
   float steering_angle, step_size_obstacle = 10000, step_size_free = obstacle_detection_range_;
@@ -752,14 +752,17 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   // DLOG_IF(WARNING, step_size_obstacle < 1) << "obstacle step size is " << step_size_obstacle;
   // DLOG_IF(WARNING, step_size_free < 1) << "free step size is " << step_size_free;
   // 3. find angle to goal
-  float angle_to_goal;
+  float angle_to_goal, orientation_diff, steering_angle_toward_goal, final_orientation;
   if (params_.add_one_more_successor)
   {
-    angle_to_goal = -Utility::RadNormalization(pred.GetT() - Utility::GetAngle(pred, goal));
+    float weighting = distance_to_goal / distance_start_to_goal;
+    angle_to_goal = Utility::GetAngle(pred, goal);
+    orientation_diff = -Utility::RadNormalization(pred.GetT() - goal.GetT());
+    steering_angle_toward_goal = -Utility::RadNormalization(weighting * angle_to_goal + (1 - weighting) * orientation_diff);
+    final_orientation = Utility::RadNormalization(pred.GetT() + steering_angle_toward_goal);
     // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
     // DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
   }
-
   // DLOG(INFO) << "size of available_angle_range_vec is " << available_angle_range_vec.size();
   for (const auto &pair : available_angle_range_vec)
   {
@@ -767,8 +770,9 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
     // if steering angle range is zero, that means current node is blocked by obstacles
     if (pair.second.second == 0)
     {
-      DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
+      // DLOG(INFO) << "for current node, all available steering range is blocked by obstacle";
       steering_angle = Utility::RadNormalization((pair.second.first - pred.GetT()));
+      steering_angle = LimitSteeringAngle(steering_angle, Utility::ConvertDegToRad(30));
       std::pair<float, float> temp(pair.first, steering_angle);
       if (!Utility::DuplicateCheck(out, temp))
       {
@@ -782,13 +786,14 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
       // DLOG(INFO) << "in free angle range.";
       if (params_.add_one_more_successor)
       {
-        if (Utility::IsAngleRangeInclude(pair.second, angle_to_goal))
+        if (Utility::IsAngleRangeInclude(pair.second, final_orientation))
         {
           // DLOG(INFO) << "one more node is in free angle range!";
-          std::pair<float, float> temp = AddOneMoreStepSizeAndSteeringAngle(angle_to_goal, step_size_free, pred, goal);
+          std::pair<float, float> temp = AddOneMoreStepSizeAndSteeringAngle(steering_angle_toward_goal, step_size_free, pred, goal);
           if (!Utility::DuplicateCheck(out, temp))
           {
             out.emplace_back(temp);
+            DLOG_IF(INFO, distance_to_goal < 2) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << temp.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(temp.second);
           }
         }
       }
@@ -869,13 +874,14 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
       {
         if (!params_.add_one_more_successor_only_in_free_angle_range)
         {
-          if (Utility::IsAngleRangeInclude(pair.second, angle_to_goal))
+          if (Utility::IsAngleRangeInclude(pair.second, final_orientation))
           {
             // DLOG(INFO) << "one more node is in obstacle angle range!";
-            std::pair<float, float> temp = AddOneMoreStepSizeAndSteeringAngle(angle_to_goal, step_size_obstacle, pred, goal);
+            std::pair<float, float> temp = AddOneMoreStepSizeAndSteeringAngle(steering_angle_toward_goal, step_size_obstacle, pred, goal);
             if (!Utility::DuplicateCheck(out, temp))
             {
               out.emplace_back(temp);
+              // DLOG_IF(INFO, distance_to_goal < 2) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << temp.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(temp.second);
             }
           }
         }
@@ -917,10 +923,10 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
     }
   }
 
-  for (const auto &pair : out)
-  {
-    DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-  }
+  // for (const auto &pair : out)
+  // {
+  //   DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+  // }
   return out;
 }
 // checked, it`s correct.
@@ -1024,9 +1030,7 @@ void CollisionDetection::BuildObstacleDensityMap(const float &range)
               continue;
             }
           }
-
           float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
-
           if (distance < range)
           {
             number_of_obstacles++;
@@ -1045,10 +1049,8 @@ void CollisionDetection::BuildObstacleDensityMap(const float &range)
           Eigen::Vector2f current_point(x, y);
           obstacle_vec.clear();
           Utility::AngleRange current_angle_range;
-          float current_angle_range_start = Utility::
-              ConvertDegToRad(theta - max_steering_angle);
-          float current_angle_range_range = Utility::
-              ConvertDegToRad(2 * max_steering_angle);
+          float current_angle_range_start = Utility::ConvertDegToRad(theta - max_steering_angle);
+          float current_angle_range_range = Utility::ConvertDegToRad(2 * max_steering_angle);
           current_angle_range.first = current_angle_range_start;
           current_angle_range.second = current_angle_range_range;
           for (const auto &polygon : obstacle_vec_)
@@ -1246,7 +1248,7 @@ std::pair<float, float> CollisionDetection::AddOneMoreStepSizeAndSteeringAngle(c
   std::pair<float, float> out;
   // 1. first find distance from current node to goal position
   float distance_to_goal = Utility::GetDistance(pred, goal);
-  // DLOG(INFO) << "distance to goal is " << distance_to_goal;
+
   // 2. if distance to goal is less than step size above. than make it new step size, otherwise use old one
 
   float new_step_size, steering_angle;
@@ -1258,16 +1260,16 @@ std::pair<float, float> CollisionDetection::AddOneMoreStepSizeAndSteeringAngle(c
   {
     new_step_size = step_size;
   }
-  // DLOG(INFO) << "step size is " << step_size;
+  DLOG_IF(INFO, distance_to_goal < 4) << "step size is " << step_size << " distance to goal is " << distance_to_goal << " new step size is " << new_step_size;
   // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(angle_to_goal);
   // 4. if angle to goal is in the steering angle range(current orientation +-30deg), then make it steering angle, otherwise 30 or -30 to make angle to goal smaller
   steering_angle = LimitSteeringAngle(angle_to_goal, Utility::ConvertDegToRad(30));
 
-  out.first = new_step_size;
+  out.first = 0.5 * new_step_size;
   out.second = steering_angle;
 
-  DLOG_IF(INFO, (new_step_size < 1) || (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < -Utility::ConvertDegToRad(30))) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size is " << new_step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle);
-
+  DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size is " << new_step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle) << "distance to goal is " << distance_to_goal;
+  // DLOG_IF(INFO, (new_step_size < 4) || (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < -Utility::ConvertDegToRad(30))) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size is " << new_step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle);
   return out;
 }
 
@@ -1355,7 +1357,8 @@ float CollisionDetection::LimitSteeringAngle(const float &steering_angle, const 
   }
   else
   {
-    limited_steering_angle = steering_angle;
+    // round need to be in degree not rad
+    limited_steering_angle = Utility::ConvertDegToRad(std::round(Utility::ConvertRadToDeg(steering_angle)));
   }
   return limited_steering_angle;
 }

@@ -58,7 +58,7 @@ namespace HybridAStar
      * @param number_of_successor
      * @return std::vector<std::pair<float, float>> first is step size, second is steering angle
      */
-    std::vector<std::pair<float, float>> SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred, const Node3D &goal, const int &number_of_successor, const float &step_size);
+    std::vector<std::pair<float, float>> SelectStepSizeAndSteeringAngle(const std::vector<std::pair<float, Utility::AngleRange>> &available_angle_range_vec, const Node3D &pred, const Node3D &goal, const int &number_of_successor, const float &step_size, const float &distance_start_to_goal);
 
     float GetObstacleDetectionRange() const { return obstacle_detection_range_; };
 

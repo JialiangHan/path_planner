@@ -398,6 +398,7 @@ namespace HybridAStar
     std::vector<std::shared_ptr<Node3D>> out;
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
     std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec;
+    float distance_to_goal = Utility::GetDistance(pred, goal_);
     // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
@@ -407,7 +408,6 @@ namespace HybridAStar
       // TODO how to consider distance offset due to node3d is float
       // float distance_offset=sqrt()
       // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
-
       available_steering_angle_and_step_size_vec = FindStepSizeAndSteeringAngle(pred);
       // DLOG(INFO) << "CreateSuccessor out.";
     }
@@ -419,7 +419,16 @@ namespace HybridAStar
 
       std::vector<float> available_steering_angle_vec = {theta, 0, -theta};
       std::pair<float, float> pair;
-      pair.first = params_.step_size;
+
+      if (params_.step_size > distance_to_goal)
+      {
+        pair.first = distance_to_goal;
+      }
+      else
+      {
+        pair.first = params_.step_size;
+      }
+
       for (const auto &element : available_steering_angle_vec)
       {
         pair.second = element;
@@ -476,7 +485,8 @@ namespace HybridAStar
       xSucc = pred.GetX() + dx * cos(pred.GetT()) - dy * sin(pred.GetT());
       ySucc = pred.GetY() + dx * sin(pred.GetT()) + dy * cos(pred.GetT());
       tSucc = Utility::RadToZeroTo2P(pred.GetT() + steering_angle);
-      DLOG_IF(INFO, (pair.first < 1) || (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < -Utility::ConvertDegToRad(30))) << "in create successor, current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << pair.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle) << " successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+      // DLOG_IF(INFO, (pair.first < 1) || (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < -Utility::ConvertDegToRad(30))) << "in create successor, current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << pair.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle) << " successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+      // DLOG_IF(INFO, (xSucc > 77) && (xSucc < 79) && (ySucc > 1) && (ySucc < 3)) << "in create successor, current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << pair.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle) << " successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
       std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.GetCostSofar(), 0, pred_ptr, prem));
       out.emplace_back(temp);
       if (params_.reverse)
@@ -518,15 +528,16 @@ namespace HybridAStar
     std::vector<std::pair<float, float>> out;
     // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
     // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
+    float distance_start_to_goal = Utility::GetDistance(start_, goal_);
     bool consider_steering_angle_range = true;
     std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred, consider_steering_angle_range);
     // 3. determine step size and steering angle from previous output
-    out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors, params_.step_size);
+    out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors, params_.step_size, distance_start_to_goal);
 
-    for (const auto &pair : out)
-    {
-      DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-    }
+    // for (const auto &pair : out)
+    // {
+    //   DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+    // }
     // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
     return out;
   }
