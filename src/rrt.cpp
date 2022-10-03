@@ -117,9 +117,10 @@ namespace RRTPlanner
         // DLOG(INFO) << "In GenerateSuccessor()!!!";
         Node3D successor, direction_node, closest_node;
         std::pair<float, float> step_size_steering_angle_pair;
+        int failure_counts = 0;
         while (1)
         {
-            direction_node = FindDirectionNode();
+            direction_node = FindDirectionNode(failure_counts);
             // 2. find closet node on rrt to this random node
             closest_node = FindClosestNode(direction_node);
             // 3. find step size and steering angle using random node
@@ -132,6 +133,10 @@ namespace RRTPlanner
                 {
                     break;
                 }
+                else
+                {
+                    failure_counts++;
+                }
             }
         }
         DLOG_IF(INFO, (step_size_steering_angle_pair.second > Utility::ConvertDegToRad(30)) || (step_size_steering_angle_pair.second < Utility::ConvertDegToRad(-30)) || (step_size_steering_angle_pair.first < params_.step_size)) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.GetX() << " " << successor.GetY() << " " << Utility::ConvertRadToDeg(successor.GetT());
@@ -139,12 +144,14 @@ namespace RRTPlanner
         return successor;
     }
 
-    Node3D RRTPlanner::FindDirectionNode()
+    Node3D RRTPlanner::FindDirectionNode(const int &failure_counts)
     {
         Node3D direction_node;
         float random_number = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        float possibility_to_goal = GetPossibilityToGoal(failure_counts);
+        // DLOG(INFO) << "random number is " << random_number;
         // 1. if probability greater than parameter, then find a random node, otherwise use goal node
-        if (random_number > params_.possibility_to_goal)
+        if (random_number < possibility_to_goal)
         {
             // DLOG(INFO) << "Towards Random node!";
             direction_node = SelectRandomNode();
@@ -574,5 +581,24 @@ namespace RRTPlanner
         {
             AddNodeToRRT(item);
         }
+    }
+
+    float RRTPlanner::GetPossibilityToGoal(const int &failure_counts)
+    {
+        // DLOG(INFO) << "in GetPossibilityToGoal, failure counts is " << failure_counts;
+        float possibility_to_goal = 0;
+        float p_min = 0.1, p_max = 1;
+        if (params_.adaptive_possibility_to_goal)
+        {
+            possibility_to_goal = p_min + (p_max - p_min) * std::exp(-9 / std::pow(failure_counts + 1, 3));
+            // DLOG(INFO) << "failure counts is " << failure_counts << " possibility to goal is " << possibility_to_goal;
+            // DLOG(INFO) << "std::exp(-9 / std::pow(failure_counts + 1, 3)) is " << std::exp(-9 / std::pow(failure_counts + 1, 3));
+        }
+        else
+        {
+            possibility_to_goal = params_.possibility_to_goal;
+        }
+        DLOG_IF(INFO, possibility_to_goal != params_.possibility_to_goal) << "failure counts is " << failure_counts << " possibility to goal is " << possibility_to_goal;
+        return possibility_to_goal;
     }
 }

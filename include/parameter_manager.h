@@ -132,7 +132,7 @@ namespace HybridAStar
     // for create successor
     float step_size = 1;
     // parameter to control whether to use adaptive possibility to goal.
-    float adaptive_possibility_to_goal = false;
+    bool adaptive_possibility_to_goal = false;
   };
   //this struct contains some used parameters in path class
   struct ParameterPathPublisher

@@ -16,6 +16,7 @@
 #include "visualize.h"
 #include "piecewise_cubic_bezier.h"
 #include "cubic_bezier.h"
+#include <cmath>
 
 using namespace HybridAStar;
 
@@ -104,7 +105,7 @@ namespace RRTPlanner
          */
         Node3D FindClosestNode(const Node3D &random_node);
 
-        Node3D FindDirectionNode();
+        Node3D FindDirectionNode(const int &failure_counts);
 
         void Planning();
         /**
@@ -114,6 +115,8 @@ namespace RRTPlanner
          * @return false
          */
         bool AnalyticExpansion(const Node3D &start, Node3D &goal);
+
+        float GetPossibilityToGoal(const int &failure_counts);
 
     public:
         RRTPlanner();
