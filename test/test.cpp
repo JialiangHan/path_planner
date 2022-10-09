@@ -105,21 +105,21 @@ TEST(Utility, IsInsidePolygon)
         EXPECT_EQ(expect, result);
     }
 }
-TEST(Utility, GetAngleBetweenTwoVector)
-{
-    Eigen::Vector2f p1(0, 0), p2(1, 0), p3(-1, -1), p4(1, 1), p5(-1, 1),
-        p6(1, -1), p7(-1, 0), p8(0, 1);
+// TEST(Utility, GetAngleBetweenTwoVector)
+// {
+//     Eigen::Vector2f p1(0, 0), p2(1, 0), p3(-1, -1), p4(1, 1), p5(-1, 1),
+//         p6(1, -1), p7(-1, 0), p8(0, 1);
 
-    // EXPECT_FLOAT_EQ(expect_4, result_4);
-    float expect_1 = Utility::ConvertDegToRad(135);
-    float result_1 = Utility::GetAngleBetweenTwoVector(p1, p4, p4, p2);
+//     // EXPECT_FLOAT_EQ(expect_4, result_4);
+//     float expect_1 = Utility::ConvertDegToRad(135);
+//     float result_1 = Utility::GetAngleBetweenTwoVector(p1, p4, p4, p2);
 
-    float expect_2 = Utility::ConvertDegToRad(135);
-    float result_2 = Utility::GetAngleBetweenTwoVector(p1, p4, p4, p8);
+//     float expect_2 = Utility::ConvertDegToRad(135);
+//     float result_2 = Utility::GetAngleBetweenTwoVector(p1, p4, p4, p8);
 
-    EXPECT_FLOAT_EQ(expect_1, result_1);
-    EXPECT_FLOAT_EQ(expect_2, result_2);
-}
+//     EXPECT_FLOAT_EQ(expect_1, result_1);
+//     EXPECT_FLOAT_EQ(expect_2, result_2);
+// }
 TEST(Utility, GetAngleRangeFromPointToSegment)
 {
     Eigen::Vector2f p1(0, 0), p2(-1, 0), p3(-1, 1);
@@ -183,24 +183,26 @@ TEST(Utility, GetDistanceFromSegmentToPoint)
 }
 TEST(Utility, IsAngleRangeInclude)
 {
-    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(180)), ar2(Utility::ConvertDegToRad(180), Utility::ConvertDegToRad(180));
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(359.9999)), ar2(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(360)), ar3(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(50));
 
-    // bool result1 = Utility::IsAngleRangeInclude(ar1, ar2);
+    bool result1 = Utility::IsAngleRangeInclude(ar1, ar2);
     bool result2 = Utility::IsAngleRangeInclude(ar2, ar1);
+    bool result3 = Utility::IsAngleRangeInclude(ar3, ar2);
 
-    // EXPECT_FALSE(result1);
+    EXPECT_FALSE(result1);
     EXPECT_FALSE(result2);
+    EXPECT_FALSE(result3);
 }
-TEST(Utility, MinusAngleRangeOverlap)
-{
-    Utility::AngleRange ar1(Utility::ConvertDegToRad(330), Utility::ConvertDegToRad(60)), ar2(Utility::ConvertDegToRad(340), Utility::ConvertDegToRad(60)), ar3(Utility::ConvertDegToRad(350), Utility::ConvertDegToRad(60)), ar4(Utility::ConvertDegToRad(360), Utility::ConvertDegToRad(60));
+// TEST(Utility, MinusAngleRangeOverlap)
+// {
+//     Utility::AngleRange ar1(Utility::ConvertDegToRad(330), Utility::ConvertDegToRad(60)), ar2(Utility::ConvertDegToRad(340), Utility::ConvertDegToRad(60)), ar3(Utility::ConvertDegToRad(350), Utility::ConvertDegToRad(60)), ar4(Utility::ConvertDegToRad(360), Utility::ConvertDegToRad(60));
 
-    Utility::AngleRange result1 = Utility::MinusAngleRangeOverlap(ar1, ar2);
-    // Utility::AngleRange result2 = Utility::MinusAngleRangeOverlap(ar1, ar3);
-    // Utility::AngleRange result3 = Utility::MinusAngleRangeOverlap(ar1, ar4);
-    EXPECT_FLOAT_EQ(result1.first, Utility::ConvertDegToRad(330));
-    EXPECT_TRUE(Utility::IsEqual(result1.second, Utility::ConvertDegToRad(10)));
-}
+//     Utility::AngleRange result1 = Utility::MinusAngleRangeOverlap(ar1, ar2);
+//     // Utility::AngleRange result2 = Utility::MinusAngleRangeOverlap(ar1, ar3);
+//     // Utility::AngleRange result3 = Utility::MinusAngleRangeOverlap(ar1, ar4);
+//     EXPECT_FLOAT_EQ(result1.first, Utility::ConvertDegToRad(330));
+//     EXPECT_TRUE(Utility::IsEqual(result1.second, Utility::ConvertDegToRad(10)));
+// }
 TEST(Utility, GetAngle)
 {
     HybridAStar::Node2D start, goal;
@@ -287,14 +289,14 @@ TEST(Utility, IsSegmentIntersectWithPolygon)
 
 TEST(Utility, IsAngleRangeIncludeAngle)
 {
-    Utility::AngleRange ar1(Utility::ConvertDegToRad(333), Utility::ConvertDegToRad(50));
-    float angle1 = Utility::ConvertDegToRad(17);
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(333), Utility::ConvertDegToRad(50)), ar2(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(306));
+    float angle1 = Utility::ConvertDegToRad(17), angle2 = Utility::ConvertDegToRad(-30);
 
     // Utility::AngleRange ar2(Utility::ConvertDegToRad(330), Utility::ConvertDegToRad(50));
     // float angle2 = Utility::ConvertDegToRad(10);
 
     EXPECT_TRUE(Utility::IsAngleRangeInclude(ar1, angle1));
-    // EXPECT_TRUE(Utility::IsAngleRangeInclude(ar2, angle2));
+    EXPECT_TRUE(Utility::IsAngleRangeInclude(ar2, angle2));
 }
 
 TEST(Utility, FindAngleRange)
@@ -494,40 +496,41 @@ TEST(Utility, GetAngleRangeFromPointToPolygonAtRadius)
 
 TEST(Utility, FindCommonAngleRange)
 {
-    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(50)), ar2(Utility::ConvertDegToRad(45), Utility::ConvertDegToRad(45)), ar3(Utility::ConvertDegToRad(60), Utility::ConvertDegToRad(40));
+    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(50)), ar2(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(359.9999)), ar3(Utility::ConvertDegToRad(60), Utility::ConvertDegToRad(40)), ar4(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(360));
 
-    Utility::AngleRange result1;
-    Utility::AngleRange result2;
-    Utility::AngleRange result3;
+    Utility::AngleRange result1, result2, result3, result4;
 
-    result1 = Utility::FindCommonAngleRange(ar1, ar3);
-    result2 = Utility::FindCommonAngleRange(ar1, ar2);
-    result3 = Utility::FindCommonAngleRange(ar2, ar3);
-    EXPECT_EQ(result1.first, -1);
-    EXPECT_FLOAT_EQ(result1.second, -1);
-    EXPECT_FLOAT_EQ(result2.first, Utility::ConvertDegToRad(45));
-    EXPECT_TRUE(Utility::IsEqual(result2.second, Utility::ConvertDegToRad(5)));
-    EXPECT_FLOAT_EQ(result3.first, Utility::ConvertDegToRad(60));
-    EXPECT_FLOAT_EQ(result3.second, Utility::ConvertDegToRad(30));
+    // result1 = Utility::FindCommonAngleRange(ar1, ar3);
+    // result2 = Utility::FindCommonAngleRange(ar1, ar2);
+    // result3 = Utility::FindCommonAngleRange(ar2, ar3);
+    result4 = Utility::FindCommonAngleRange(ar2, ar4);
+    // EXPECT_EQ(result1.first, -1);
+    // EXPECT_FLOAT_EQ(result1.second, -1);
+    // EXPECT_FLOAT_EQ(result2.first, Utility::ConvertDegToRad(45));
+    // EXPECT_TRUE(Utility::IsEqual(result2.second, Utility::ConvertDegToRad(5)));
+    // EXPECT_FLOAT_EQ(result3.first, Utility::ConvertDegToRad(60));
+    // EXPECT_FLOAT_EQ(result3.second, Utility::ConvertDegToRad(30));
+    EXPECT_FLOAT_EQ(result4.first, Utility::ConvertDegToRad(0));
+    EXPECT_FLOAT_EQ(result4.second, Utility::ConvertDegToRad(359));
 }
 
-TEST(Utility, MinusAngleRange)
-{
-    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(90)), ar2(Utility::ConvertDegToRad(100), Utility::ConvertDegToRad(60)), ar3(Utility::ConvertDegToRad(60), Utility::ConvertDegToRad(60)), ar4(Utility::ConvertDegToRad(30), Utility::ConvertDegToRad(30));
-    // not overlap and not include
-    std::vector<Utility::AngleRange> result1 = Utility::MinusAngleRange(ar1, ar2);
-    // overlap
-    std::vector<Utility::AngleRange> result2 = Utility::MinusAngleRange(ar1, ar3);
-    // include
-    std::vector<Utility::AngleRange> result3 = Utility::MinusAngleRange(ar1, ar4);
-    EXPECT_FLOAT_EQ(result1.size(), 0);
-    EXPECT_FLOAT_EQ(result2[0].first, Utility::ConvertDegToRad(0));
-    EXPECT_FLOAT_EQ(result2[0].second, Utility::ConvertDegToRad(60));
-    EXPECT_FLOAT_EQ(result3[0].first, Utility::ConvertDegToRad(0));
-    EXPECT_FLOAT_EQ(result3[0].second, Utility::ConvertDegToRad(30));
-    EXPECT_FLOAT_EQ(result3[1].first, Utility::ConvertDegToRad(60));
-    EXPECT_FLOAT_EQ(result3[1].second, Utility::ConvertDegToRad(30));
-}
+// TEST(Utility, MinusAngleRange)
+// {
+//     Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(90)), ar2(Utility::ConvertDegToRad(100), Utility::ConvertDegToRad(60)), ar3(Utility::ConvertDegToRad(60), Utility::ConvertDegToRad(60)), ar4(Utility::ConvertDegToRad(30), Utility::ConvertDegToRad(30));
+//     // not overlap and not include
+//     std::vector<Utility::AngleRange> result1 = Utility::MinusAngleRange(ar1, ar2);
+//     // overlap
+//     std::vector<Utility::AngleRange> result2 = Utility::MinusAngleRange(ar1, ar3);
+//     // include
+//     std::vector<Utility::AngleRange> result3 = Utility::MinusAngleRange(ar1, ar4);
+//     EXPECT_FLOAT_EQ(result1.size(), 0);
+//     EXPECT_FLOAT_EQ(result2[0].first, Utility::ConvertDegToRad(0));
+//     EXPECT_FLOAT_EQ(result2[0].second, Utility::ConvertDegToRad(60));
+//     EXPECT_FLOAT_EQ(result3[0].first, Utility::ConvertDegToRad(0));
+//     EXPECT_FLOAT_EQ(result3[0].second, Utility::ConvertDegToRad(30));
+//     EXPECT_FLOAT_EQ(result3[1].first, Utility::ConvertDegToRad(60));
+//     EXPECT_FLOAT_EQ(result3[1].second, Utility::ConvertDegToRad(30));
+// }
 
 TEST(Utility, GetAngleDistance)
 {
@@ -608,29 +611,29 @@ TEST(Utility, ShareBoundary)
     EXPECT_TRUE(result2);
 }
 
-TEST(Utility, Angle1RightAngle2)
-{
-    float a1 = Utility::ConvertDegToRad(0), a2 = Utility::ConvertDegToRad(150), a3 = Utility::ConvertDegToRad(180), a4 = Utility::ConvertDegToRad(360);
+// TEST(Utility, Angle1RightAngle2)
+// {
+//     float a1 = Utility::ConvertDegToRad(0), a2 = Utility::ConvertDegToRad(150), a3 = Utility::ConvertDegToRad(180), a4 = Utility::ConvertDegToRad(360);
 
-    bool result1 = Utility::Angle1RightAngle2(a1, a2);
-    bool result2 = Utility::Angle1RightAngle2(a1, a3);
-    bool result3 = Utility::Angle1RightAngle2(a1, a4);
-    bool result4 = Utility::Angle1RightAngle2(a4, a1);
-    EXPECT_TRUE(result1);
-    EXPECT_TRUE(result2);
-    EXPECT_TRUE(result3);
-    EXPECT_TRUE(result4);
-}
+//     bool result1 = Utility::Angle1RightAngle2(a1, a2);
+//     bool result2 = Utility::Angle1RightAngle2(a1, a3);
+//     bool result3 = Utility::Angle1RightAngle2(a1, a4);
+//     bool result4 = Utility::Angle1RightAngle2(a4, a1);
+//     EXPECT_TRUE(result1);
+//     EXPECT_TRUE(result2);
+//     EXPECT_TRUE(result3);
+//     EXPECT_TRUE(result4);
+// }
 
-TEST(Utility, AngleRange1RightAngleRange2)
-{
-    Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(180));
-    Utility::AngleRange ar2(Utility::ConvertDegToRad(10), Utility::ConvertDegToRad(180));
-    Utility::AngleRange ar3(Utility::ConvertDegToRad(180), Utility::ConvertDegToRad(180));
+// TEST(Utility, AngleRange1RightAngleRange2)
+// {
+//     Utility::AngleRange ar1(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(180));
+//     Utility::AngleRange ar2(Utility::ConvertDegToRad(10), Utility::ConvertDegToRad(180));
+//     Utility::AngleRange ar3(Utility::ConvertDegToRad(180), Utility::ConvertDegToRad(180));
 
-    bool result1 = Utility::AngleRange1RightAngleRange2(ar1, ar2);
-    bool result2 = Utility::AngleRange1RightAngleRange2(ar1, ar3);
+//     bool result1 = Utility::AngleRange1RightAngleRange2(ar1, ar2);
+//     bool result2 = Utility::AngleRange1RightAngleRange2(ar1, ar3);
 
-    EXPECT_TRUE(!result1);
-    EXPECT_TRUE(!result2);
-}
+//     EXPECT_TRUE(!result1);
+//     EXPECT_TRUE(!result2);
+// }

@@ -35,9 +35,6 @@ namespace HybridAStar
     ros_param_name = "possibility_to_goal";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.possibility_to_goal);
 
-    ros_param_name = "adaptive_step_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.adaptive_step_size);
-
     ros_param_name = "consider_orientation";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.consider_orientation);
     ros_param_name = "curve_step_size";
@@ -57,6 +54,12 @@ namespace HybridAStar
 
     ros_param_name = "adaptive_possibility_to_goal";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.adaptive_possibility_to_goal);
+
+    ros_param_name = "number_of_step_size";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.number_of_step_size);
+
+    ros_param_name = "expand_like_AEB_RRT";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.expand_like_AEB_RRT);
 
     LoadCollisionDetectionParams();
   }
@@ -122,9 +125,6 @@ namespace HybridAStar
     ros_param_name = "fixed_number_of_steering_angle_in_free_angle_range";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.fixed_number_of_steering_angle_in_free_angle_range);
 
-    // ros_param_name = "make_step_size_larger_than_one";
-    // GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.make_step_size_larger_than_one);
-
     ros_param_name = "add_one_more_successor";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.add_one_more_successor);
 
@@ -134,9 +134,6 @@ namespace HybridAStar
     ros_param_name = "headings";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.headings);
 
-    // ros_param_name = "weight_step_size";
-    // GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.weight_step_size);
-
     ros_param_name = "min_turning_radius";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.min_turning_radius);
 
@@ -144,8 +141,6 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.reverse);
     ros_param_name = "curve_type";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.curve_type);
-    // ros_param_name = "obstacle_detection_range";
-    // GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.obstacle_detection_range);
 
     ros_param_name = "vehicle_width";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.vehicle_width);

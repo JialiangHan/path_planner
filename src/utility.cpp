@@ -502,7 +502,7 @@ namespace Utility
         }
         return min_distance;
     }
-    // checked, correct.
+    // TODO: bug exist
     float GetAngleBetweenTwoVector(const Eigen::Vector2f &p1_start,
                                    const Eigen::Vector2f &p1_end,
                                    const Eigen::Vector2f &p2_start,
@@ -702,7 +702,7 @@ namespace Utility
         float angle_range_2_start = angle_range_2.first;
         float angle_range_2_end = GetAngleRangeEnd(angle_range_2);
         // if ar2 start and end are both included by ar1, then ar1 include ar2
-        if (IsAngleRangeInclude(angle_range_1, angle_range_2_start) && IsAngleRangeInclude(angle_range_1, angle_range_2_end))
+        if (IsAngleRangeInclude(angle_range_1, angle_range_2_start) && IsAngleRangeInclude(angle_range_1, angle_range_2_end) && (angle_range_1.second > angle_range_2.second))
         {
             // DLOG(INFO) << "ar1 include ar2.";
             return true;
@@ -964,10 +964,17 @@ namespace Utility
         // DLOG(INFO) << "GetDistanceFromPolygonToPointAtAngle in:";
         float out = -1;
         ComputationalGeometry::Segment segment(point, 10000, angle);
+        // if point on polygon, then return 0
+        if (IsOnPolygon(polygon, point))
+        {
+            return 0;
+        }
+
         if (!Utility::IsSegmentIntersectWithPolygon(polygon, segment.GetStart(), segment.GetEnd()))
         {
             // DLOG(INFO) << "NO intersect with obstacles!!";
             // DLOG(INFO) << "GetDistanceFromPolygonToPointAtAngle out.";
+            // DLOG_IF(INFO, out == 0) << "distance is " << out;
             return out;
         }
         // 1. check if polygon and segment start at point intersect?
@@ -981,6 +988,7 @@ namespace Utility
                 if (out > distance || out < 0)
                 {
                     out = distance;
+                    // DLOG_IF(INFO, out == 0) << "distance is " << out << " point is " << point.x() << " " << point.y() << " segment on polygon start from " << polygon[index].x() << " " << polygon[index].y() << " end at " << polygon[index + 1].x() << " " << polygon[index + 1].y();
                 }
             }
         }
@@ -1172,7 +1180,7 @@ namespace Utility
             return true;
         }
         // angle is inside angle range only if distance from angle to ar start is smaller than range
-        float distance_to_start = RadToZeroTo2P(angle - angle_range.first);
+        float distance_to_start = GetAngleDistance(angle, angle_range.first);
         // DLOG(INFO) << "distance to start is " << ConvertRadToDeg(distance_to_start);
         if (distance_to_start < angle_range.second)
         {
@@ -1593,12 +1601,19 @@ namespace Utility
         if (IsAngleRangeInclude(ar1, ar2))
         {
             out = ar2;
+            // DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(ar1)) << " include ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(ar2)) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
             return out;
         }
         if (IsAngleRangeInclude(ar2, ar1))
         {
             out = ar1;
+            // DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(ar1)) << " is included by ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(ar2)) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
             return out;
+        }
+        // if ar1 is equal is to ar2 than return ar1
+        if (IsEqual(ar1, ar2))
+        {
+            return ar1;
         }
         if (IsOverlap(ar1, ar2))
         {
@@ -1608,6 +1623,7 @@ namespace Utility
             {
                 std::vector<AngleRange> temp = FindAngleRange(ar2.first, ar1_end);
                 out = temp[0];
+                DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(ar1_end) << " is overlapped with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(ar2_end) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
                 return out;
             }
             if (IsAngleRangeInclude(ar1, ar2_end) && IsAngleRangeInclude(ar2, ar1.first))
@@ -1616,15 +1632,16 @@ namespace Utility
                 out = temp[0];
             }
 
-            // DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(ar1_end) << " is overlapped with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(ar2_end) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
-            // DLOG(INFO) << "CombineAngleRange out.";
+            DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(ar1_end) << " is overlapped with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(ar2_end) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
             return out;
         }
         // ar1 and ar2 are not overlap and included, make start and range -1
         out.first = -1;
         out.second = -1;
+        DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(ar1)) << " has nothing to do with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(ar2)) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
         return out;
     }
+
     float GetAngleRangeStart(const AngleRange &ar)
     {
         return ar.first;

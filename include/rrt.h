@@ -117,6 +117,13 @@ namespace RRTPlanner
         bool AnalyticExpansion(const Node3D &start, Node3D &goal);
 
         float GetPossibilityToGoal(const int &failure_counts);
+        /**
+         * @brief find step size by obstacle density
+         *
+         * @param closest_node
+         * @return float
+         */
+        float FindOriginalStepSize(const Node3D &closest_node, const float &distance_to_goal, const float &available_step_size_obstacle);
 
     public:
         RRTPlanner();

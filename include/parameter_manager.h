@@ -21,9 +21,9 @@ namespace HybridAStar
     bool reverse = true;
 
     /// [m] --- The width of the vehicle
-    float vehicle_width = 1.75;
+    float vehicle_width = 1;
     /// [m] --- The length of the vehicle
-    float vehicle_length = 2.65;
+    float vehicle_length = 2;
 
     bool enable_collision_lookup = false;
     // parameter which control the step size when has an obstacle
@@ -120,8 +120,6 @@ namespace HybridAStar
     float goal_range = 1e-3;
     ///  --- The number of discretizations in heading,used in planner.cpp
     int headings = 72;
-    // use adaptive step size or not
-    bool adaptive_step_size = false;
     // parameter used in goal check, false means just consider coordinate not orientation
     bool consider_orientation = false;
     /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
@@ -133,6 +131,10 @@ namespace HybridAStar
     float step_size = 1;
     // parameter to control whether to use adaptive possibility to goal.
     bool adaptive_possibility_to_goal = false;
+
+    int number_of_step_size = 2;
+
+    bool expand_like_AEB_RRT = false;
   };
   //this struct contains some used parameters in path class
   struct ParameterPathPublisher
@@ -144,9 +146,9 @@ namespace HybridAStar
     /// [m] --- Uniformly adds a padding around the vehicle
     float bloating = 0;
     /// [m] --- The width of the vehicle
-    float vehicle_width = 1.75;
+    float vehicle_width = 1;
     /// [m] --- The length of the vehicle
-    float vehicle_length = 2.65;
+    float vehicle_length = 2;
   };
   //this struct contains some used parameter in planner.cpp
   struct ParameterPlanner
