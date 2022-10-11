@@ -534,10 +534,10 @@ namespace HybridAStar
     // 3. determine step size and steering angle from previous output
     out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors, params_.step_size, distance_start_to_goal);
 
-    // for (const auto &pair : out)
-    // {
-    //   DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-    // }
+    for (const auto &pair : out)
+    {
+      DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+    }
     // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
     return out;
   }

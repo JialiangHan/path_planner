@@ -775,8 +775,8 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   }
   // DLOG(INFO) << "obstacle step size is " << step_size_obstacle << " available step size is " << available_step_size_obstacle << " weighting is " << weight_step_size;
   // DLOG(INFO) << "free step size is " << step_size_free << " available step size is " << available_step_size_free << " weighting is " << weight_step_size;
-  // DLOG_IF(WARNING, step_size_obstacle < 1) << "obstacle step size is " << step_size_obstacle;
-  // DLOG_IF(WARNING, step_size_free < 1) << "free step size is " << step_size_free;
+  DLOG_IF(WARNING, step_size_obstacle < 1) << "obstacle step size is " << step_size_obstacle;
+  DLOG_IF(WARNING, step_size_free < 1) << "free step size is " << step_size_free;
   // 3. find angle to goal
   float angle_to_goal, orientation_diff, steering_angle_toward_goal, final_orientation;
   if (params_.add_one_more_successor)
@@ -1298,7 +1298,7 @@ std::pair<float, float> CollisionDetection::AddOneMoreStepSizeAndSteeringAngle(c
   out.first = 0.5 * new_step_size;
   out.second = steering_angle;
 
-  DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size is " << new_step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle) << "distance to goal is " << distance_to_goal;
+  // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size is " << new_step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle) << "distance to goal is " << distance_to_goal;
   // DLOG_IF(INFO, (new_step_size < 4) || (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < -Utility::ConvertDegToRad(30))) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size is " << new_step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle);
   return out;
 }
@@ -1364,12 +1364,12 @@ float CollisionDetection::IsCloseToFreeAngleRange(const std::vector<std::pair<fl
 
   if (distance_angle1 > distance_angle2)
   {
-    // DLOG(INFO) << "for node " << current.GetX() << " " << current.GetY() << " " << current.GetT() << " angle2: " << Utility::ConvertRadToDeg(angle2) << " is closest to free angle range";
+    DLOG(INFO) << "for node " << current.GetX() << " " << current.GetY() << " " << current.GetT() << " angle2: " << Utility::ConvertRadToDeg(angle2) << " is closest to free angle range";
     return angle2;
   }
   else
   {
-    // DLOG(INFO) << "for node " << current.GetX() << " " << current.GetY() << " " << current.GetT() << " angle1: " << Utility::ConvertRadToDeg(angle1) << " is closest to free angle range";
+    DLOG(INFO) << "for node " << current.GetX() << " " << current.GetY() << " " << current.GetT() << " angle1: " << Utility::ConvertRadToDeg(angle1) << " is closest to free angle range";
     return angle1;
   }
 }

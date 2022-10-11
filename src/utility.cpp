@@ -695,7 +695,7 @@ namespace Utility
         // if ar1 start ==ar2 end and ar1 end =ar2 start
         if (IsEqual(angle_range_1.first, GetAngleRangeEnd(angle_range_2)) && IsEqual(GetAngleRangeEnd(angle_range_1), angle_range_2.first))
         {
-            // DLOG(INFO) << "ar1 start ==ar2 end and ar1 end =ar2 start!";
+            // DLOG(INFO) << "ar1 start == ar2 end and ar1 end =ar2 start!";
             return false;
         }
         // all input should be in rad.
@@ -1180,9 +1180,15 @@ namespace Utility
             return true;
         }
         // angle is inside angle range only if distance from angle to ar start is smaller than range
-        float distance_to_start = GetAngleDistance(angle, angle_range.first);
-        // DLOG(INFO) << "distance to start is " << ConvertRadToDeg(distance_to_start);
-        if (distance_to_start < angle_range.second)
+        // float distance_to_start = GetAngleDistance(angle, angle_range.first);
+        // DLOG(INFO) << "distance to start is " << ConvertRadToDeg(GetAngleDistance(angle, angle_range.first));
+        // DLOG(INFO) << "distance to end is " << ConvertRadToDeg(GetAngleDistance(angle, angle_range_end));
+        if ((RadToZeroTo2P(angle) >= RadToZeroTo2P(angle_range.first)) && (RadToZeroTo2P(angle) <= RadToZeroTo2P(angle_range_end)))
+        {
+            // DLOG(INFO) << "angle is inside angle range.";
+            return true;
+        }
+        if ((RadNormalization(angle) >= RadNormalization(angle_range.first)) && (RadNormalization(angle) <= RadNormalization(angle_range_end)))
         {
             // DLOG(INFO) << "angle is inside angle range.";
             return true;
@@ -1623,22 +1629,21 @@ namespace Utility
             {
                 std::vector<AngleRange> temp = FindAngleRange(ar2.first, ar1_end);
                 out = temp[0];
-                DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(ar1_end) << " is overlapped with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(ar2_end) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
+                // DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(ar1_end) << " is overlapped with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(ar2_end) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
                 return out;
             }
             if (IsAngleRangeInclude(ar1, ar2_end) && IsAngleRangeInclude(ar2, ar1.first))
             {
                 std::vector<AngleRange> temp = FindAngleRange(ar1.first, ar2_end);
                 out = temp[0];
+                // DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(ar1_end) << " is overlapped with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(ar2_end) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
+                return out;
             }
-
-            DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(ar1_end) << " is overlapped with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(ar2_end) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
-            return out;
         }
         // ar1 and ar2 are not overlap and included, make start and range -1
         out.first = -1;
         out.second = -1;
-        DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(ar1)) << " has nothing to do with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(ar2)) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
+        // DLOG(INFO) << "ar1: start from " << Utility::ConvertRadToDeg(ar1.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(ar1)) << " has nothing to do with ar2: start from " << Utility::ConvertRadToDeg(ar2.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(ar2)) << " . their common angle range start from " << Utility::ConvertRadToDeg(out.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(out));
         return out;
     }
 
