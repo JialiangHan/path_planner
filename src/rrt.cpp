@@ -381,7 +381,23 @@ namespace RRTPlanner
         // DLOG(INFO) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " random node is " << random_node.GetX() << " " << random_node.GetY() << " " << Utility::ConvertRadToDeg(random_node.GetT());
 
         float steering_angle = FindSteeringAngle(closest_node, direction_node);
-        float step_size = FindStepSize(closest_node, steering_angle);
+        float step_size;
+        if (params_.expand_like_AEB_RRT)
+        {
+            if (direction_node == goal_)
+            {
+                step_size = 2 * params_.step_size;
+            }
+            else
+            {
+                step_size = params_.step_size;
+            }
+        }
+        else
+        {
+            step_size = FindStepSize(closest_node, steering_angle);
+        }
+
         // DLOG_IF(INFO, (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < Utility::ConvertDegToRad(-30)) || (step_size < params_.step_size)) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
         return std::make_pair(step_size, steering_angle);
     }
@@ -606,7 +622,7 @@ namespace RRTPlanner
         float obstacle_density = configuration_space_ptr_->GetNormalizedObstacleDensity(closest_node);
         if (params_.number_of_step_size == 0)
         {
-            float distance_start_to_goal = Utility::GetDistance(start_, goal_);
+            // float distance_start_to_goal = Utility::GetDistance(start_, goal_);
             float weight_step_size = -0.8 * obstacle_density + 0.9;
             // step_size = distance_to_goal / distance_start_to_goal * weight_step_size * available_step_size_obstacle;
             step_size = weight_step_size * available_step_size_obstacle;
