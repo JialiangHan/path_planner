@@ -12,7 +12,11 @@ CollisionDetection::CollisionDetection(const ParameterCollisionDetection &params
 void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map)
 {
   grid_ptr_ = map;
+  // for (size_t i = 0; i < grid_ptr_->data.size(); i++)
+  // {
 
+  //   DLOG_IF(INFO, (int)grid_ptr_->data[i] != 0) << "grid ptr value is " << (int)grid_ptr_->data[i];
+  // }
   SetObstacleVec();
   // CombineInNeighborObstacles();
   obstacle_detection_range_ = 6 * sqrt(params_.vehicle_width * 0.5 * params_.vehicle_width * 0.5 + params_.vehicle_length * 0.5 * params_.vehicle_length * 0.5);
@@ -43,16 +47,16 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr
   // assign values to the configuration
   getConfiguration(node2d_ptr, x, y, t);
   // 2D collision test
-  if (t == 99)
-  {
-    // DLOG(INFO) << "IsTraversable out.";
-    return !grid_ptr_->data[node2d_ptr->GetIdx()];
-  }
+  // if (t == 99)
+  // {
+  //   DLOG(INFO) << "IsTraversable out. !grid ptr value is " << !grid_ptr_->data[node2d_ptr->GetIdx()];
+  //   return !grid_ptr_->data[node2d_ptr->GetIdx()];
+  // }
   if (true)
   {
     cost = configurationTest(x, y, t) ? 0 : 1;
   }
-  // DLOG(INFO) << "IsTraversable out.";
+  // DLOG(INFO) << "IsTraversable out. cost is " << cost;
   return cost <= 0;
 };
 bool CollisionDetection::IsTraversable(const std::shared_ptr<Node3D> &node3d_ptr)
@@ -191,7 +195,7 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
     collision_result = CollisionCheck(polygon);
     if (!collision_result)
     {
-      // DLOG(INFO) << "in collision, coordinate is " << x << " " << y << " " << t;
+      DLOG(INFO) << "in collision, coordinate is " << x << " " << y << " " << t;
     }
     return collision_result;
   }
@@ -574,7 +578,7 @@ bool CollisionDetection::CollisionCheck(const Utility::Polygon &polygon)
   }
   else
   {
-    DLOG(INFO) << "current polygon can`t be found in in_range_obstacle_map.";
+    // DLOG(INFO) << "current polygon can`t be found in in_range_obstacle_map.";
   }
   return true;
   // 2. find obstacle in a certain range, this range is determined be vehicle parameter
@@ -586,7 +590,7 @@ bool CollisionDetection::CollisionCheck(const Eigen::Vector2f &start, const Eige
 
   if (!IsOnGrid(start) || !IsOnGrid(end))
   {
-    DLOG(INFO) << "start or end is not on grid";
+    // DLOG(INFO) << "start or end is not on grid";
     return false;
   }
 

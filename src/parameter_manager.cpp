@@ -12,6 +12,7 @@ namespace HybridAStar
     LoadPathParams();
     LoadVisualizeParams();
     LoadRRTPlannerParams();
+    LoadAStarPlannerParams();
   }
 
   void ParameterManager::LoadRRTPlannerParams()
@@ -167,6 +168,9 @@ namespace HybridAStar
 
     ros_param_name = "use_rrt";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.use_rrt);
+
+    ros_param_name = "use_a_star";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.use_a_star);
   }
   void ParameterManager::LoadHybridAStarParams()
   {
@@ -224,6 +228,8 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.headings);
 
     LoadCollisionDetectionParams();
+
+    LoadAStarPlannerParams();
   }
   void ParameterManager::LoadPathParams()
   {
@@ -250,6 +256,16 @@ namespace HybridAStar
 
     ros_param_name = "cell_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->visualize_params.cell_size);
+  }
+
+  void ParameterManager::LoadAStarPlannerParams()
+  {
+    std::string ros_param_name;
+    std::string node_prefix = "/hybrid_astar/";
+
+    ros_param_name = "possible_direction";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->a_star_planner_params.possible_direction);
+    LoadCollisionDetectionParams();
   }
 
   template <typename T>
@@ -297,5 +313,10 @@ namespace HybridAStar
   ParameterRRTPlanner ParameterManager::GetRRTPlannerParams()
   {
     return param_container_ptr_->rrt_planner_params;
+  }
+
+  ParameterAStar ParameterManager::GetAStarPlannerParams()
+  {
+    return param_container_ptr_->a_star_planner_params;
   }
 }

@@ -16,20 +16,27 @@
 #include "utility.h"
 namespace HybridAStar
 {
-    //path from start to goal
-    typedef std::vector<Node2D> Path2D;
+
     /*!
  * \brief A class that encompasses the functions central to the search.
  */
     class AStar
     {
     public:
-        /// The deault constructor
+        /// The default constructor
         AStar(){};
-        AStar(const std::shared_ptr<CollisionDetection> &configuration_space_ptr,
-              const std::shared_ptr<Visualize> &visualization_ptr, const uint &possible_direction, const bool &visualization2D);
+        // AStar(const std::shared_ptr<CollisionDetection> &configuration_space_ptr,
+        //       const std::shared_ptr<Visualize> &visualization_ptr, const uint &possible_direction, const bool &visualization2D);
+        AStar(const ParameterAStar &params,
+              const std::shared_ptr<Visualize> &visualization_ptr);
 
-        void Initialize(const Node2D &start, const Node2D &goal);
+        /**
+         * @brief set map and calculate lookup table
+         *
+         * @param map
+         */
+        void Initialize(nav_msgs::OccupancyGrid::Ptr map);
+        // void Initialize(const Node2D &start, const Node2D &goal);
 
         /**
          * @brief this is traditional A-star algorithm
@@ -37,7 +44,10 @@ namespace HybridAStar
          * @param nodes2D 
          * @return float 
          */
-        float GetAStarCost(Node2D *nodes2D);
+        float GetAStarCost(Node2D *nodes2D, const Node2D &start, const Node2D &goal);
+
+        Utility::Path3D GetPath(Node3D &start, Node3D &goal,
+                                Node2D *nodes2D);
 
     private:
         /**
@@ -61,14 +71,13 @@ namespace HybridAStar
          */
         void UpdateCostSoFar(Node2D &node);
 
-        // void TracePath(std::shared_ptr<Node2D> node2d_ptr);
+        void TracePath(std::shared_ptr<Node2D> node2d_ptr);
 
     private:
-        // nubmer of direction to create successor for A-star algorithm
-        uint possible_direction_ = 8;
+        ParameterAStar params_;
         /// A flag for the visualization of 2D nodes (true = on; false = off)
         bool visualization2D_ = true;
-        Path2D path_;
+        Utility::Path2D path_;
         Node2D start_;
         Node2D goal_;
         std::shared_ptr<CollisionDetection> configuration_space_ptr_;

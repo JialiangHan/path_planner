@@ -2,17 +2,31 @@
 
 namespace HybridAStar
 {
-    AStar::AStar(const std::shared_ptr<CollisionDetection> &configuration_space_ptr, const std::shared_ptr<Visualize> &visualization_ptr, const uint &possible_direction, const bool &visualization2D)
+    // AStar::AStar(const std::shared_ptr<CollisionDetection> &configuration_space_ptr, const std::shared_ptr<Visualize> &visualization_ptr, const uint &possible_direction, const bool &visualization2D)
+    // {
+    //     configuration_space_ptr_ = configuration_space_ptr;
+    //     visualization_ptr_ = visualization_ptr;
+    //     possible_direction_ = possible_direction;
+    //     visualization2D_ = visualization2D;
+    // };
+    AStar::AStar(const ParameterAStar &params,
+                 const std::shared_ptr<Visualize> &visualization_ptr)
     {
-        configuration_space_ptr_ = configuration_space_ptr;
+        params_ = params;
+        configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params));
         visualization_ptr_ = visualization_ptr;
-        possible_direction_ = possible_direction;
-        visualization2D_ = visualization2D;
     };
-    void AStar::Initialize(const Node2D &start, const Node2D &goal)
+    // void AStar::Initialize(const Node2D &start, const Node2D &goal)
+    // {
+    //     start_ = start;
+    //     goal_ = goal;
+    // }
+    void AStar::Initialize(nav_msgs::OccupancyGrid::Ptr map)
     {
-        start_ = start;
-        goal_ = goal;
+        // update the configuration space with the current map
+        //  DLOG(INFO) << "hybrid a star initializing";
+        configuration_space_ptr_->UpdateGrid(map);
+        // DLOG(INFO) << "hybrid a star initialized done.   ";
     }
     struct CompareNodes
     {
@@ -25,8 +39,10 @@ namespace HybridAStar
     //###################################################
     //                                        2D A*
     //###################################################
-    float AStar::GetAStarCost(Node2D *nodes2D)
+    float AStar::GetAStarCost(Node2D *nodes2D, const Node2D &start, const Node2D &goal)
     {
+        start_ = start;
+        goal_ = goal;
         // DLOG(INFO) << "GetAStarCost in:";
         // PREDECESSOR AND SUCCESSOR INDEX
         int iPred, iSucc;
@@ -94,6 +110,7 @@ namespace HybridAStar
                 {
                     // DLOG(INFO) << "goal reached, return cost so far.";
                     // DLOG(INFO) << "GetAStarCost out.";
+                    TracePath(nPred);
                     return nPred->GetCostSofar();
                 }
                 // ____________________
@@ -102,7 +119,7 @@ namespace HybridAStar
                 {
                     // _______________________________
                     // CREATE POSSIBLE SUCCESSOR NODES
-                    std::vector<std::shared_ptr<Node2D>> successor_vec = CreateSuccessor(*nPred, possible_direction_);
+                    std::vector<std::shared_ptr<Node2D>> successor_vec = CreateSuccessor(*nPred, params_.possible_direction);
                     for (uint i = 0; i < successor_vec.size(); ++i)
                     {
                         // create possible successor
@@ -139,7 +156,7 @@ namespace HybridAStar
         // DLOG(INFO) << "GetAStarCost out.";
         return 1000;
     }
-    // TODO this function can be improved
+
     std::vector<std::shared_ptr<Node2D>> AStar::CreateSuccessor(const Node2D &pred, const uint &possible_dir)
     {
         // DLOG(INFO) << "CreateSuccessor in:";
@@ -226,20 +243,28 @@ namespace HybridAStar
     //###################################################
     //                                   trace path
     //###################################################
-    // void AStar::TracePath(std::shared_ptr<Node2D> node2d_ptr)
-    // {
-    //     path_.clear();
-    //     while (node2d_ptr != nullptr)
-    //     {
+    void AStar::TracePath(std::shared_ptr<Node2D> node2d_ptr)
+    {
+        path_.clear();
+        while (node2d_ptr != nullptr)
+        {
+            path_.emplace_back(*node2d_ptr);
+            if (*node2d_ptr == start_)
+            {
+                break;
+            }
+            // DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
+            node2d_ptr = node2d_ptr->GetPred();
+        }
+        std::reverse(path_.begin(), path_.end());
+    }
 
-    //         path_.emplace_back(*node2d_ptr);
-    //         if (*node2d_ptr == start_)
-    //         {
-    //             break;
-    //         }
-    //         // DLOG(INFO) << "current node is " << node->GetX() << " " << node->GetY() << " and its pred is " << node->GetPred()->GetX() << " " << node->GetPred()->GetY();
-    //         node2d_ptr = node2d_ptr->GetPred();
-    //     }
-    //     std::reverse(path_.begin(), path_.end());
-    // }
+    Utility::Path3D AStar::GetPath(Node3D &start, Node3D &goal,
+                                   Node2D *nodes2D)
+    {
+        Utility::Path3D path_3d;
+        GetAStarCost(nodes2D, Utility::ConvertNode3DToNode2D(start), Utility::ConvertNode3DToNode2D(goal));
+        path_3d = Utility::ConvertPath2DToPath3D(path_);
+        return path_3d;
+    }
 }

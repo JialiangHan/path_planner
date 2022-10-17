@@ -51,58 +51,6 @@ namespace HybridAStar
     float cell_size = 1;
   };
 
-  //this struct contains some used parameters in algorithm class
-  struct ParameterHybridAStar
-  {
-
-    int number_of_successors = 10;
-    bool piecewise_cubic_bezier_interpolation = false;
-    bool adaptive_steering_angle_and_step_size = false;
-    // this parameter determine the frequency of analytical expansion, false means the way in the original paper
-    bool analytical_expansion_every_point = true;
-    //for create successor
-    float step_size = 1;
-    bool adaptive_steering_angle = false;
-
-    ParameterCollisionDetection collision_detection_params;
-
-    bool analytical_expansion = true;
-
-     /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
-    float penalty_turning = 1.05;
-    /// [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
-    float penalty_reverse = 1;
-    /// [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
-    float penalty_change_of_direction = 2;
-    /// A flag to toggle reversing (true = on; false = off)
-    bool reverse = true;
-    /// A flag for the visualization of 3D nodes (true = on; false = off)
-    bool visualization = false;
-    /// A flag for the visualization of 2D nodes (true = on; false = off)
-    bool visualization2D = true;
-    // max iterations for smoother
-    int max_iterations = 10000;
-    float steering_angle = 5;
-    // the small number which will terminate loop if path difference smaller than this number.
-    float goal_range = 1e-3;
-    /*!
-  \brief [m] --- The tie breaker breaks ties between nodes expanded in the same cell
-
-  As the cost-so-far are bigger than the cost-to-come it is reasonable to believe that the algorithm would prefer the predecessor rather than the successor.
-  This would lead to the fact that the successor would never be placed and the the one cell could only expand one node. The tieBreaker artificially increases the cost of the predecessor
-  to allow the successor being placed in the same cell.
-*/
-    float tie_breaker = 0.01;
-    /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
-    float curve_step_size = 1;
-    /// maximum possible curvature of the non-holonomic vehicle
-    float min_turning_radius = 6;
-    ///  --- The number of discretizations in heading,used in planner.cpp
-    int headings = 72;
-    // nubmer of direction to create successor for A-star algorithm
-    int possible_direction = 8;
-  };
-
   struct ParameterRRTPlanner
   {
 
@@ -136,7 +84,7 @@ namespace HybridAStar
 
     bool expand_like_AEB_RRT = false;
   };
-  //this struct contains some used parameters in path class
+  // this struct contains some used parameters in path class
   struct ParameterPathPublisher
   {
     /// [m] --- The cell size of the 2D grid of the world,used in planner.cpp
@@ -150,7 +98,7 @@ namespace HybridAStar
     /// [m] --- The length of the vehicle
     float vehicle_length = 2;
   };
-  //this struct contains some used parameter in planner.cpp
+  // this struct contains some used parameter in planner.cpp
   struct ParameterPlanner
   {
     /// A flag for the mode (true = manual; false = dynamic). Manual for  map or dynamic for dynamic map. used in planner.cpp
@@ -163,6 +111,68 @@ namespace HybridAStar
     bool smooth = false;
 
     bool use_rrt = false;
+
+    bool use_a_star = false;
+  };
+
+  struct ParameterAStar
+  {
+    // number of direction to create successor for A-star algorithm
+    int possible_direction = 8;
+
+    ParameterCollisionDetection collision_detection_params;
+  };
+
+  // this struct contains some used parameters in algorithm class
+  struct ParameterHybridAStar
+  {
+
+    int number_of_successors = 10;
+    bool piecewise_cubic_bezier_interpolation = false;
+    bool adaptive_steering_angle_and_step_size = false;
+    // this parameter determine the frequency of analytical expansion, false means the way in the original paper
+    bool analytical_expansion_every_point = true;
+    // for create successor
+    float step_size = 1;
+    bool adaptive_steering_angle = false;
+
+    bool analytical_expansion = true;
+
+    /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
+    float penalty_turning = 1.05;
+    /// [#] --- A movement cost penalty for reversing (choosing motion primitives > 2)
+    float penalty_reverse = 1;
+    /// [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
+    float penalty_change_of_direction = 2;
+    /// A flag to toggle reversing (true = on; false = off)
+    bool reverse = true;
+    /// A flag for the visualization of 3D nodes (true = on; false = off)
+    bool visualization = false;
+    /// A flag for the visualization of 2D nodes (true = on; false = off)
+    bool visualization2D = true;
+    // max iterations for smoother
+    int max_iterations = 10000;
+    float steering_angle = 5;
+    // the small number which will terminate loop if path difference smaller than this number.
+    float goal_range = 1e-3;
+    /*!
+  \brief [m] --- The tie breaker breaks ties between nodes expanded in the same cell
+
+  As the cost-so-far are bigger than the cost-to-come it is reasonable to believe that the algorithm would prefer the predecessor rather than the successor.
+  This would lead to the fact that the successor would never be placed and the the one cell could only expand one node. The tieBreaker artificially increases the cost of the predecessor
+  to allow the successor being placed in the same cell.
+*/
+    float tie_breaker = 0.01;
+    /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
+    float curve_step_size = 1;
+    /// maximum possible curvature of the non-holonomic vehicle
+    float min_turning_radius = 6;
+    ///  --- The number of discretizations in heading,used in planner.cpp
+    int headings = 72;
+
+    ParameterCollisionDetection collision_detection_params;
+
+    ParameterAStar a_star_params;
   };
 
   struct ParameterSmoother
@@ -200,6 +210,7 @@ namespace HybridAStar
     ParameterVisualize visualize_params;
     ParameterCollisionDetection collision_detection_params;
     ParameterRRTPlanner rrt_planner_params;
+    ParameterAStar a_star_planner_params;
   };
 
   class ParameterManager
@@ -225,8 +236,8 @@ namespace HybridAStar
     virtual void LoadPlannerParams();
     virtual void LoadVisualizeParams();
     virtual void LoadCollisionDetectionParams();
-
     virtual void LoadRRTPlannerParams();
+    virtual void LoadAStarPlannerParams();
 
     // virtual void LoadAStarParams();
 
@@ -244,7 +255,7 @@ namespace HybridAStar
     ParameterVisualize GetVisualizeParams();
     ParameterCollisionDetection GetCollisionDetectionParams();
     ParameterRRTPlanner GetRRTPlannerParams();
-    // ParameterAStar GetAStarParams();
+    ParameterAStar GetAStarPlannerParams();
 
   private:
     std::shared_ptr<ParameterContainer> param_container_ptr_;

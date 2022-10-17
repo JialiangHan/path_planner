@@ -28,8 +28,8 @@ namespace HybridAStar
 
     visualization_ptr_ = visualization_ptr;
 
-    a_star_ptr_.reset(new AStar(configuration_space_ptr_,
-                                visualization_ptr_, params_.possible_direction, params_.visualization2D));
+    a_star_ptr_.reset(new AStar(params_.a_star_params,
+                                visualization_ptr_));
   }
 
   void HybridAStar::Initialize(nav_msgs::OccupancyGrid::Ptr map)
@@ -40,13 +40,17 @@ namespace HybridAStar
     map_width_ = configuration_space_ptr_->GetMap()->info.width;
     map_height_ = configuration_space_ptr_->GetMap()->info.height;
     lookup_table_ptr_->Initialize(map_width_, map_height_);
+
+    nav_msgs::OccupancyGrid::Ptr a_star_map = TreatAstarMap(map);
+    a_star_ptr_->Initialize(a_star_map);
+
     // DLOG(INFO) << "hybrid a star initialized done.   ";
   }
 
   //###################################################
   //                                        3D A*
   //###################################################
-  Path3D HybridAStar::GetPath(Node3D &start, Node3D &goal, Node3D *nodes3D, Node2D *nodes2D)
+  Utility::Path3D HybridAStar::GetPath(Node3D &start, Node3D &goal, Node3D *nodes3D, Node2D *nodes2D)
   {
     path_.clear();
     DLOG(INFO) << "Hybrid A star start!!";
@@ -148,7 +152,7 @@ namespace HybridAStar
             if (params_.analytical_expansion_every_point)
             {
               // DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
-              Path3D analytical_path = AnalyticExpansions(*nPred, goal);
+              Utility::Path3D analytical_path = AnalyticExpansions(*nPred, goal);
               if (analytical_path.size() != 0)
               {
                 DLOG(INFO) << "Found path through analytical expansion";
@@ -176,7 +180,7 @@ namespace HybridAStar
                 // DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
                 N = nPred->GetCostToGo();
                 analytical_expansion_counter = 0;
-                Path3D analytical_path = AnalyticExpansions(*nPred, goal);
+                Utility::Path3D analytical_path = AnalyticExpansions(*nPred, goal);
                 if (analytical_path.size() != 0)
                 {
                   DLOG(INFO) << "Found path through analytical expansion";
@@ -307,9 +311,9 @@ namespace HybridAStar
       // create a 2d goal node
       Node2D goal2d(goal.GetX(), goal.GetY(), 0, 0, nullptr);
       // DLOG(INFO) << "A star start node is " << start2d.GetX() << " " << start2d.GetY() << " goal is " << goal2d.GetX() << " " << goal2d.GetY();
-      a_star_ptr_->Initialize(goal2d, start2d);
+
       // run 2d AStar and return the cost of the cheapest path for that node
-      nodes2D[(int)start.GetY() * map_width_ + (int)start.GetX()].SetG(a_star_ptr_->GetAStarCost(nodes2D));
+      nodes2D[(int)start.GetY() * map_width_ + (int)start.GetX()].SetG(a_star_ptr_->GetAStarCost(nodes2D, start2d, goal2d));
       // ros::Time t1 = ros::Time::now();
       // ros::Duration d(t1 - t0);
       // DLOG(INFO) << "calculated 2D Heuristic in ms: " << d * 1000;
@@ -331,9 +335,9 @@ namespace HybridAStar
   //###################################################
   //                                    ANALYTICAL EXPANSION
   //###################################################
-  Path3D HybridAStar::AnalyticExpansions(const Node3D &start, Node3D &goal)
+  Utility::Path3D HybridAStar::AnalyticExpansions(const Node3D &start, Node3D &goal)
   {
-    Path3D path_vec;
+    Utility::Path3D path_vec;
     int i = 0;
     float x = 0.f;
 
@@ -762,5 +766,26 @@ namespace HybridAStar
     DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal_.GetT()) << " one more step size is " << step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle);
 
     step_size_steering_angle_pair.emplace_back(std::pair<float, float>(step_size, steering_angle));
+  }
+
+  nav_msgs::OccupancyGrid::Ptr HybridAStar::TreatAstarMap(nav_msgs::OccupancyGrid::Ptr map)
+  {
+    nav_msgs::OccupancyGrid::Ptr out;
+    out.reset(new nav_msgs::OccupancyGrid);
+    out->header = map->header;
+    out->info = map->info;
+    out->data.resize(map->data.size());
+    for (size_t i = 0; i < map->data.size(); i++)
+    {
+      if (map->data[i] == 0)
+      {
+        out->data[i] = map->data[i];
+      }
+      else
+      {
+        out->data[i] = 0;
+      }
+    }
+    return out;
   }
 }

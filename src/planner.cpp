@@ -62,6 +62,11 @@ Planner::Planner()
   {
     rrt_planner_ptr_.reset(new RRTPlanner::RRTPlanner(param_manager_->GetRRTPlannerParams(), visualization_ptr_));
   }
+  else if (params_.use_a_star)
+  {
+    a_star_planner_ptr_.reset(new AStar(param_manager_->GetAStarPlannerParams(), visualization_ptr_));
+  }
+
   else
   {
     hybrid_a_star_ptr_.reset(new HybridAStar(param_manager_->GetHybridAStarParams(), visualization_ptr_));
@@ -98,6 +103,10 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
   if (params_.use_rrt)
   {
     rrt_planner_ptr_->Initialize(map);
+  }
+  else if (params_.use_a_star)
+  {
+    a_star_planner_ptr_->Initialize(map);
   }
   else
   {
@@ -230,7 +239,6 @@ void Planner::MakePlan()
   {
     DLOG(INFO) << "valid start and valid goal, start to make plan!";
 
-    // ___________________________
     // LISTS ALLOCATED ROW MAJOR ORDER
     int width = grid_->info.width;
     int height = grid_->info.height;
@@ -241,7 +249,6 @@ void Planner::MakePlan()
     Node3D *nodes3D = new Node3D[length]();
     Node2D *nodes2D = new Node2D[width * height]();
 
-    // _________________________
     // retrieving start position
     float x = start_.pose.pose.position.x / params_.cell_size;
     float y = start_.pose.pose.position.y / params_.cell_size;
@@ -253,8 +260,6 @@ void Planner::MakePlan()
     t = Utility::ConvertDegToRad(0);
     t = Utility::RadToZeroTo2P(t);
     Node3D nStart(x, y, t, 0, 0, nullptr);
-
-    // ________________________
     // retrieving goal position
     x = goal_.pose.position.x / params_.cell_size;
     y = goal_.pose.position.y / params_.cell_size;
@@ -267,10 +272,9 @@ void Planner::MakePlan()
     Node3D nGoal(x, y, t, 0, 0, nullptr);
     std::srand(0);
     Clear();
-    // ___________________________
     // START AND TIME THE PLANNING
     ros::Time t0 = ros::Time::now();
-    Path3D path, temp;
+    Utility::Path3D path, temp;
     if (params_.use_rrt)
     {
       path = rrt_planner_ptr_->GetPath(nStart, nGoal);
@@ -281,6 +285,10 @@ void Planner::MakePlan()
       //   // path = rrt_planner_ptr_->ShortCut(path, false);
       //   // path = rrt_planner_ptr_->ShortCut(path,false);
       // }
+    }
+    else if (params_.use_a_star)
+    {
+      path = a_star_planner_ptr_->GetPath(nStart, nGoal, nodes2D);
     }
     else
     {
