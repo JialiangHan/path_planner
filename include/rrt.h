@@ -22,14 +22,14 @@ using namespace HybridAStar;
 
 namespace RRTPlanner
 {
-    typedef std::vector<Node3D> Path3D;
+
     // this is a tree structure
     typedef std::vector<Node3D> RRT;
     class RRTPlanner
     {
     private:
         ParameterRRTPlanner params_;
-        Path3D path_;
+        Utility::Path3D path_;
         Node3D start_;
         Node3D goal_;
         RRT rrt_;
@@ -96,7 +96,7 @@ namespace RRTPlanner
          */
         void AddNodeToRRT(const Node3D &current);
 
-        void AddNodeToRRT(const Path3D &current);
+        void AddNodeToRRT(const Utility::Path3D &current);
         /**
          * @brief find closet node to this random node on rrt tree
          *
@@ -137,16 +137,16 @@ namespace RRTPlanner
          */
         void Initialize(nav_msgs::OccupancyGrid::Ptr map);
 
-        Path3D GetPath(const Node3D &start, const Node3D &goal);
+        Utility::Path3D GetPath(const Node3D &start, const Node3D &goal);
         /**
          * @brief short cut the path since rrt path will have some unnecessary path point
          *
          * @param consider_steering_angle_limit, if true, consider vehicle steering angle limit.
-         * @return Path3D
+         * @return Utility::Path3D
          */
-        Path3D ShortCut(const Path3D &path, bool consider_steering_angle_limit);
+        Utility::Path3D ShortCut(const Utility::Path3D &path, bool consider_steering_angle_limit);
 
-        Path3D PiecewiseCubicBezier(const Path3D &path);
+        Utility::Path3D PiecewiseCubicBezier(const Utility::Path3D &path);
     };
 
 }

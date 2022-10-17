@@ -14,8 +14,7 @@ typedef ompl::base::SE2StateSpace::StateType State;
 #include "piecewise_cubic_bezier.h"
 namespace HybridAStar
 {
-   //path from start to goal
-   typedef std::vector<Node3D> Path3D;
+
    /*!
  * \brief A class that encompasses the functions central to the search.
  */
@@ -43,8 +42,8 @@ namespace HybridAStar
      \param nodes2D the array of 2D nodes representing the configuration space C in R^2
             \return the pointer to the node satisfying the goal condition
   */
-      Path3D GetPath(Node3D &start, Node3D &goal,
-                     Node3D *nodes3D, Node2D *nodes2D);
+      Utility::Path3D GetPath(Node3D &start, Node3D &goal,
+                              Node3D *nodes3D, Node2D *nodes2D);
 
    private:
       /**
@@ -63,7 +62,7 @@ namespace HybridAStar
        * @param configurationSpace 
        * @return Node3D* 
        */
-      Path3D AnalyticExpansions(const Node3D &start, Node3D &goal);
+      Utility::Path3D AnalyticExpansions(const Node3D &start, Node3D &goal);
       /**
        * @brief Create Successor for node 3d
        *
@@ -94,11 +93,17 @@ namespace HybridAStar
       void ConvertToPiecewiseCubicBezierPath();
 
       void AddOneMoreStepSizeAndSteeringAngle(const Node3D &pred, std::vector<std::pair<float, float>> &step_size_steering_angle_pair);
+      /**
+       * @brief Convert a map into a obstacle free map.
+       *
+       * @param map
+       */
+      nav_msgs::OccupancyGrid::Ptr TreatAstarMap(nav_msgs::OccupancyGrid::Ptr map);
 
    private:
       ParameterHybridAStar params_;
-      Path3D piecewise_cubic_bezier_path_;
-      Path3D path_;
+      Utility::Path3D piecewise_cubic_bezier_path_;
+      Utility::Path3D path_;
       Node3D start_;
       Node3D goal_;
       std::shared_ptr<CollisionDetection> configuration_space_ptr_;

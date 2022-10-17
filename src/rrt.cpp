@@ -62,7 +62,7 @@ namespace RRTPlanner
         TracePath(goal_index);
     }
 
-    Path3D RRTPlanner::GetPath(const Node3D &start, const Node3D &goal)
+    Utility::Path3D RRTPlanner::GetPath(const Node3D &start, const Node3D &goal)
     {
         // DLOG(INFO) << "In GetPath!!!";
         start_ = start;
@@ -416,9 +416,9 @@ namespace RRTPlanner
         }
     }
 
-    Path3D RRTPlanner::ShortCut(const Path3D &path, bool consider_steering_angle_limit)
+    Utility::Path3D RRTPlanner::ShortCut(const Utility::Path3D &path, bool consider_steering_angle_limit)
     {
-        Path3D out, input;
+        Utility::Path3D out, input;
         // start from last point of path, check if segment between end point and path[n-1] is in collision, if not, then check end point and path[n-2] is in collision
         input = path;
         while (1)
@@ -481,10 +481,10 @@ namespace RRTPlanner
         return out;
     }
 
-    Path3D RRTPlanner::PiecewiseCubicBezier(const Path3D &path)
+    Utility::Path3D RRTPlanner::PiecewiseCubicBezier(const Utility::Path3D &path)
     { // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath in:";
         std::vector<Eigen::Vector3f> anchor_points_vec;
-        Path3D out;
+        Utility::Path3D out;
         for (uint index = 1; index < path.size() - 1; ++index)
         {
             // DLOG(INFO) << "path point is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
@@ -519,7 +519,7 @@ namespace RRTPlanner
 
     bool RRTPlanner::AnalyticExpansion(const Node3D &start, Node3D &goal)
     {
-        Path3D path_vec;
+        Utility::Path3D path_vec;
         int i = 0;
         float x = 0.f;
         Eigen::Vector3f vector3d_start = Utility::ConvertNode3DToVector3f(start);
@@ -587,7 +587,7 @@ namespace RRTPlanner
             return false;
         }
     }
-    void RRTPlanner::AddNodeToRRT(const Path3D &current)
+    void RRTPlanner::AddNodeToRRT(const Utility::Path3D &current)
     {
         // DLOG(INFO) << "In AddNodeToRRT!!!";
         for (const auto &item : current)

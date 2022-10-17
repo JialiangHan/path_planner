@@ -103,6 +103,15 @@ namespace Utility
         return node3d;
     }
 
+    Utility::Path3D ConvertPath2DToPath3D(const Path2D &path_2d)
+    {
+        Utility::Path3D path_3d;
+        for (const auto &element : path_2d)
+        {
+            path_3d.emplace_back(ConvertVector2fToNode3D(ConvertNod2DToVector2f(element)));
+        }
+        return path_3d;
+    }
     //**********************computational geometry****************
 
     bool OnSegment(const Eigen::Vector2f &p1, const Eigen::Vector2f &p3,

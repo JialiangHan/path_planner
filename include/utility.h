@@ -27,6 +27,10 @@ namespace Utility
     typedef std::vector<AngleRange> AngleRangeVec;
     typedef std::vector<Eigen::Vector2f> Polygon;
     typedef std::pair<Eigen::Vector2f, Eigen::Vector2f> Edge;
+    // path from start to goal
+    typedef std::vector<HybridAStar::Node3D> Path3D;
+    // path from start to goal
+    typedef std::vector<HybridAStar::Node2D> Path2D;
     //*******************type conversion*******************
     void ConvertRosPathToVectorVector3D(
         const nav_msgs::Path::ConstPtr &path,
@@ -50,6 +54,8 @@ namespace Utility
     HybridAStar::Node3D ConvertVector2fToNode3D(const Eigen::Vector2f &vector2d);
 
     HybridAStar::Node2D ConvertNode3DToNode2D(const HybridAStar::Node3D &node3d);
+
+    Path3D ConvertPath2DToPath3D(const Path2D &path_2d);
     //**********************computational geometry****************
 
     /**
