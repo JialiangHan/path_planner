@@ -74,7 +74,7 @@ namespace HybridAStar
     float curve_step_size = 1;
     bool consider_steering_angle_range = false;
 
-    int steering_angle_resolution = 1;
+    float steering_angle_resolution = 1;
     // for create successor
     float step_size = 1;
     // parameter to control whether to use adaptive possibility to goal.
@@ -83,6 +83,14 @@ namespace HybridAStar
     int number_of_step_size = 2;
 
     bool expand_like_AEB_RRT = false;
+
+    bool rewire = false;
+
+    float neighbor_detection_radius = 10;
+
+    bool use_rrt_connect = false;
+
+    bool twoD_rrt = false;
   };
   // this struct contains some used parameters in path class
   struct ParameterPathPublisher
@@ -119,6 +127,8 @@ namespace HybridAStar
   {
     // number of direction to create successor for A-star algorithm
     int possible_direction = 8;
+
+    bool use_adaptive_step_size_in_a_star = false;
 
     ParameterCollisionDetection collision_detection_params;
   };

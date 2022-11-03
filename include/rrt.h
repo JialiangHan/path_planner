@@ -25,6 +25,23 @@ namespace RRTPlanner
 
     // this is a tree structure
     typedef std::vector<Node3D> RRT;
+    // status for extend,connect
+    enum Status : int
+    {
+        // collision
+        Trapped = 0,
+        // reach the target
+        Reached = 1,
+        // this status is not collision and not reached,
+        Advanced = 2
+    };
+    enum RRTFlag : int
+    {
+        // rrt root is start
+        Start = 0,
+        // rrt root is goal
+        Goal = 1,
+    };
     class RRTPlanner
     {
     private:
@@ -32,19 +49,20 @@ namespace RRTPlanner
         Utility::Path3D path_;
         Node3D start_;
         Node3D goal_;
-        RRT rrt_;
         std::shared_ptr<CollisionDetection> configuration_space_ptr_;
 
         std::shared_ptr<Visualize> visualization_ptr_;
         // std::shared_ptr<AStar> a_star_ptr_;
         uint map_width_;
         uint map_height_;
+
         /**
          * @brief select a collision-free node in current map
          *
          * @return Node3D
          */
-        Node3D SelectRandomNode();
+        Node3D
+        SelectRandomNode();
         /**
          * @brief
          *
@@ -63,13 +81,13 @@ namespace RRTPlanner
 
         float FindSteeringAngle(const Node3D &closest_node, const Node3D &direction_node);
 
-        float FindStepSize(const Node3D &closest_node, const float &steering_angle);
+        float FindStepSize(const Node3D &closest_node, const float &steering_angle, const Node3D &target);
         /**
          * @brief generate a collision-free successor
          *
          * @return Node3D
          */
-        Node3D GenerateSuccessor();
+        Node3D GenerateSuccessor(RRT &rrt_start);
         /**
          * @brief generate a collision-free successor for closest node using step size and steering angle
          *
@@ -82,30 +100,32 @@ namespace RRTPlanner
          * @brief trace path using a rrt
          *
          */
-        void TracePath(const int &goal_index);
+        Utility::Path3D TracePath(const RRT &rrt, const int &goal_index);
+
+        Utility::Path3D TracePath(const RRT &rrt, const Node3D &current);
         /**
          * @brief check if current rrt reach goal?
          *
          * @return int: index of goal node
          */
-        int GoalCheck(bool consider_orientation);
+        int GoalCheck(const RRT &rrt, bool consider_orientation);
         /**
          * @brief add node3d to a rrt
          *
          * @param current
          */
-        void AddNodeToRRT(const Node3D &current);
+        void AddNodeToRRT(RRT &rrt, Node3D &current);
 
-        void AddNodeToRRT(const Utility::Path3D &current);
+        void AddNodeToRRT(RRT &rrt, Utility::Path3D &current);
         /**
          * @brief find closet node to this random node on rrt tree
          *
          * @param random_node
          * @return Node3D
          */
-        Node3D FindClosestNode(const Node3D &random_node);
+        Node3D FindClosestNode(const RRT &rrt, const Node3D &random_node, const bool &flag = false);
 
-        Node3D FindDirectionNode(const int &failure_counts);
+        Node3D FindDirectionNode(const int &failure_counts, const RRT &rrt, const RRTFlag &flag = RRTFlag::Start);
 
         void Planning();
         /**
@@ -114,7 +134,7 @@ namespace RRTPlanner
          * @return true
          * @return false
          */
-        bool AnalyticExpansion(const Node3D &start, Node3D &goal);
+        bool AnalyticExpansion(RRT &rrt, const Node3D &start, Node3D &goal);
 
         float GetPossibilityToGoal(const int &failure_counts);
         /**
@@ -124,6 +144,73 @@ namespace RRTPlanner
          * @return float
          */
         float FindOriginalStepSize(const Node3D &closest_node, const float &distance_to_goal, const float &available_step_size_obstacle);
+        /**
+         * @brief rewiring process in RRT*, current node is not on rrt
+         *
+         * @param current
+         */
+        void Rewire(RRT &rrt, Node3D &current, const float &radius);
+        /**
+         * @brief check if current node is on rrt
+         *
+         * @param current
+         * @return true
+         * @return false
+         */
+        bool CheckNodeOnRRT(const RRT &rrt, const Node3D &current);
+
+        float FindNodeCostSoFar(const Node3D &current);
+
+        std::vector<Node3D> FindNeighbors(const RRT &rrt, const Node3D &current, const float &radius);
+
+        std::vector<std::pair<Node3D, float>> FindNeighborsAndCostSoFar(const RRT &rrt, const Node3D &current, const float &radius);
+
+        /**
+         * @brief extend a rrt towards target only one step
+         *
+         * @param rrt
+         * @param target
+         * @return Status
+         *       // collision
+            Trapped = 0,
+            // reach the target
+            Reached = 1,
+            // this status is not collision and not reached,
+            Advanced = 2
+         */
+        std::pair<Status, Node3D> Extend(RRT &rrt, const Node3D &target, const bool &flag = false);
+        /**
+         * @brief connect rrt to target node in multiple step
+         *
+         * @param rrt
+         * @param target
+         * @return Status
+         */
+        std::pair<Status, Node3D> Connect(RRT &rrt, const Node3D &target);
+        /**
+         * @brief swap twp rrts
+         *
+         * @param rrt_1
+         * @param rrt_2
+         */
+        void Swap(std::pair<RRT, RRTFlag> &rrt_1, std::pair<RRT, RRTFlag> &rrt_2);
+
+        void RRTConnectPlanner();
+
+        RRT InitializeRRT(const Node3D &root);
+        /**
+         * @brief Set the Path using two connected rrt
+         *
+         * @param rrt_1
+         * @param rrt_2
+         * @param connect_point
+         */
+        void SetPath(const std::pair<RRT, RRTFlag> &rrt_1, const std::pair<RRT, RRTFlag> &rrt_2, const Node3D &connect_point);
+        /**
+         * @brief this treatment is for rrt based on goal, which is just to plus 180deg to node orientation
+         *
+         */
+        Node3D TreatNode(const Node3D &goal);
 
     public:
         RRTPlanner();

@@ -55,6 +55,8 @@ namespace Utility
 
     HybridAStar::Node2D ConvertNode3DToNode2D(const HybridAStar::Node3D &node3d);
 
+    HybridAStar::Node3D ConvertNode2DToNode3D(const HybridAStar::Node2D &node2d);
+
     Path3D ConvertPath2DToPath3D(const Path2D &path_2d);
     //**********************computational geometry****************
 
@@ -649,4 +651,8 @@ namespace Utility
      * @return std::pair<float, float>
      */
     std::pair<float, float> AngleNormalization(const float &first_angle, const float &second_angle);
+
+    int FindIndex(const std::vector<std::pair<HybridAStar::Node3D, float>> &node3d_vec, const std::pair<HybridAStar::Node3D, float> &element);
+
+    int FindIndex(const std::vector<HybridAStar::Node3D> &node3d_vec, const HybridAStar::Node3D &element);
 }

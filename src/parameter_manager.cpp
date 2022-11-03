@@ -62,6 +62,18 @@ namespace HybridAStar
     ros_param_name = "expand_like_AEB_RRT";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.expand_like_AEB_RRT);
 
+    ros_param_name = "rewire";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.rewire);
+
+    ros_param_name = "neighbor_detection_radius";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.neighbor_detection_radius);
+
+    ros_param_name = "use_rrt_connect";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.use_rrt_connect);
+
+    ros_param_name = "twoD_rrt";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.twoD_rrt);
+
     LoadCollisionDetectionParams();
   }
   void ParameterManager::LoadSmootherParams()
@@ -265,6 +277,10 @@ namespace HybridAStar
 
     ros_param_name = "possible_direction";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->a_star_planner_params.possible_direction);
+
+    ros_param_name = "use_adaptive_step_size_in_a_star";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->a_star_planner_params.use_adaptive_step_size_in_a_star);
+
     LoadCollisionDetectionParams();
   }
 

@@ -11,6 +11,15 @@ namespace Utility
         out.setY(node3d.GetY());
         return out;
     }
+
+    HybridAStar::Node3D ConvertNode2DToNode3D(const HybridAStar::Node2D &node2d)
+    {
+        HybridAStar::Node3D out;
+        out.setX(node2d.GetX());
+        out.setY(node2d.GetY());
+        out.setT(0);
+        return out;
+    }
     void ConvertRosPathToVectorVector3D(
         const nav_msgs::Path::ConstPtr &path,
         std::vector<Eigen::Vector3f> &vector_3d_vec)
@@ -1038,9 +1047,9 @@ namespace Utility
                 {
                     DLOG(INFO)
                         << "two node distance and orientation are close enough, return true";
-                    // DLOG(INFO) << "current node is " << start.GetX() << " " << start.GetY() << " " << Utility::ConvertRadToDeg(start.GetT());
-                    // DLOG(INFO) << "goal is " << goal.GetX() << " " << goal.GetY() << " " << Utility::ConvertRadToDeg(goal.GetT());
-                    // DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
+                    DLOG(INFO) << "current node is " << start.GetX() << " " << start.GetY() << " " << Utility::ConvertRadToDeg(start.GetT());
+                    DLOG(INFO) << "goal is " << goal.GetX() << " " << goal.GetY() << " " << Utility::ConvertRadToDeg(goal.GetT());
+                    DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
                     return true;
                 }
                 else
@@ -1895,4 +1904,31 @@ namespace Utility
         return out;
     }
 
+    int FindIndex(const std::vector<std::pair<HybridAStar::Node3D, float>> &node3d_vec, const std::pair<HybridAStar::Node3D, float> &element)
+    {
+        int current_index = -1;
+        for (size_t i = 0; i < node3d_vec.size(); i++)
+        {
+            if (element == node3d_vec[i])
+            {
+                // DLOG(INFO) << "found, index is: " << i;
+                current_index = i;
+            }
+        }
+        return current_index;
+    }
+
+    int FindIndex(const std::vector<HybridAStar::Node3D> &vector, const HybridAStar::Node3D &element)
+    {
+        int current_index = -1;
+        for (size_t i = 0; i < vector.size(); i++)
+        {
+            if (Utility::GetDistance(element, vector[i]) < 0.1)
+            {
+                // DLOG(INFO) << "found, index is: " << i;
+                current_index = i;
+            }
+        }
+        return current_index;
+    }
 } // namespace Utility

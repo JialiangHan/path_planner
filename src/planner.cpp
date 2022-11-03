@@ -277,6 +277,7 @@ void Planner::MakePlan()
     Utility::Path3D path, temp;
     if (params_.use_rrt)
     {
+      DLOG(INFO) << "Use RRT!";
       path = rrt_planner_ptr_->GetPath(nStart, nGoal);
       // if (true)
       // {
@@ -288,11 +289,13 @@ void Planner::MakePlan()
     }
     else if (params_.use_a_star)
     {
+      DLOG(INFO) << "Use A star!";
       path = a_star_planner_ptr_->GetPath(nStart, nGoal, nodes2D);
     }
     else
     {
       // FIND THE PATH
+      DLOG(INFO) << "Use hybrid a star!";
       path = hybrid_a_star_ptr_->GetPath(nStart, nGoal, nodes3D, nodes2D);
     }
 
