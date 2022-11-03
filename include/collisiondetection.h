@@ -73,6 +73,8 @@ namespace HybridAStar
      */
     float LimitSteeringAngle(const float &steering_angle, const float &steering_angle_limit);
 
+    std::vector<std::pair<float, float>> FindStepSizeAndSteeringAngle(const Node3D &pred, const Node3D &start, const Node3D &goal, const int &number_of_successor, const float &step_size);
+
   private:
     bool IsOnGrid(const Node3D &node3d) const;
     bool IsOnGrid(const Node2D &node2d) const;
@@ -99,6 +101,8 @@ namespace HybridAStar
      */
     bool configurationTest(const Eigen::Vector2f &start, const Eigen::Vector2f &end);
     bool configurationTest(const Node3D &start, const Node3D &end);
+
+    bool configurationTest(const std::shared_ptr<Node2D> &node2d_start_ptr, const std::shared_ptr<Node2D> &node2d_end_ptr);
 
     void getConfiguration(const std::shared_ptr<Node2D> &node2d_ptr, float &x, float &y, float &t) const;
 

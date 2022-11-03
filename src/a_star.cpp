@@ -49,6 +49,8 @@ namespace HybridAStar
         float newG;
         int width = configuration_space_ptr_->GetMap()->info.width;
         int height = configuration_space_ptr_->GetMap()->info.height;
+        // number of nodes explored
+        int number_nodes_explored = 0;
         // reset the open and closed list
         for (int i = 0; i < width * height; ++i)
         {
@@ -76,6 +78,7 @@ namespace HybridAStar
         {
             // pop node with lowest cost from priority queue
             nPred = openlist.top();
+            number_nodes_explored++;
             // set index
             iPred = nPred->setIdx(width);
             // _____________________________
@@ -98,9 +101,12 @@ namespace HybridAStar
                 // RViz visualization_ptr_
                 if (visualization2D_)
                 {
-                    visualization_ptr_->publishNode2DPoses(*nPred);
-                    visualization_ptr_->publishNode2DPose(*nPred);
-                    //        d.sleep();
+                    // DLOG(INFO) << "in publishing";
+                    // visualization_ptr_->publishNode2DPoses((*nPred));
+                    // visualization_ptr_->publishNode2DPose((*nPred));
+                    visualization_ptr_->publishNode3DPoses(Utility::ConvertNode2DToNode3D(*nPred));
+                    visualization_ptr_->publishNode3DPose(Utility::ConvertNode2DToNode3D(*nPred));
+                    d.sleep();
                 }
                 // remove node from open list
                 openlist.pop();
@@ -111,6 +117,7 @@ namespace HybridAStar
                     // DLOG(INFO) << "goal reached, return cost so far.";
                     // DLOG(INFO) << "GetAStarCost out.";
                     TracePath(nPred);
+                    DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
                     return nPred->GetCostSofar();
                 }
                 // ____________________
@@ -154,6 +161,7 @@ namespace HybridAStar
         }
         // return large number to guide search away
         // DLOG(INFO) << "GetAStarCost out.";
+        DLOG(INFO) << "open list is empty, end a star. number of nodes explored is " << number_nodes_explored;
         return 1000;
     }
 
@@ -161,11 +169,20 @@ namespace HybridAStar
     {
         // DLOG(INFO) << "CreateSuccessor in:";
         std::vector<std::shared_ptr<Node2D>> successor_vec;
+        int step_size = FindStepSize(pred);
+        successor_vec = CreateSuccessor(pred, possible_dir, step_size);
+        return successor_vec;
+    }
+
+    std::vector<std::shared_ptr<Node2D>> AStar::CreateSuccessor(const Node2D &pred, const uint &possible_dir, const uint &step_size)
+    {
+        // DLOG(INFO) << "CreateSuccessor in:";
+        std::vector<std::shared_ptr<Node2D>> successor_vec;
         std::shared_ptr<Node2D> pred_ptr = std::make_shared<Node2D>(pred);
         int x_successor, y_successor;
         if (possible_dir == 4)
         {
-            std::vector<int> delta = {-1, 1};
+            std::vector<int> delta = {-step_size, step_size};
             for (uint i = 0; i < delta.size(); ++i)
             {
                 x_successor = pred.GetX() + delta[i];
@@ -189,8 +206,7 @@ namespace HybridAStar
         }
         else if (possible_dir == 8)
         {
-            std::vector<int> delta = {-1, 0, 1};
-
+            std::vector<int> delta = {-step_size, 0, step_size};
             for (uint i = 0; i < delta.size(); ++i)
             {
                 for (uint j = 0; j < delta.size(); ++j)
@@ -266,5 +282,28 @@ namespace HybridAStar
         GetAStarCost(nodes2D, Utility::ConvertNode3DToNode2D(start), Utility::ConvertNode3DToNode2D(goal));
         path_3d = Utility::ConvertPath2DToPath3D(path_);
         return path_3d;
+    }
+
+    int AStar::FindStepSize(const Node2D &current_node)
+    {
+        int step_size;
+        if (!params_.use_adaptive_step_size_in_a_star)
+        {
+            return 1;
+        }
+
+        float min_distance = 10000;
+        std::vector<std::pair<float, Utility::AngleRange>> step_size_angle_range =
+            configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(Utility::ConvertNode2DToNode3D(current_node), false);
+        for (const auto &element : step_size_angle_range)
+        {
+            if (min_distance > element.first)
+            {
+                min_distance = element.first;
+            }
+        }
+        step_size = std::round(min_distance);
+        // DLOG(INFO) << "step size is " << step_size;
+        return step_size;
     }
 }

@@ -40,7 +40,6 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr
        standard: collision checking using the spatial occupancy enumeration
        other: collision checking using the 2d costmap and the navigation stack
     */
-  float cost = 0;
   float x;
   float y;
   float t;
@@ -52,12 +51,25 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr
   //   DLOG(INFO) << "IsTraversable out. !grid ptr value is " << !grid_ptr_->data[node2d_ptr->GetIdx()];
   //   return !grid_ptr_->data[node2d_ptr->GetIdx()];
   // }
-  if (true)
+  if (node2d_ptr->GetPred() != nullptr)
   {
-    cost = configurationTest(x, y, t) ? 0 : 1;
+    // if (configurationTest(x, y, t))
+    if (configurationTest(x, y, t) && configurationTest(node2d_ptr, node2d_ptr->GetPred()))
+    {
+      // DLOG(INFO) << "IsTraversable out.";
+      return true;
+    }
+  }
+  else
+  {
+    if (configurationTest(x, y, t))
+    {
+      // DLOG(INFO) << "IsTraversable out.";
+      return true;
+    }
   }
   // DLOG(INFO) << "IsTraversable out. cost is " << cost;
-  return cost <= 0;
+  return false;
 };
 bool CollisionDetection::IsTraversable(const std::shared_ptr<Node3D> &node3d_ptr)
 {
@@ -80,12 +92,6 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
   float x, y, t;
   // assign values to the configuration
   getConfiguration(node3d, x, y, t);
-  // 2D collision test
-  if (t == 99)
-  {
-    // DLOG(INFO) << "IsTraversable out.";
-    return !grid_ptr_->data[node3d.GetIdx()];
-  }
   if (node3d.GetPred() != nullptr)
   {
     // if (configurationTest(x, y, t))
@@ -195,7 +201,7 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
     collision_result = CollisionCheck(polygon);
     if (!collision_result)
     {
-      DLOG(INFO) << "in collision, coordinate is " << x << " " << y << " " << t;
+      // DLOG(INFO) << "in collision, coordinate is " << x << " " << y << " " << t;
     }
     return collision_result;
   }
@@ -215,6 +221,12 @@ bool CollisionDetection::configurationTest(const Node3D &start, const Node3D &en
 {
 
   return configurationTest(Utility::ConvertNod3DToVector2f(start), Utility::ConvertNod3DToVector2f(end));
+}
+
+bool CollisionDetection::configurationTest(const std::shared_ptr<Node2D> &node2d_start_ptr, const std::shared_ptr<Node2D> &node2d_end_ptr)
+{
+
+  return configurationTest(Utility::ConvertNod2DToVector2f(*node2d_start_ptr), Utility::ConvertNod2DToVector2f(*node2d_end_ptr));
 }
 
 void CollisionDetection::getConfiguration(const Node3D &node, float &x, float &y, float &t) const
@@ -1395,4 +1407,24 @@ float CollisionDetection::LimitSteeringAngle(const float &steering_angle, const 
     limited_steering_angle = Utility::ConvertDegToRad(std::round(Utility::ConvertRadToDeg(steering_angle)));
   }
   return limited_steering_angle;
+}
+
+std::vector<std::pair<float, float>> CollisionDetection::FindStepSizeAndSteeringAngle(const Node3D &pred, const Node3D &start, const Node3D &goal, const int &number_of_successor, const float &step_size)
+{
+  // DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
+  std::vector<std::pair<float, float>> out;
+  // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
+  // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
+  float distance_start_to_goal = Utility::GetDistance(start, goal);
+  bool consider_steering_angle_range = true;
+  std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = FindFreeAngleRangeAndObstacleAngleRange(pred, consider_steering_angle_range);
+  // 3. determine step size and steering angle from previous output
+  out = SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal, number_of_successor, step_size, distance_start_to_goal);
+
+  for (const auto &pair : out)
+  {
+    DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+  }
+  // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
+  return out;
 }

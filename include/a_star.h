@@ -58,6 +58,8 @@ namespace HybridAStar
        * @return std::vector<std::shared_ptr<Node2D>> 
        */
         std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir);
+
+        std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir, const uint &step_size);
         /**
          * @brief update heuristic for a star
          * 
@@ -72,6 +74,8 @@ namespace HybridAStar
         void UpdateCostSoFar(Node2D &node);
 
         void TracePath(std::shared_ptr<Node2D> node2d_ptr);
+
+        int FindStepSize(const Node2D &current_node);
 
     private:
         ParameterAStar params_;

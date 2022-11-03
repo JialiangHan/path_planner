@@ -41,7 +41,7 @@ steering_angle_towards_free_angle_range_for_obstacle_angle_range: true
 #   use a fixed step size, so steering angle should be: free angle start, free angle start+ n*step_size(step size should be 5 deg).
 fixed_number_of_steering_angle_in_free_angle_range: true
 
-analytical_expansion: true
+analytical_expansion: false
 # this parameter determine the frequency of analytical expansion, false means the way in the original paper
 analytical_expansion_every_point : true
 
@@ -113,22 +113,34 @@ weight_smoothness : 0.2
 weight_length : 0.2
 
 # **********************rrt parameters*****************
-use_rrt: false
-
-float possibility_to_goal: 0.5
+use_rrt: true
+# do not consider orientation
+twoD_rrt: true
+possibility_to_goal: 0.5
 
 
 # for goal check
 consider_orientation: false
 # consider steering angle range, if not, just random steering
-consider_steering_angle_range: true
+consider_steering_angle_range: false
 
 adaptive_possibility_to_goal: false
 # number of step size used to extend tree, if this is zero, then use continuos step size, for different obstacle density, use different step size
-number_of_step_size: 0
+number_of_step_size: 1
 # this parameter try the way in AEB rrt: use fix step size(1) when toward random node and step size==2 when towards goal
 #  ref: Wang, Xuewu & Wei, Jianbin & Zhou, Xin & Xia, Zelong & Gu, Xingsheng. (2022). AEB-RRT*: an adaptive extension bidirectional RRT* algorithm. Autonomous Robots. 46. 1-20. 10.1007/s10514-022-10044-x. 
 expand_like_AEB_RRT: false
+# rewire like rrt*
+rewire: true
+# radius to find near neighbors on rrt
+neighbor_detection_radius : 10
+
+use_rrt_connect : true
+
+steering_angle_resolution: 0.1
+# **********************A star parameters*****************
 # whether to use A-star algorithm to find path??
-use_a_star: false
+use_a_star: true
+
+use_adaptive_step_size_in_a_star: false
 

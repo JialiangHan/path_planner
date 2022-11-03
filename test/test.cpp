@@ -300,12 +300,12 @@ TEST(Utility, IsAngleRangeIncludeAngle)
     // Utility::AngleRange ar2(Utility::ConvertDegToRad(330), Utility::ConvertDegToRad(50));
     // float angle2 = Utility::ConvertDegToRad(10);
 
-    // EXPECT_TRUE(Utility::IsAngleRangeInclude(ar1, angle1));
-    // EXPECT_TRUE(Utility::IsAngleRangeInclude(ar2, angle2));
-    // EXPECT_TRUE(!Utility::IsAngleRangeInclude(ar3, ar4.first));
-    // EXPECT_TRUE(!Utility::IsAngleRangeInclude(ar3, Utility::GetAngleRangeEnd(ar4)));
-    // EXPECT_TRUE(!Utility::IsAngleRangeInclude(ar4, ar3.first));
-    // EXPECT_TRUE(!Utility::IsAngleRangeInclude(ar4, Utility::GetAngleRangeEnd(ar3)));
+    EXPECT_TRUE(Utility::IsAngleRangeInclude(ar1, angle1));
+    EXPECT_TRUE(Utility::IsAngleRangeInclude(ar2, angle2));
+    EXPECT_TRUE(!Utility::IsAngleRangeInclude(ar3, ar4.first));
+    EXPECT_TRUE(!Utility::IsAngleRangeInclude(ar3, Utility::GetAngleRangeEnd(ar4)));
+    EXPECT_TRUE(!Utility::IsAngleRangeInclude(ar4, ar3.first));
+    EXPECT_TRUE(!Utility::IsAngleRangeInclude(ar4, Utility::GetAngleRangeEnd(ar3)));
     EXPECT_TRUE(Utility::IsAngleRangeInclude(ar4, angle2));
     EXPECT_TRUE(Utility::IsAngleRangeInclude(ar4, angle1));
 }

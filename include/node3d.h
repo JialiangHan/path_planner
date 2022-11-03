@@ -88,9 +88,13 @@ class Node3D {
    /// Custom operator to compare nodes. Nodes are equal if their x and y position as well as heading is similar.
    bool operator==(const Node3D &rhs) const
    {
-     return (int)x == (int)rhs.x &&
-            (int)y == (int)rhs.y &&
-            (t == rhs.t);
+     if ((std::abs(x - rhs.x) < 1e-5) &&
+         (std::abs(y - rhs.y) < 1e-5) &&
+         (std::abs(t - rhs.t) < 1e-5))
+     {
+       return true;
+     }
+     return false;
    };
 
  private:

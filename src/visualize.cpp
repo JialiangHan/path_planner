@@ -34,7 +34,8 @@ void Visualize::clear() {
 //###################################################
 //                                    CURRENT 3D NODE
 //###################################################
-void Visualize::publishNode3DPose(Node3D& node) {
+void Visualize::publishNode3DPose(const Node3D &node)
+{
   geometry_msgs::PoseStamped pose;
   pose.header.frame_id = "path";
   pose.header.stamp = ros::Time::now();
@@ -59,7 +60,8 @@ void Visualize::publishNode3DPose(Node3D& node) {
 //###################################################
 //                              ALL EXPANDED 3D NODES
 //###################################################
-void Visualize::publishNode3DPoses(Node3D& node) {
+void Visualize::publishNode3DPoses(const Node3D &node)
+{
   geometry_msgs::Pose pose;
   pose.position.x = node.GetX() * params_.cell_size;
   pose.position.y = node.GetY() * params_.cell_size;
@@ -81,14 +83,15 @@ void Visualize::publishNode3DPoses(Node3D& node) {
     // PUBLISH THE POSEARRAY
     pubNodes3Dreverse.publish(poses3Dreverse);
   }
-
 }
 
 //###################################################
 //                                    CURRENT 2D NODE
 //###################################################
-void Visualize::publishNode2DPose(Node2D& node) {
+void Visualize::publishNode2DPose(const Node2D &node)
+{
   geometry_msgs::PoseStamped pose;
+  // DLOG(INFO) << "publishing";
   pose.header.frame_id = "path";
   pose.header.stamp = ros::Time::now();
   pose.header.seq = 0;
@@ -103,8 +106,10 @@ void Visualize::publishNode2DPose(Node2D& node) {
 //###################################################
 //                              ALL EXPANDED 2D NODES
 //###################################################
-void Visualize::publishNode2DPoses(Node2D& node) {
+void Visualize::publishNode2DPoses(const Node2D &node)
+{
   if (node.isDiscovered()) {
+    // DLOG(INFO) << "publishing";
     geometry_msgs::Pose pose;
     pose.position.x = (node.GetX() + 0.5) * params_.cell_size;
     pose.position.y = (node.GetY() + 0.5) * params_.cell_size;

@@ -412,7 +412,7 @@ namespace HybridAStar
       // TODO how to consider distance offset due to node3d is float
       // float distance_offset=sqrt()
       // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
-      available_steering_angle_and_step_size_vec = FindStepSizeAndSteeringAngle(pred);
+      available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(pred, start_, goal_, params_.number_of_successors, params_.step_size);
       // DLOG(INFO) << "CreateSuccessor out.";
     }
     else
@@ -526,25 +526,25 @@ namespace HybridAStar
     return out;
   }
 
-  std::vector<std::pair<float, float>> HybridAStar::FindStepSizeAndSteeringAngle(const Node3D &pred)
-  {
-    // DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
-    std::vector<std::pair<float, float>> out;
-    // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
-    // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
-    float distance_start_to_goal = Utility::GetDistance(start_, goal_);
-    bool consider_steering_angle_range = true;
-    std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred, consider_steering_angle_range);
-    // 3. determine step size and steering angle from previous output
-    out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors, params_.step_size, distance_start_to_goal);
+  // std::vector<std::pair<float, float>> HybridAStar::FindStepSizeAndSteeringAngle(const Node3D &pred)
+  // {
+  //   // DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
+  //   std::vector<std::pair<float, float>> out;
+  //   // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
+  //   // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
+  //   float distance_start_to_goal = Utility::GetDistance(start_, goal_);
+  //   bool consider_steering_angle_range = true;
+  //   std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred, consider_steering_angle_range);
+  //   // 3. determine step size and steering angle from previous output
+  //   out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors, params_.step_size, distance_start_to_goal);
 
-    for (const auto &pair : out)
-    {
-      DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-    }
-    // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
-    return out;
-  }
+  //   for (const auto &pair : out)
+  //   {
+  //     DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
+  //   }
+  //   // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
+  //   return out;
+  // }
   //###################################################
   //                                    update cost so far
   //###################################################

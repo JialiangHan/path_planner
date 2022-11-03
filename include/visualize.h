@@ -49,18 +49,18 @@ class Visualize {
 
   // PUBLISH A SINGLE/ARRAY 3D NODE TO RViz
   /// Publishes a single node to RViz, usually the one currently being expanded
-  void publishNode3DPose(Node3D& node);
+  void publishNode3DPose(const Node3D &node);
   /// Publishes all expanded nodes to RViz
-  void publishNode3DPoses(Node3D& node);
+  void publishNode3DPoses(const Node3D &node);
   // PUBLISH THE COST FOR A 3D NODE TO RViz
   /// Publishes the minimum of the cost of all nodes in a 2D grid cell
   void publishNode3DCosts(Node3D* nodes, int width, int height, int depth);
 
   // PUBLISH A SINGEL/ARRAY 2D NODE TO RViz
   /// Publishes a single node to RViz, usually the one currently being expanded
-  void publishNode2DPose(Node2D& node);
+  void publishNode2DPose(const Node2D &node);
   /// Publishes all expanded nodes to RViz
-  void publishNode2DPoses(Node2D& node);
+  void publishNode2DPoses(const Node2D &node);
   // PUBLISH THE COST FOR A 2D NODE TO RViz
   /// Publishes the minimum of the cost of all nodes in a 2D grid cell
   void publishNode2DCosts(Node2D* nodes, int width, int height);
