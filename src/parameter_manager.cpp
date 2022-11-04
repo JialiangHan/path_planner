@@ -59,9 +59,6 @@ namespace HybridAStar
     ros_param_name = "number_of_step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.number_of_step_size);
 
-    ros_param_name = "expand_like_AEB_RRT";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.expand_like_AEB_RRT);
-
     ros_param_name = "rewire";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.rewire);
 
@@ -73,6 +70,9 @@ namespace HybridAStar
 
     ros_param_name = "twoD_rrt";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.twoD_rrt);
+
+    ros_param_name = "use_AEB_rrt";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.use_AEB_rrt);
 
     LoadCollisionDetectionParams();
   }

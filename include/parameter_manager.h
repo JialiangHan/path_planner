@@ -82,7 +82,7 @@ namespace HybridAStar
 
     int number_of_step_size = 2;
 
-    bool expand_like_AEB_RRT = false;
+    bool use_AEB_rrt = false;
 
     bool rewire = false;
 
