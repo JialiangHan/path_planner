@@ -6,8 +6,7 @@ using namespace HybridAStar;
 void Visualize::clear() {
   poses3D.poses.clear();
   poses3Dreverse.poses.clear();
-  poses2D.poses.clear();
-
+  poses2D.markers.clear();
   // 3D COSTS
   visualization_msgs::MarkerArray costCubes3D;
   visualization_msgs::Marker costCube3D;
@@ -29,6 +28,16 @@ void Visualize::clear() {
   costCube2D.action = 3;
   costCubes2D.markers.emplace_back(costCube2D);
   pubNodes2DCosts.publish(costCubes2D);
+
+  // 2D poses
+  visualization_msgs::Marker pose2d;
+  // CLEAR THE COST HEATMAP
+  pose2d.header.frame_id = "path";
+  pose2d.header.stamp = ros::Time::now();
+  pose2d.id = 0;
+  pose2d.action = 3;
+  poses2D.markers.emplace_back(pose2d);
+  pubNodes2D.publish(poses2D);
 }
 
 //###################################################
@@ -108,19 +117,36 @@ void Visualize::publishNode2DPose(const Node2D &node)
 //###################################################
 void Visualize::publishNode2DPoses(const Node2D &node)
 {
-  if (node.isDiscovered()) {
-    // DLOG(INFO) << "publishing";
-    geometry_msgs::Pose pose;
-    pose.position.x = (node.GetX() + 0.5) * params_.cell_size;
-    pose.position.y = (node.GetY() + 0.5) * params_.cell_size;
-    pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
-    poses2D.poses.emplace_back(pose);
-    poses2D.header.stamp = ros::Time::now();
-    // PUBLISH THE POSEARRAY
-    pubNodes2D.publish(poses2D);
+  // DLOG(INFO) << "publishing node " << node.GetX() << " " << node.GetY();
 
-  }
+  // _______________
+  visualization_msgs::Marker pose2d;
+  pose2d.action = visualization_msgs::Marker::ADD;
+
+  pose2d.header.frame_id = "path";
+  pose2d.header.stamp = ros::Time::now();
+  pose2d.id = poses2D.markers.size();
+  pose2d.type = visualization_msgs::Marker::CUBE;
+  pose2d.scale.x = 0.2 * params_.cell_size;
+  pose2d.scale.y = 0.2 * params_.cell_size;
+  pose2d.scale.z = 0.1;
+
+  pose2d.color.a = 0.5;
+  pose2d.color.r = 1;
+  pose2d.color.g = 0;
+  pose2d.color.b = 0;
+  // center in cell +0.5
+  pose2d.pose.position.x = node.GetX() * params_.cell_size;
+  pose2d.pose.position.y = node.GetY() * params_.cell_size;
+  pose2d.pose.position.z = 1;
+  pose2d.pose.orientation.x = 0.0;
+  pose2d.pose.orientation.y = 0.0;
+  pose2d.pose.orientation.z = 0.0;
+  pose2d.pose.orientation.w = 1.0;
+  poses2D.markers.emplace_back(pose2d);
+  // PUBLISH THE POSEARRAY
+  pubNodes2D.publish(poses2D);
 }
 
 //###################################################

@@ -101,7 +101,7 @@ namespace HybridAStar
                 // RViz visualization_ptr_
                 if (visualization2D_ && !in_hybrid_a)
                 {
-                    // DLOG(INFO) << "in publishing";
+                    DLOG(INFO) << "in publishing";
                     visualization_ptr_->publishNode2DPoses((*nPred));
                     visualization_ptr_->publishNode2DPose((*nPred));
                     // visualization_ptr_->publishNode3DPoses(Utility::ConvertNode2DToNode3D(*nPred));

@@ -31,39 +31,36 @@ class Visualize {
      pubNodes3D = n.advertise<geometry_msgs::PoseArray>("/visualizeNodes3DPoses", 100);
      pubNodes3Dreverse = n.advertise<geometry_msgs::PoseArray>("/visualizeNodes3DPosesReverse", 100);
      pubNodes3DCosts = n.advertise<visualization_msgs::MarkerArray>("/visualizeNodes3DCosts", 100);
-     pubNode2D = n.advertise<geometry_msgs::PoseStamped>("/visualizeNodes2DPose", 100);
-     pubNodes2D = n.advertise<geometry_msgs::PoseArray>("/visualizeNodes2DPoses", 100);
+     pubNode2D = n.advertise<visualization_msgs::Marker>("/visualizeNodes2DPose", 100);
+     pubNodes2D = n.advertise<visualization_msgs::MarkerArray>("/visualizeNodes2DPoses", 10000);
      pubNodes2DCosts = n.advertise<visualization_msgs::MarkerArray>("/visualizeNodes2DCosts", 100);
 
      // CONFIGURE THE CONTAINER
      poses3D.header.frame_id = "path";
      poses3Dreverse.header.frame_id = "path";
-     poses2D.header.frame_id = "path";
    }
 
   // CLEAR VISUALIZATION
   /// Clears the entire visualization
-  void clear();
-  /// Clears the 2D visualization
-  void clear2D() {poses2D.poses.clear();}
+   void clear();
 
-  // PUBLISH A SINGLE/ARRAY 3D NODE TO RViz
-  /// Publishes a single node to RViz, usually the one currently being expanded
-  void publishNode3DPose(const Node3D &node);
-  /// Publishes all expanded nodes to RViz
-  void publishNode3DPoses(const Node3D &node);
-  // PUBLISH THE COST FOR A 3D NODE TO RViz
-  /// Publishes the minimum of the cost of all nodes in a 2D grid cell
-  void publishNode3DCosts(Node3D* nodes, int width, int height, int depth);
+   // PUBLISH A SINGLE/ARRAY 3D NODE TO RViz
+   /// Publishes a single node to RViz, usually the one currently being expanded
+   void publishNode3DPose(const Node3D &node);
+   /// Publishes all expanded nodes to RViz
+   void publishNode3DPoses(const Node3D &node);
+   // PUBLISH THE COST FOR A 3D NODE TO RViz
+   /// Publishes the minimum of the cost of all nodes in a 2D grid cell
+   void publishNode3DCosts(Node3D *nodes, int width, int height, int depth);
 
-  // PUBLISH A SINGEL/ARRAY 2D NODE TO RViz
-  /// Publishes a single node to RViz, usually the one currently being expanded
-  void publishNode2DPose(const Node2D &node);
-  /// Publishes all expanded nodes to RViz
-  void publishNode2DPoses(const Node2D &node);
-  // PUBLISH THE COST FOR A 2D NODE TO RViz
-  /// Publishes the minimum of the cost of all nodes in a 2D grid cell
-  void publishNode2DCosts(Node2D* nodes, int width, int height);
+   // PUBLISH A SINGEL/ARRAY 2D NODE TO RViz
+   /// Publishes a single node to RViz, usually the one currently being expanded
+   void publishNode2DPose(const Node2D &node);
+   /// Publishes all expanded nodes to RViz
+   void publishNode2DPoses(const Node2D &node);
+   // PUBLISH THE COST FOR A 2D NODE TO RViz
+   /// Publishes the minimum of the cost of all nodes in a 2D grid cell
+   void publishNode2DCosts(Node2D *nodes, int width, int height);
 
  private:
   /// A handle to the ROS node
@@ -87,7 +84,7 @@ class Visualize {
   /// Array of poses describing backward nodes
   geometry_msgs::PoseArray poses3Dreverse;
   /// Array of poses describing 2D heuristic nodes
-  geometry_msgs::PoseArray poses2D;
+  visualization_msgs::MarkerArray poses2D;
   ParameterVisualize params_;
 };
 }
