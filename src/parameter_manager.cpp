@@ -183,6 +183,9 @@ namespace HybridAStar
 
     ros_param_name = "use_a_star";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.use_a_star);
+
+    ros_param_name = "fix_start_goal";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.fix_start_goal);
   }
   void ParameterManager::LoadHybridAStarParams()
   {

@@ -655,4 +655,15 @@ namespace Utility
     int FindIndex(const std::vector<std::pair<HybridAStar::Node3D, float>> &node3d_vec, const std::pair<HybridAStar::Node3D, float> &element);
 
     int FindIndex(const std::vector<HybridAStar::Node3D> &node3d_vec, const HybridAStar::Node3D &element);
+    // T here should be path3d or path2d
+    template <typename T>
+    float GetLength(const T &t)
+    {
+       float total_length = 0;
+       for (size_t i = 0; i < t.size() - 1; i++)
+       {
+          total_length += GetDistance(t[i], t[i + 1]);
+       }
+       return total_length;
+    };
 }

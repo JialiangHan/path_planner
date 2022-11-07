@@ -121,6 +121,8 @@ namespace HybridAStar
     bool use_rrt = false;
 
     bool use_a_star = false;
+
+    bool fix_start_goal = true;
   };
 
   struct ParameterAStar

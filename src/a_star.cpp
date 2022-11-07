@@ -39,7 +39,7 @@ namespace HybridAStar
     //###################################################
     //                                        2D A*
     //###################################################
-    float AStar::GetAStarCost(Node2D *nodes2D, const Node2D &start, const Node2D &goal)
+    float AStar::GetAStarCost(Node2D *nodes2D, const Node2D &start, const Node2D &goal, const bool &in_hybrid_a)
     {
         start_ = start;
         goal_ = goal;
@@ -99,13 +99,13 @@ namespace HybridAStar
                 nodes2D[iPred].discover();
 
                 // RViz visualization_ptr_
-                if (visualization2D_)
+                if (visualization2D_ && !in_hybrid_a)
                 {
                     // DLOG(INFO) << "in publishing";
-                    // visualization_ptr_->publishNode2DPoses((*nPred));
-                    // visualization_ptr_->publishNode2DPose((*nPred));
-                    visualization_ptr_->publishNode3DPoses(Utility::ConvertNode2DToNode3D(*nPred));
-                    visualization_ptr_->publishNode3DPose(Utility::ConvertNode2DToNode3D(*nPred));
+                    visualization_ptr_->publishNode2DPoses((*nPred));
+                    visualization_ptr_->publishNode2DPose((*nPred));
+                    // visualization_ptr_->publishNode3DPoses(Utility::ConvertNode2DToNode3D(*nPred));
+                    // visualization_ptr_->publishNode3DPose(Utility::ConvertNode2DToNode3D(*nPred));
                     d.sleep();
                 }
                 // remove node from open list
@@ -116,8 +116,13 @@ namespace HybridAStar
                 {
                     // DLOG(INFO) << "goal reached, return cost so far.";
                     // DLOG(INFO) << "GetAStarCost out.";
+                    if (in_hybrid_a)
+                    {
+                        return nPred->GetCostSofar();
+                    }
+
                     TracePath(nPred);
-                    DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+                    LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
                     return nPred->GetCostSofar();
                 }
                 // ____________________

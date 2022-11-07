@@ -44,6 +44,8 @@ namespace HybridAStar
     nav_msgs::OccupancyGrid::Ptr a_star_map = TreatAstarMap(map);
     a_star_ptr_->Initialize(a_star_map);
 
+    LOG_IF(INFO, params_.adaptive_steering_angle_and_step_size) << "adaptive_steering_angle_and_step_size";
+    LOG_IF(INFO, !params_.adaptive_steering_angle_and_step_size) << "use fixed step size";
     // DLOG(INFO) << "hybrid a star initialized done.   ";
   }
 
@@ -125,7 +127,7 @@ namespace HybridAStar
         if (iterations > params_.max_iterations)
         {
           DLOG(INFO) << "max iterations reached!!!, current iterations is :" << iterations;
-          DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+          LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
           // return nPred;
           TracePath(nPred);
           return path_;
@@ -137,7 +139,7 @@ namespace HybridAStar
           // DLOG(INFO) << "Goal reached!!!";
           // return nPred;
           TracePath(nPred);
-          DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+          LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
           return path_;
         }
         // ____________________
@@ -156,7 +158,7 @@ namespace HybridAStar
               if (analytical_path.size() != 0)
               {
                 DLOG(INFO) << "Found path through analytical expansion";
-                DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+                LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
                 TracePath(nPred);
                 analytical_expansion_index_ = path_.size();
                 path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
@@ -184,7 +186,7 @@ namespace HybridAStar
                 if (analytical_path.size() != 0)
                 {
                   DLOG(INFO) << "Found path through analytical expansion";
-                  DLOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+                  LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
                   TracePath(nPred);
                   analytical_expansion_index_ = path_.size();
                   path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
@@ -263,7 +265,7 @@ namespace HybridAStar
         }
       }
     }
-    DLOG(INFO) << "open list is empty, end hybrid a star. number of nodes explored is " << number_nodes_explored;
+    LOG(INFO) << "open list is empty, end hybrid a star. number of nodes explored is " << number_nodes_explored;
     return path_;
   }
 
@@ -313,7 +315,7 @@ namespace HybridAStar
       // DLOG(INFO) << "A star start node is " << start2d.GetX() << " " << start2d.GetY() << " goal is " << goal2d.GetX() << " " << goal2d.GetY();
 
       // run 2d AStar and return the cost of the cheapest path for that node
-      nodes2D[(int)start.GetY() * map_width_ + (int)start.GetX()].SetG(a_star_ptr_->GetAStarCost(nodes2D, start2d, goal2d));
+      nodes2D[(int)start.GetY() * map_width_ + (int)start.GetX()].SetG(a_star_ptr_->GetAStarCost(nodes2D, start2d, goal2d, true));
       // ros::Time t1 = ros::Time::now();
       // ros::Duration d(t1 - t0);
       // DLOG(INFO) << "calculated 2D Heuristic in ms: " << d * 1000;
@@ -406,7 +408,7 @@ namespace HybridAStar
     // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
-      // DLOG(INFO) << "adaptive steering angle and step size";
+      // LOG(INFO) << "adaptive steering angle and step size";
       // steering angles are decided by angle to obstacle.
       // step size is determined by distance to obstacle.
       // TODO how to consider distance offset due to node3d is float
@@ -417,7 +419,7 @@ namespace HybridAStar
     }
     else
     {
-      // DLOG(INFO) << "fixed steering angle and step size";
+      // LOG(INFO) << "fixed steering angle and step size";
       // assume constant speed.
       float theta = Utility::ConvertDegToRad(params_.steering_angle);
 
@@ -526,25 +528,6 @@ namespace HybridAStar
     return out;
   }
 
-  // std::vector<std::pair<float, float>> HybridAStar::FindStepSizeAndSteeringAngle(const Node3D &pred)
-  // {
-  //   // DLOG(INFO) << "FindStepSizeAndSteeringAngle in:";
-  //   std::vector<std::pair<float, float>> out;
-  //   // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
-  //   // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
-  //   float distance_start_to_goal = Utility::GetDistance(start_, goal_);
-  //   bool consider_steering_angle_range = true;
-  //   std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(pred, consider_steering_angle_range);
-  //   // 3. determine step size and steering angle from previous output
-  //   out = configuration_space_ptr_->SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal_, params_.number_of_successors, params_.step_size, distance_start_to_goal);
-
-  //   for (const auto &pair : out)
-  //   {
-  //     DLOG_IF(INFO, (pair.first < 1) || (pair.second > Utility::ConvertDegToRad(30)) || (pair.second < -Utility::ConvertDegToRad(30))) << "step size " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(pair.second);
-  //   }
-  //   // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
-  //   return out;
-  // }
   //###################################################
   //                                    update cost so far
   //###################################################

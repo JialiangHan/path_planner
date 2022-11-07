@@ -89,7 +89,7 @@ Planner::Planner()
 
   sub_goal_ = nh_.subscribe("/move_base_simple/goal", 1, &Planner::SetGoal, this);
   sub_start_ = nh_.subscribe("/initialpose", 1, &Planner::SetStart, this);
-  // DLOG(INFO) << "Initialized finished planner!!";
+  DLOG(INFO) << "Initialized finished planner!!";
 };
 
 //###################################################
@@ -97,7 +97,7 @@ Planner::Planner()
 //###################################################
 void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
 {
-
+  DLOG(INFO) << "set map.";
   grid_ = map;
 
   if (params_.use_rrt)
@@ -111,18 +111,17 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
   else
   {
     hybrid_a_star_ptr_->Initialize(map);
-  }
-  // create array for Voronoi diagram
-  //  ros::Time t0 = ros::Time::now();
-  int height = map->info.height;
-  int width = map->info.width;
-  bool **binMap;
-  binMap = new bool *[width];
+    // create array for Voronoi diagram
+    ros::Time t0 = ros::Time::now();
+    int height = map->info.height;
+    int width = map->info.width;
+    bool **binMap;
+    binMap = new bool *[width];
 
-  for (int x = 0; x < width; x++)
-  {
-    binMap[x] = new bool[height];
-  }
+    for (int x = 0; x < width; x++)
+    {
+      binMap[x] = new bool[height];
+    }
 
   for (int x = 0; x < width; ++x)
   {
@@ -135,9 +134,10 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
   voronoi_diagram_.initializeMap(width, height, binMap);
   voronoi_diagram_.update();
   voronoi_diagram_.visualize();
-  //  ros::Time t1 = ros::Time::now();
-  //  ros::Duration d(t1 - t0);
-  //  DLOG(INFO) << "created Voronoi Diagram in ms: " << d * 1000 ;
+  ros::Time t1 = ros::Time::now();
+  ros::Duration d(t1 - t0);
+  DLOG(INFO) << "created Voronoi Diagram in ms: " << d * 1000;
+  }
 
   // plan if the switch is not set to manual and a transform is available
   if (!params_.manual && listener_.canTransform("/map", ros::Time(0), "/base_link", ros::Time(0), "/map", nullptr))
@@ -163,6 +163,11 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
 
     MakePlan();
   }
+  if (params_.fix_start_goal)
+  {
+    DLOG(INFO) << "in set map, start to make plan.";
+    MakePlan();
+  }
 }
 
 //###################################################
@@ -180,7 +185,7 @@ void Planner::SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr 
   startN.header.frame_id = "map";
   startN.header.stamp = ros::Time::now();
 
-  // DLOG(INFO) << "I am seeing a new start x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t) << " deg";
+  DLOG(INFO) << "I am seeing a new start x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t) << " deg";
 
   if (grid_->info.height >= y && y >= 0 && grid_->info.width >= x && x >= 0)
   {
@@ -189,6 +194,7 @@ void Planner::SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr 
 
     if (params_.manual)
     {
+      DLOG(INFO) << "in SetStart, start to make plan.";
       MakePlan();
     }
 
@@ -211,7 +217,7 @@ void Planner::SetGoal(const geometry_msgs::PoseStamped::ConstPtr &end)
   float y = end->pose.position.y / params_.cell_size;
   float t = tf::getYaw(end->pose.orientation);
 
-  // DLOG(INFO) << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t) << " deg";
+  DLOG(INFO) << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t) << " deg";
 
   if (grid_->info.height >= y && y >= 0 && grid_->info.width >= x && x >= 0)
   {
@@ -220,6 +226,7 @@ void Planner::SetGoal(const geometry_msgs::PoseStamped::ConstPtr &end)
 
     if (params_.manual)
     {
+      DLOG(INFO) << "in SetGoal, start to make plan.";
       MakePlan();
     }
   }
@@ -234,8 +241,14 @@ void Planner::SetGoal(const geometry_msgs::PoseStamped::ConstPtr &end)
 //###################################################
 void Planner::MakePlan()
 {
+  if (grid_ == nullptr)
+  {
+    DLOG(WARNING) << "map not initialized";
+    return;
+  }
+
   // if a start as well as goal are defined go ahead and plan
-  if (valid_start_ && valid_goal_)
+  if ((valid_start_ && valid_goal_) || params_.fix_start_goal)
   {
     DLOG(INFO) << "valid start and valid goal, start to make plan!";
 
@@ -249,27 +262,44 @@ void Planner::MakePlan()
     Node3D *nodes3D = new Node3D[length]();
     Node2D *nodes2D = new Node2D[width * height]();
 
-    // retrieving start position
-    float x = start_.pose.pose.position.x / params_.cell_size;
-    float y = start_.pose.pose.position.y / params_.cell_size;
-    float t = tf::getYaw(start_.pose.pose.orientation);
+    float x, y, t;
+    Node3D nStart, nGoal;
     // set theta to a value (0,2PI]
+    if (params_.fix_start_goal)
+    {
+      x = 2;
+      y = height - 2;
+      t = Utility::ConvertDegToRad(0);
+      t = Utility::RadToZeroTo2P(t);
+      nStart.setX(x);
+      nStart.setY(y);
+      nStart.setT(t);
+      // set theta to a value (0,2PI]
+      t = Utility::RadToZeroTo2P(t);
+      x = width - 2;
+      y = 2;
+      t = Utility::ConvertDegToRad(0);
+      nGoal.setX(x);
+      nGoal.setY(y);
+      nGoal.setT(t);
+    }
+    else
+    {
+      x = start_.pose.pose.position.x / params_.cell_size;
+      y = start_.pose.pose.position.y / params_.cell_size;
+      t = tf::getYaw(start_.pose.pose.orientation);
+      nStart.setX(x);
+      nStart.setY(y);
+      nStart.setT(t);
+      // retrieving goal position
+      x = goal_.pose.position.x / params_.cell_size;
+      y = goal_.pose.position.y / params_.cell_size;
+      t = tf::getYaw(goal_.pose.orientation);
+      nGoal.setX(x);
+      nGoal.setY(y);
+      nGoal.setT(t);
+    }
 
-    x = 2;
-    y = height - 2;
-    t = Utility::ConvertDegToRad(0);
-    t = Utility::RadToZeroTo2P(t);
-    Node3D nStart(x, y, t, 0, 0, nullptr);
-    // retrieving goal position
-    x = goal_.pose.position.x / params_.cell_size;
-    y = goal_.pose.position.y / params_.cell_size;
-    t = tf::getYaw(goal_.pose.orientation);
-    // set theta to a value (0,2PI]
-    t = Utility::RadToZeroTo2P(t);
-    x = width - 2;
-    y = 2;
-    t = Utility::ConvertDegToRad(0);
-    Node3D nGoal(x, y, t, 0, 0, nullptr);
     std::srand(0);
     Clear();
     // START AND TIME THE PLANNING
@@ -277,7 +307,7 @@ void Planner::MakePlan()
     Utility::Path3D path, temp;
     if (params_.use_rrt)
     {
-      DLOG(INFO) << "Use RRT!";
+      LOG(INFO) << "Use RRT!";
       path = rrt_planner_ptr_->GetPath(nStart, nGoal);
       // if (true)
       // {
@@ -289,21 +319,21 @@ void Planner::MakePlan()
     }
     else if (params_.use_a_star)
     {
-      DLOG(INFO) << "Use A star!";
+      LOG(INFO) << "Use A star!";
       path = a_star_planner_ptr_->GetPath(nStart, nGoal, nodes2D);
     }
     else
     {
       // FIND THE PATH
-      DLOG(INFO) << "Use hybrid a star!";
+      LOG(INFO) << "Use hybrid a star!";
       path = hybrid_a_star_ptr_->GetPath(nStart, nGoal, nodes3D, nodes2D);
     }
-
-    // for (const auto &node : path)
-    // {
-    //   DLOG(INFO) << "node in path is " << node.GetX() << " " << node.GetY() << " " << node.GetT();
-    // }
-    // set path
+    LOG(INFO) << "path length is " << Utility::GetLength(path);
+    //  for (const auto &node : path)
+    //  {
+    //    DLOG(INFO) << "node in path is " << node.GetX() << " " << node.GetY() << " " << node.GetT();
+    //  }
+    //  set path
     smoother_ptr_->SetPath(path);
     // CREATE THE UPDATED PATH
     path_publisher_ptr_->UpdatePath(smoother_ptr_->GetPath());
@@ -318,7 +348,8 @@ void Planner::MakePlan()
     }
     ros::Time t1 = ros::Time::now();
     ros::Duration d(t1 - t0);
-    LOG(INFO) << "TIME in ms: " << d * 1000;
+    // LOG(INFO) << "TIME in ms: " << d * 1000;
+    LOG(INFO) << "TIME in second: " << d;
     Publish(nodes3D, nodes2D, width, height, depth);
 
     delete[] nodes3D;

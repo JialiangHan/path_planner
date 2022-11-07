@@ -1931,4 +1931,5 @@ namespace Utility
         }
         return current_index;
     }
+
 } // namespace Utility

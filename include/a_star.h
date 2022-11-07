@@ -44,7 +44,7 @@ namespace HybridAStar
          * @param nodes2D 
          * @return float 
          */
-        float GetAStarCost(Node2D *nodes2D, const Node2D &start, const Node2D &goal);
+        float GetAStarCost(Node2D *nodes2D, const Node2D &start, const Node2D &goal, const bool &in_hybrid_a = false);
 
         Utility::Path3D GetPath(Node3D &start, Node3D &goal,
                                 Node2D *nodes2D);

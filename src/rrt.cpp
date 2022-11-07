@@ -33,11 +33,12 @@ namespace RRTPlanner
     void RRTPlanner::Planning()
     {
         DLOG(INFO) << "In Planning!!!";
-        DLOG_IF(INFO, params_.twoD_rrt) << "2D rrt!";
-        DLOG_IF(INFO, params_.adaptive_possibility_to_goal) << "adaptive_possibility_to_goal!";
-        DLOG_IF(INFO, params_.use_AEB_rrt) << "use_AEB_rrt!";
-        DLOG_IF(INFO, params_.rewire) << "rewire!";
-        DLOG_IF(INFO, params_.use_rrt_connect) << "use_rrt_connect!";
+        LOG_IF(INFO, params_.twoD_rrt) << "2D rrt!";
+        LOG_IF(INFO, params_.adaptive_possibility_to_goal) << "adaptive_possibility_to_goal!";
+        LOG_IF(INFO, params_.use_AEB_rrt) << "use_AEB_rrt!";
+        LOG_IF(INFO, params_.rewire) << "rewire!";
+        LOG_IF(INFO, params_.use_rrt_connect) << "use_rrt_connect!";
+        LOG_IF(INFO, params_.number_of_step_size == 0) << "use adaptive step size!";
         if (params_.use_rrt_connect || params_.use_AEB_rrt)
         {
             RRTConnectPlanner();
@@ -70,7 +71,7 @@ namespace RRTPlanner
             }
             number_of_iterations++;
         }
-        DLOG(INFO) << "number of nodes explored is " << rrt_start.size();
+        LOG(INFO) << "number of nodes explored is " << rrt_start.size();
         path_ = TracePath(rrt_start, goal_index);
     }
 
@@ -910,7 +911,7 @@ namespace RRTPlanner
                 {
                     DLOG(INFO) << "two rrt connected!";
                     SetPath(rrt_start, rrt_goal, status_successor_connect.second);
-                    DLOG(INFO) << "total number of nodes explored " << rrt_start.first.size() + rrt_goal.first.size();
+                    LOG(INFO) << "total number of nodes explored " << rrt_start.first.size() + rrt_goal.first.size();
                     break;
                 }
             }
