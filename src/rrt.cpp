@@ -963,8 +963,8 @@ namespace RRTPlanner
                     ros::Duration delay(0.03);
                     if (params_.twoD_rrt)
                     {
-                        visualization_ptr_->publishNode2DPoses(Utility::ConvertNode3DToNode2D(successor));
-                        visualization_ptr_->publishNode2DPose(Utility::ConvertNode3DToNode2D(successor));
+                        visualization_ptr_->publishNode2DPoses(successor);
+                        visualization_ptr_->publishNode2DPose(successor);
                     }
                     else
                     {

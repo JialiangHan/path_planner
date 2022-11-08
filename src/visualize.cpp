@@ -148,7 +148,60 @@ void Visualize::publishNode2DPoses(const Node2D &node)
   // PUBLISH THE POSEARRAY
   pubNodes2D.publish(poses2D);
 }
+// / ################################################## #
+//                                    CURRENT 2D NODE
+//###################################################
+void Visualize::publishNode2DPose(const Node3D &node)
+{
+  geometry_msgs::PoseStamped pose;
+  // DLOG(INFO) << "publishing";
+  pose.header.frame_id = "path";
+  pose.header.stamp = ros::Time::now();
+  pose.header.seq = 0;
+  pose.pose.position.x = (node.GetX()) * params_.cell_size;
+  pose.pose.position.y = (node.GetY()) * params_.cell_size;
+  pose.pose.orientation = tf::createQuaternionMsgFromYaw(0);
 
+  // PUBLISH THE POSE
+  pubNode2D.publish(pose);
+}
+
+//###################################################
+//                              ALL EXPANDED 2D NODES
+//###################################################
+void Visualize::publishNode2DPoses(const Node3D &node)
+{
+
+  // DLOG(INFO) << "publishing node " << node.GetX() << " " << node.GetY();
+
+  // _______________
+  visualization_msgs::Marker pose2d;
+  pose2d.action = visualization_msgs::Marker::ADD;
+
+  pose2d.header.frame_id = "path";
+  pose2d.header.stamp = ros::Time::now();
+  pose2d.id = poses2D.markers.size();
+  pose2d.type = visualization_msgs::Marker::CUBE;
+  pose2d.scale.x = 0.2 * params_.cell_size;
+  pose2d.scale.y = 0.2 * params_.cell_size;
+  pose2d.scale.z = 0.1;
+
+  pose2d.color.a = 0.5;
+  pose2d.color.r = 1;
+  pose2d.color.g = 0;
+  pose2d.color.b = 0;
+  // center in cell +0.5
+  pose2d.pose.position.x = node.GetX() * params_.cell_size;
+  pose2d.pose.position.y = node.GetY() * params_.cell_size;
+  pose2d.pose.position.z = 1;
+  pose2d.pose.orientation.x = 0.0;
+  pose2d.pose.orientation.y = 0.0;
+  pose2d.pose.orientation.z = 0.0;
+  pose2d.pose.orientation.w = 1.0;
+  poses2D.markers.emplace_back(pose2d);
+  // PUBLISH THE POSEARRAY
+  pubNodes2D.publish(poses2D);
+}
 //###################################################
 //                                    COST HEATMAP 3D
 //###################################################
