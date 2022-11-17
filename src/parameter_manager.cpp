@@ -195,6 +195,9 @@ namespace HybridAStar
     ros_param_name = "number_of_successors";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.number_of_successors);
 
+    ros_param_name = "adaptive_step_size";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_step_size);
+
     ros_param_name = "piecewise_cubic_bezier_interpolation";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.piecewise_cubic_bezier_interpolation);
 

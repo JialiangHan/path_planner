@@ -1428,3 +1428,39 @@ std::vector<std::pair<float, float>> CollisionDetection::FindStepSizeAndSteering
   // DLOG(INFO) << "FindStepSizeAndSteeringAngle out.";
   return out;
 }
+
+float CollisionDetection::FindStepSize(const Node3D &pred, const float &steering_angle, const Node3D &goal, const float &fixed_step_size)
+{
+  float step_size = 0, available_step_size, min_distance_to_obstacle;
+  float distance_to_goal = Utility::GetDistance(pred, goal);
+  std::vector<std::pair<float, Utility::AngleRange>> step_size_angle_range_vec = FindFreeAngleRangeAndObstacleAngleRange(pred, false);
+  float final_orientation = Utility::RadNormalization(pred.GetT() + steering_angle);
+  for (const auto &element : step_size_angle_range_vec)
+  {
+    if (Utility::IsAngleRangeInclude(element.second, final_orientation))
+    {
+      min_distance_to_obstacle = element.first;
+      break;
+    }
+  }
+  float weight_step_size = GetStepSizeWeight(GetNormalizedObstacleDensity(pred));
+
+  available_step_size = ((min_distance_to_obstacle - 0.5 * params_.vehicle_length) > fixed_step_size) ? (min_distance_to_obstacle - 0.5 * params_.vehicle_length) : 0;
+
+  step_size = weight_step_size * min_distance_to_obstacle;
+
+  // make sure step size is larger than a predefined min distance otherwise too many successors
+  if (step_size < fixed_step_size)
+  {
+    // DLOG(INFO) << "step size is smaller than  predefined min distance, make it to one!!";
+    step_size = fixed_step_size;
+  }
+  // make sure step size is larger than a predefined min distance otherwise too many successors
+
+  if (step_size > distance_to_goal)
+  {
+    step_size = distance_to_goal;
+  }
+
+  return step_size;
+}

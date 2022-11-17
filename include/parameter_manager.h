@@ -142,6 +142,8 @@ namespace HybridAStar
     int number_of_successors = 10;
     bool piecewise_cubic_bezier_interpolation = false;
     bool adaptive_steering_angle_and_step_size = false;
+
+    bool adaptive_step_size = true;
     // this parameter determine the frequency of analytical expansion, false means the way in the original paper
     bool analytical_expansion_every_point = true;
     // for create successor

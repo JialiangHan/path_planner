@@ -75,6 +75,8 @@ namespace HybridAStar
 
     std::vector<std::pair<float, float>> FindStepSizeAndSteeringAngle(const Node3D &pred, const Node3D &start, const Node3D &goal, const int &number_of_successor, const float &step_size);
 
+    float FindStepSize(const Node3D &pred, const float &steering_angle, const Node3D &goal, const float &fixed_step_size);
+
   private:
     bool IsOnGrid(const Node3D &node3d) const;
     bool IsOnGrid(const Node2D &node2d) const;

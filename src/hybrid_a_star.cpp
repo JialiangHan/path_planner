@@ -419,6 +419,22 @@ namespace HybridAStar
       available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(pred, start_, goal_, params_.number_of_successors, params_.step_size);
       // DLOG(INFO) << "CreateSuccessor out.";
     }
+    else if (params_.adaptive_step_size)
+    {
+      // LOG(INFO) << "fixed steering angle and step size";
+      // assume constant speed.
+      float theta = Utility::ConvertDegToRad(params_.steering_angle);
+
+      std::vector<float> available_steering_angle_vec = {theta, 0, -theta};
+      std::pair<float, float> pair;
+
+      for (const auto &element : available_steering_angle_vec)
+      {
+        pair.first = configuration_space_ptr_->FindStepSize(pred, element, goal_, params_.step_size);
+        pair.second = element;
+        available_steering_angle_and_step_size_vec.emplace_back(pair);
+      }
+    }
     else
     {
       // LOG(INFO) << "fixed steering angle and step size";
