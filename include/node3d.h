@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <memory>
+#include "glog/logging.h"
+#include "gflags/gflags.h"
 namespace HybridAStar {
 /*!
    \brief A three dimensional node class that is at the heart of the algorithm.
@@ -66,6 +68,8 @@ class Node3D {
    int setIdx(int width, int height, const float &delta_heading_in_rad)
    {
      this->idx = (int)(t / delta_heading_in_rad) * width * height + (int)(y)*width + (int)(x);
+     // 292080 this number is the length in planner.cpp row 260
+     DLOG_IF(INFO, idx > 292080) << "x is " << x << " y is " << y << " t is " << t << " (int)(t / delta_heading_in_rad) * width * height " << (int)(t / delta_heading_in_rad) * width * height << " (int)(y)*width " << (int)(y)*width << " (int)(x) " << (int)(x);
      return idx;
    }
    /// open the node

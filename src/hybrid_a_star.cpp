@@ -107,6 +107,7 @@ namespace HybridAStar
       // _____________________________
       // LAZY DELETION of rewired node
       // if there exists a pointer this node has already been expanded
+
       if (nodes3D[iPred].isClosed())
       {
         // DLOG(INFO) << "nPred is already closesd!";
@@ -220,6 +221,7 @@ namespace HybridAStar
             // ensure successor is on grid and traversable
             if (configuration_space_ptr_->IsTraversable(nSucc))
             {
+              // DLOG(INFO) << "index is " << iSucc;
               // ensure successor is not on closed list or it has the same index as the predecessor
               if (!nodes3D[iSucc].isClosed())
               {

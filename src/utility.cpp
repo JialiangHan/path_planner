@@ -1141,7 +1141,7 @@ namespace Utility
     float RadToZeroTo2P(const float &rad)
     {
 
-        if (rad >= 0 && rad <= 2.f * M_PI)
+        if (rad >= 0 && rad < 2.f * M_PI)
         {
             return rad;
         }
@@ -1151,7 +1151,7 @@ namespace Utility
         {
             out += 2.f * M_PI;
         }
-        if (abs(out - 2 * M_PI) < 1e-6)
+        if (abs(out - 2 * M_PI) < 1e-3)
         {
             out = 0;
         }
