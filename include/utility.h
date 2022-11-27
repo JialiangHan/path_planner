@@ -660,10 +660,17 @@ namespace Utility
     float GetLength(const T &t)
     {
        float total_length = 0;
+       if (t.size() <= 0)
+       {
+          return total_length;
+       }
+
        for (size_t i = 0; i < t.size() - 1; i++)
        {
           total_length += GetDistance(t[i], t[i + 1]);
        }
        return total_length;
     };
+
+    std::vector<float> FormSteeringAngleVec(const float &steering_angle, const int &number_of_successors);
 }

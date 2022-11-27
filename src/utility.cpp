@@ -1932,4 +1932,22 @@ namespace Utility
         return current_index;
     }
 
+    std::vector<float> FormSteeringAngleVec(const float &steering_angle, const int &number_of_successors)
+    {
+        std::vector<float> out;
+        out.emplace_back(0);
+        if (number_of_successors <= 1)
+        {
+            return out;
+        };
+        for (size_t i = 1; i <= (number_of_successors - 1) / 2; i++)
+        {
+            out.emplace_back(i * ConvertDegToRad(steering_angle));
+            out.emplace_back(-(i * ConvertDegToRad(steering_angle)));
+            // LOG(INFO) << "i is " << i << " i * ConvertDegToRad(steering_angle) " << i * ConvertDegToRad(steering_angle) << " -i * ConvertDegToRad(steering_angle)" << -(i * ConvertDegToRad(steering_angle));
+        }
+
+        return out;
+    }
+
 } // namespace Utility
