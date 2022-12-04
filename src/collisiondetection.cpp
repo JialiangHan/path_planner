@@ -759,15 +759,13 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
       // DLOG(INFO) << "in free angle range.";
       if (params_.add_one_more_successor)
       {
-        if (Utility::IsAngleRangeInclude(pair.second, final_orientation))
+        // DLOG(INFO) << "one more node is in free angle range!";
+        std::pair<float, float> temp = AddOneMoreStepSizeAndSteeringAngle(steering_angle_toward_goal, FindStepSize(pred, steering_angle_toward_goal, goal, fixed_step_size), pred, goal);
+        if (!Utility::DuplicateCheck(out, temp))
         {
-          // DLOG(INFO) << "one more node is in free angle range!";
-          std::pair<float, float> temp = AddOneMoreStepSizeAndSteeringAngle(steering_angle_toward_goal, FindStepSize(pred, steering_angle_toward_goal, goal, fixed_step_size), pred, goal);
-          if (!Utility::DuplicateCheck(out, temp))
-          {
-            out.emplace_back(temp);
-            DLOG_IF(INFO, distance_to_goal < 2) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << temp.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(temp.second);
-          }
+          out.emplace_back(temp);
+          // LOG_IF(INFO, temp.first < 1) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << temp.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(temp.second);
+          // DLOG_IF(INFO, distance_to_goal < 2) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << temp.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(temp.second);
         }
       }
       //  how to automatically determine number of successors?Answer: if range <5deg, just create one successor(avg),else, create n successors, each has (min+5*n)deg angles. DONE
@@ -863,15 +861,13 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
       {
         if (!params_.add_one_more_successor_only_in_free_angle_range)
         {
-          if (Utility::IsAngleRangeInclude(pair.second, final_orientation))
+          // DLOG(INFO) << "one more node is in obstacle angle range!";
+          std::pair<float, float> temp = AddOneMoreStepSizeAndSteeringAngle(steering_angle_toward_goal, FindStepSize(pred, steering_angle_toward_goal, goal, fixed_step_size), pred, goal);
+          if (!Utility::DuplicateCheck(out, temp))
           {
-            // DLOG(INFO) << "one more node is in obstacle angle range!";
-            std::pair<float, float> temp = AddOneMoreStepSizeAndSteeringAngle(steering_angle_toward_goal, FindStepSize(pred, steering_angle_toward_goal, goal, fixed_step_size), pred, goal);
-            if (!Utility::DuplicateCheck(out, temp))
-            {
-              out.emplace_back(temp);
-              // DLOG_IF(INFO, distance_to_goal < 2) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << temp.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(temp.second);
-            }
+            out.emplace_back(temp);
+            // LOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << temp.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(temp.second);
+            // DLOG_IF(INFO, distance_to_goal < 2) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " step size is " << temp.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(temp.second);
           }
         }
       }
@@ -1258,7 +1254,7 @@ std::pair<float, float> CollisionDetection::AddOneMoreStepSizeAndSteeringAngle(c
   // 4. if angle to goal is in the steering angle range(current orientation +-30deg), then make it steering angle, otherwise 30 or -30 to make angle to goal smaller
   steering_angle = LimitSteeringAngle(angle_to_goal, Utility::ConvertDegToRad(30));
 
-  out.first = 0.5 * new_step_size;
+  out.first = new_step_size;
   out.second = steering_angle;
 
   // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT()) << " and goal orientation is " << Utility::ConvertRadToDeg(goal.GetT()) << " one more step size is " << new_step_size << " and steering angle pair is " << Utility::ConvertRadToDeg(steering_angle) << "distance to goal is " << distance_to_goal;
