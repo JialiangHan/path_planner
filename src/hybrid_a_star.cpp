@@ -408,56 +408,97 @@ namespace HybridAStar
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
     std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec;
     float distance_to_goal = Utility::GetDistance(pred, goal_);
-    // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
-    if (params_.adaptive_steering_angle_and_step_size)
+    if (true)
     {
-      // LOG(INFO) << "adaptive steering angle and step size";
-      // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
-      available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(pred, start_, goal_, params_.number_of_successors, params_.step_size);
-      // DLOG(INFO) << "CreateSuccessor out.";
-    }
-    else if (params_.adaptive_step_size)
-    {
-      // LOG(INFO) << "fixed steering angle and step size";
-      // assume constant speed.
-
-      std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
-      std::pair<float, float> pair;
-
-      for (const auto &element : available_steering_angle_vec)
+      float current_normalized_obstacle_density = configuration_space_ptr_->GetNormalizedObstacleDensity(pred);
+      // LOG(INFO) << "current node normalized obstacle density is " << current_normalized_obstacle_density;
+      if (current_normalized_obstacle_density > 0.4)
       {
-        pair.first = configuration_space_ptr_->FindStepSize(pred, element, goal_, params_.step_size);
-        pair.second = element;
-        available_steering_angle_and_step_size_vec.emplace_back(pair);
+        // LOG(INFO) << "fixed steering angle and step size";
+        // assume constant speed.
+
+        std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
+        std::pair<float, float> pair;
+
+        if (params_.step_size > distance_to_goal)
+        {
+          pair.first = distance_to_goal;
+        }
+        else
+        {
+          pair.first = params_.step_size;
+        }
+
+        for (const auto &element : available_steering_angle_vec)
+        {
+          pair.second = element;
+          available_steering_angle_and_step_size_vec.emplace_back(pair);
+        }
+        // LOG(INFO) << "fix step size;";
+      }
+      else
+      {
+        // LOG(INFO) << "adaptive steering angle and step size";
+        // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
+        available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(pred, start_, goal_, params_.number_of_successors, params_.step_size);
+        // DLOG(INFO) << "CreateSuccessor out.";
+        // LOG(INFO) << "adaptive step size;";
       }
     }
     else
     {
-      // LOG(INFO) << "fixed steering angle and step size";
-      // assume constant speed.
 
-      std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
-      std::pair<float, float> pair;
-
-      if (params_.step_size > distance_to_goal)
+      // DLOG(INFO) << "current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+      if (params_.adaptive_steering_angle_and_step_size)
       {
-        pair.first = distance_to_goal;
+        // LOG(INFO) << "adaptive steering angle and step size";
+        // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
+        available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(pred, start_, goal_, params_.number_of_successors, params_.step_size);
+        // DLOG(INFO) << "CreateSuccessor out.";
+      }
+      else if (params_.adaptive_step_size)
+      {
+        // LOG(INFO) << "fixed steering angle and step size";
+        // assume constant speed.
+
+        std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
+        std::pair<float, float> pair;
+
+        for (const auto &element : available_steering_angle_vec)
+        {
+          pair.first = configuration_space_ptr_->FindStepSize(pred, element, goal_, params_.step_size);
+          pair.second = element;
+          available_steering_angle_and_step_size_vec.emplace_back(pair);
+        }
       }
       else
       {
-        pair.first = params_.step_size;
-      }
+        // LOG(INFO) << "fixed steering angle and step size";
+        // assume constant speed.
 
-      for (const auto &element : available_steering_angle_vec)
-      {
-        pair.second = element;
-        available_steering_angle_and_step_size_vec.emplace_back(pair);
+        std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
+        std::pair<float, float> pair;
+
+        if (params_.step_size > distance_to_goal)
+        {
+          pair.first = distance_to_goal;
+        }
+        else
+        {
+          pair.first = params_.step_size;
+        }
+
+        for (const auto &element : available_steering_angle_vec)
+        {
+          pair.second = element;
+          available_steering_angle_and_step_size_vec.emplace_back(pair);
+        }
       }
+      // for (const auto &element : available_steering_angle_and_step_size_vec)
+      // {
+      //   LOG(INFO) << "step size is " << element.first << " steering angle is " << Utility::ConvertRadToDeg(element.second);
+      // }
     }
-    // for (const auto &element : available_steering_angle_and_step_size_vec)
-    // {
-    //   LOG(INFO) << "step size is " << element.first << " steering angle is " << Utility::ConvertRadToDeg(element.second);
-    // }
 
     out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
     // DLOG(INFO) << "CreateSuccessor out.";
