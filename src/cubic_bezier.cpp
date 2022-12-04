@@ -127,6 +127,10 @@ namespace CubicBezier
         geometrical_constraint_matrix_.block<3, 1>(0, 1) = first_control_point;
         geometrical_constraint_matrix_.block<3, 1>(0, 2) = second_control_point;
         geometrical_constraint_matrix_.block<3, 1>(0, 3) = goal_point_;
+        // LOG(INFO) << "start point is " << start_point_.x() << " " << start_point_.y();
+        // LOG(INFO) << "first control point is " << first_control_point.x() << " " << first_control_point.y();
+        // LOG(INFO) << "second control point is " << second_control_point.x() << " " << second_control_point.y();
+        // LOG(INFO) << "end point is " << goal_point_.x() << " " << goal_point_.y();
     }
 
     void CubicBezier::CalculateAnchorPoints()

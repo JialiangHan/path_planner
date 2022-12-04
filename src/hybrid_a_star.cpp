@@ -393,6 +393,7 @@ namespace HybridAStar
       path_vec.emplace_back(goal);
       // std::string out = params_.reverse == true ? "cubic bezier" : "dubins";
       DLOG(INFO) << "Analytical expansion connected, returning path";
+      LOG(INFO) << "analytical expansion start at " << start.GetX() << " " << start.GetY() << " " << Utility::ConvertRadToDeg(start.GetT());
     }
     return path_vec;
   }
