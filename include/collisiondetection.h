@@ -293,21 +293,21 @@ namespace HybridAStar
 
     /// The collision lookup table
     Constants::config collisionLookup[Constants::headings * Constants::positions];
-    //collision lookup table, use array instead of vector, temporally use vector
+    // collision lookup table, use array instead of vector, temporally use vector
     /**
      * @brief key is location index(y*width+x) in the map, value is unordered map for fine index, key is fine index related to params.position resolution, value is collision or not, true for free, false for collision.
-     * 
+     *
      */
     std::unordered_map<uint, std::unordered_map<uint, bool>> collision_lookup_;
 
     /**
      * @brief all obstacle, in a vector format
-     * 
+     *
      */
     std::vector<Utility::Polygon> obstacle_vec_;
     /**
      * @brief key is location index, value is vector of polygon in a certain range
-     * 
+     *
      */
     std::unordered_map<uint, std::vector<Utility::Polygon>> in_range_obstacle_map_;
     /**

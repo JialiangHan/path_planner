@@ -23,14 +23,17 @@ curve_type : 0
 # step size to create successor
 step_size : 1
 
-adaptive_steering_angle_and_step_size: true
+adaptive_steering_angle_and_step_size: false
 
 adaptive_step_size: false
+# parameter to control whether to use fix or adaptive step size
+constant_density: 0.6
 
+obstacle_detection_range: 4.5
 # this parameter forces all step size larger than one
 # make_step_size_larger_than_one: true
 
-add_one_more_successor : true
+add_one_more_successor : false
 
 add_one_more_successor_only_in_free_angle_range: true
 
