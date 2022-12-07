@@ -14,10 +14,25 @@ typedef ompl::base::SE2StateSpace::StateType State;
 #include "piecewise_cubic_bezier.h"
 namespace HybridAStar
 {
-
+   //###################################################
+   //                                    NODE COMPARISON
+   //###################################################
    /*!
- * \brief A class that encompasses the functions central to the search.
+    \brief A structure to sort nodes in a heap structure
  */
+   struct CompareNodes
+   {
+      /// Sorting 3D nodes by increasing C value - the total estimated cost
+      bool operator()(const std::shared_ptr<Node3D> lhs, const std::shared_ptr<Node3D> rhs) const
+      {
+         return lhs->GetTotalCost() > rhs->GetTotalCost();
+      }
+   };
+
+   typedef boost::heap::binomial_heap<std::shared_ptr<Node3D>, boost::heap::compare<CompareNodes>> priorityQueue;
+   /*!
+    * \brief A class that encompasses the functions central to the search.
+    */
    class HybridAStar
    {
    public:
@@ -27,8 +42,8 @@ namespace HybridAStar
                   const std::shared_ptr<Visualize> &visualization_ptr);
       /**
        * @brief set map and calculate lookup table
-       * 
-       * @param map 
+       *
+       * @param map
        */
       void Initialize(nav_msgs::OccupancyGrid::Ptr map);
 
@@ -56,11 +71,11 @@ namespace HybridAStar
       void UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D);
       /**
        * @brief analytical expansion in paper, here use dubins curve.
-       * 
-       * @param start 
-       * @param goal 
-       * @param configurationSpace 
-       * @return Node3D* 
+       *
+       * @param start
+       * @param goal
+       * @param configurationSpace
+       * @return Node3D*
        */
       Utility::Path3D AnalyticExpansions(const Node3D &start, Node3D &goal);
       /**
@@ -99,6 +114,15 @@ namespace HybridAStar
        * @param map
        */
       nav_msgs::OccupancyGrid::Ptr TreatAstarMap(nav_msgs::OccupancyGrid::Ptr map);
+      /**
+       * @brief check if node_3d_ptr is already in the open list
+       *
+       * @param open_list
+       * @param node_3d_ptr
+       * @return true
+       * @return false
+       */
+      bool DuplicateCheck(priorityQueue &open_list, std::shared_ptr<Node3D> node_3d_ptr);
 
    private:
       ParameterHybridAStar params_;
@@ -114,7 +138,7 @@ namespace HybridAStar
       uint map_height_;
       /**
        * @brief index of path_ which analytic expansion start.
-       * 
+       *
        */
       uint analytical_expansion_index_;
    };

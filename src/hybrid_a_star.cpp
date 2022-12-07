@@ -3,21 +3,6 @@
 namespace HybridAStar
 {
 
-  //###################################################
-  //                                    NODE COMPARISON
-  //###################################################
-  /*!
-   \brief A structure to sort nodes in a heap structure
-*/
-  struct CompareNodes
-  {
-    /// Sorting 3D nodes by increasing C value - the total estimated cost
-    bool operator()(const std::shared_ptr<Node3D> lhs, const std::shared_ptr<Node3D> rhs) const
-    {
-      return lhs->GetTotalCost() > rhs->GetTotalCost();
-    }
-  };
-
   HybridAStar::HybridAStar(const ParameterHybridAStar &params,
                            const std::shared_ptr<Visualize> &visualization_ptr)
   {
@@ -69,7 +54,7 @@ namespace HybridAStar
     // VISUALIZATION DELAY
     ros::Duration d(0.003);
     // OPEN LIST AS BOOST IMPLEMENTATION
-    typedef boost::heap::binomial_heap<std::shared_ptr<Node3D>, boost::heap::compare<CompareNodes>> priorityQueue;
+
     priorityQueue openlist;
     // update h value
     UpdateHeuristic(start, goal, nodes2D);
@@ -210,10 +195,17 @@ namespace HybridAStar
           }
           std::vector<std::shared_ptr<Node3D>> successor_vec = CreateSuccessor(*nPred);
           // DLOG(INFO) << "successor vec length is " << successor_vec.size();
+
           // ______________________________
           // SEARCH WITH FORWARD SIMULATION
           for (const auto &node : successor_vec)
           {
+            // TODO add a check function to check if this successor are close to nodes already explored, if yes, then skip this successor
+            if (DuplicateCheck(openlist, node))
+            {
+              continue;
+            }
+
             // create possible successor
             nSucc = node;
             // set index of the successor
@@ -411,8 +403,9 @@ namespace HybridAStar
     if (true)
     {
       float current_normalized_obstacle_density = configuration_space_ptr_->GetNormalizedObstacleDensity(pred);
+      float constant_density = params_.constant_density;
       // LOG(INFO) << "current node normalized obstacle density is " << current_normalized_obstacle_density;
-      if (current_normalized_obstacle_density > 0.4)
+      if (current_normalized_obstacle_density > constant_density)
       {
         // LOG(INFO) << "fixed steering angle and step size";
         // assume constant speed.
@@ -829,5 +822,18 @@ namespace HybridAStar
       }
     }
     return out;
+  }
+
+  bool HybridAStar::DuplicateCheck(priorityQueue &open_list, std::shared_ptr<Node3D> node_3d_ptr)
+  {
+    for (const auto &element : open_list)
+    {
+      if (abs(element->GetX() - node_3d_ptr->GetX()) < 0.2 && abs(element->GetY() - node_3d_ptr->GetY()) < 0.2 && abs(element->GetT() - node_3d_ptr->GetT()) < Utility::ConvertDegToRad(3))
+      {
+        LOG(INFO) << "node already in open list.";
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -1798,9 +1798,31 @@ namespace Utility
     {
         for (const auto &pair : vector)
         {
-            if (abs(pair.first - element.first) < 1e-3)
+            if (abs(pair.first - element.first) < 1e-2)
             {
-                if (abs(pair.second - element.second) < 1e-3)
+                if (abs(pair.second - element.second) < ConvertDegToRad(1))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    bool DuplicateCheck(const std::vector<std::pair<float, float>> &vector, const std::pair<float, float> &element, bool flag)
+    {
+        for (const auto &pair : vector)
+        {
+            if (abs(pair.second - element.second) < ConvertDegToRad(1))
+            {
+                if (flag)
+                {
+                    if (abs(pair.first - element.first) < 1e-2)
+                    {
+                        return true;
+                    }
+                }
+                else
                 {
                     return true;
                 }

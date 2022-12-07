@@ -629,6 +629,16 @@ namespace Utility
      */
     bool DuplicateCheck(const std::vector<std::pair<float, float>> &vector, const std::pair<float, float> &element);
     /**
+     * @brief check if element is already inside vector, if flag is true, check both element, else just check element.second;
+     *
+     * @param vector
+     * @param element
+     * @param flag
+     * @return true
+     * @return false
+     */
+    bool DuplicateCheck(const std::vector<std::pair<float, float>> &vector, const std::pair<float, float> &element, bool flag);
+    /**
      * @brief compare first angle and second angle, return smaller and greater angle in a pair
      *
      * @param first_angle
