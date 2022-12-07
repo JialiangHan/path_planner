@@ -40,7 +40,7 @@ namespace HybridAStar
     bool steering_angle_towards_free_angle_range_for_obstacle_angle_range = true;
 
     bool fixed_number_of_steering_angle_in_free_angle_range = true;
-
+    float obstacle_detection_range = 5;
     // bool make_step_size_larger_than_one = true;
   };
 
@@ -187,6 +187,8 @@ namespace HybridAStar
     ParameterCollisionDetection collision_detection_params;
 
     ParameterAStar a_star_params;
+
+    float constant_density = 0.5;
   };
 
   struct ParameterSmoother

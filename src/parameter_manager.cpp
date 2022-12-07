@@ -120,6 +120,9 @@ namespace HybridAStar
     std::string ros_param_name;
     std::string node_prefix = "/hybrid_astar/";
 
+    ros_param_name = "obstacle_detection_range";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.obstacle_detection_range);
+
     ros_param_name = "enable_collision_lookup";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.enable_collision_lookup);
 
@@ -248,6 +251,9 @@ namespace HybridAStar
     LoadCollisionDetectionParams();
 
     LoadAStarPlannerParams();
+
+    ros_param_name = "constant_density";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.constant_density);
   }
   void ParameterManager::LoadPathParams()
   {
