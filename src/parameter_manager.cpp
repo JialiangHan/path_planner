@@ -198,6 +198,9 @@ namespace HybridAStar
     ros_param_name = "number_of_successors";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.number_of_successors);
 
+    ros_param_name = "curve_type_analytical_expansion";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.curve_type_analytical_expansion);
+
     ros_param_name = "adaptive_step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_step_size);
 

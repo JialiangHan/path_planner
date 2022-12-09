@@ -340,43 +340,51 @@ namespace HybridAStar
     Eigen::Vector3f vector3d_start = Utility::ConvertNode3DToVector3f(start);
     // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
     Eigen::Vector3f vector3d_goal = Utility::ConvertNode3DToVector3f(goal);
-
-    CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width_, map_height_);
-    float length = cubic_bezier.GetLength();
-    i = 0;
-    x = 0;
-    path_vec.clear();
-    while (x < length)
+    // Dubins/RS curve
+    if (params_.collision_detection_params.curve_type_analytical_expansion == 0)
     {
-      // DLOG(INFO) << i << "th iteration";
-      Node3D node3d = Utility::ConvertVector3fToNode3D(cubic_bezier.GetValueAt(x / length));
-      float curvature = cubic_bezier.GetCurvatureAt(x / length);
-      node3d.setT(cubic_bezier.GetAngleAt(x / length));
-      // DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY();
-      // collision check
-      if (configuration_space_ptr_->IsTraversable(node3d))
+      /* code */
+    }
+    // beizer curve
+    if (params_.collision_detection_params.curve_type_analytical_expansion == 1)
+    {
+      CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width_, map_height_);
+      float length = cubic_bezier.GetLength();
+      i = 0;
+      x = 0;
+      path_vec.clear();
+      while (x < length)
       {
-        if (curvature <= 1 / params_.min_turning_radius)
+        // DLOG(INFO) << i << "th iteration";
+        Node3D node3d = Utility::ConvertVector3fToNode3D(cubic_bezier.GetValueAt(x / length));
+        float curvature = cubic_bezier.GetCurvatureAt(x / length);
+        node3d.setT(cubic_bezier.GetAngleAt(x / length));
+        // DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY();
+        // collision check
+        if (configuration_space_ptr_->IsTraversable(node3d))
         {
-          path_vec.emplace_back(node3d);
-          x += params_.curve_step_size;
-          i++;
+          if (curvature <= 1 / params_.min_turning_radius)
+          {
+            path_vec.emplace_back(node3d);
+            x += params_.curve_step_size;
+            i++;
+          }
+          else
+          {
+            // DLOG(INFO) << "cubic bezier curvature greater than 1/min_turning_radius, discarding the path";
+            path_vec.clear();
+            break;
+          }
         }
         else
         {
-          // DLOG(INFO) << "cubic bezier curvature greater than 1/min_turning_radius, discarding the path";
+          // DLOG(INFO) << "cubic bezier collided, discarding the path";
           path_vec.clear();
           break;
+          // return nullptr;
         }
+        // DLOG(INFO) << "goal point is " << vector3d_goal.x() << " " << vector3d_goal.y();
       }
-      else
-      {
-        // DLOG(INFO) << "cubic bezier collided, discarding the path";
-        path_vec.clear();
-        break;
-        // return nullptr;
-      }
-      // DLOG(INFO) << "goal point is " << vector3d_goal.x() << " " << vector3d_goal.y();
     }
 
     // Some kind of collision detection for all curves
@@ -830,7 +838,7 @@ namespace HybridAStar
     {
       if (abs(element->GetX() - node_3d_ptr->GetX()) < 0.2 && abs(element->GetY() - node_3d_ptr->GetY()) < 0.2 && abs(element->GetT() - node_3d_ptr->GetT()) < Utility::ConvertDegToRad(3))
       {
-        LOG(INFO) << "node already in open list.";
+        // LOG(INFO) << "node already in open list.";
         return true;
       }
     }

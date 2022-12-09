@@ -189,6 +189,8 @@ namespace HybridAStar
     ParameterAStar a_star_params;
 
     float constant_density = 0.5;
+    // curve type in analytical expansion: 0 Dubins/RS curve, 1: cubic bezier
+    int curve_type_analytical_expansion = 0;
   };
 
   struct ParameterSmoother

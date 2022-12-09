@@ -20,6 +20,8 @@ number_of_successors: 3
 # for heuristic in hybrid a, use dubins or reedshepp or cubic bezier
 # 0: dubins curve, 1: reedsshepp curve 2: cubic bezier
 curve_type : 0
+  #  curve type in analytical expansion: 0 Dubins/RS curve, 1: cubic bezier
+curve_type_analytical_expansion: 0
 # step size to create successor
 step_size : 1
 
@@ -66,7 +68,7 @@ vehicle_width : 1
 # [m] --- The length of the vehicle
 vehicle_length : 2
 # smooth the path or not
-smooth : false 
+smooth : true 
 # [degree] --- max steering angle in degree
 max_steering_angle: 30
 # **********************Search parameters*****************
@@ -108,15 +110,15 @@ vor_obs_dmax : 2
 #falloff rate for the voronoi field
 alpha: 0.1
 # weight for the obstacle term
-weight_obstacle : 1
+weight_obstacle : 0
 # weight for the voronoi term
-weight_voronoi : 0.2
+weight_voronoi : 0
 # weight for the curvature term
 weight_curvature : 0
 # weight for the smoothness term
-weight_smoothness : 0.2
+weight_smoothness : 1
 #weight for path length
-weight_length : 0.2
+weight_length : 0
 
 # **********************rrt parameters*****************
 use_rrt: false
