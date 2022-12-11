@@ -211,10 +211,10 @@ TEST(Utility, IsAngleRangeInclude)
 TEST(Utility, GetAngle)
 {
     HybridAStar::Node2D start, goal;
-    start.setX(0);
-    start.setY(0);
-    goal.setX(0);
-    goal.setY(-1);
+    start.SetX(0);
+    start.SetY(0);
+    goal.SetX(0);
+    goal.SetY(-1);
 
     float result = Utility::GetAngle(start, goal);
 
@@ -295,7 +295,8 @@ TEST(Utility, IsSegmentIntersectWithPolygon)
 TEST(Utility, IsAngleRangeIncludeAngle)
 {
     Utility::AngleRange ar1(Utility::ConvertDegToRad(333), Utility::ConvertDegToRad(50)), ar2(Utility::ConvertDegToRad(0), Utility::ConvertDegToRad(306)), ar3(Utility::ConvertDegToRad(252), Utility::ConvertDegToRad(50)), ar4(Utility::ConvertDegToRad(330), Utility::ConvertDegToRad(60));
-    float angle1 = Utility::ConvertDegToRad(17), angle2 = Utility::ConvertDegToRad(-30), angle3 = Utility::ConvertDegToRad(330);
+    float angle1 = Utility::ConvertDegToRad(17), angle2 = Utility::ConvertDegToRad(-30);
+    //  angle3 = Utility::ConvertDegToRad(330);
 
     // Utility::AngleRange ar2(Utility::ConvertDegToRad(330), Utility::ConvertDegToRad(50));
     // float angle2 = Utility::ConvertDegToRad(10);

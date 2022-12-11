@@ -53,19 +53,19 @@ class Node3D {
    /// determine whether the node is open
    std::shared_ptr<Node3D> GetPred() const { return pred_ptr_; }
 
-   // SETTER METHODS
+   // SetTER METHODS
    /// set the x position
-   void setX(const float &x) { this->x = x; }
+   void SetX(const float &x) { this->x = x; }
    /// set the y position
-   void setY(const float &y) { this->y = y; }
+   void SetY(const float &y) { this->y = y; }
    /// set the heading theta
-   void setT(const float &t) { this->t = t; }
+   void SetT(const float &t) { this->t = t; }
    /// set the cost-so-far (real value)
    void SetG(const float &g) { this->g = g; }
    /// set the cost-to-come (heuristic value)
    void SetH(const float &h) { this->h = h; }
    /// set and get the index of the node in the 3D grid
-   int setIdx(int width, int height, const float &delta_heading_in_rad)
+   int SetIdx(int width, int height, const float &delta_heading_in_rad)
    {
      this->idx = (int)(t / delta_heading_in_rad) * width * height + (int)(y)*width + (int)(x);
      // 292080 this number is the length in planner.cpp row 260

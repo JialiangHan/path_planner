@@ -21,7 +21,7 @@ number_of_successors: 3
 # 0: dubins curve, 1: reedsshepp curve 2: cubic bezier
 curve_type : 0
   #  curve type in analytical expansion: 0 Dubins/RS curve, 1: cubic bezier
-curve_type_analytical_expansion: 0
+curve_type_analytical_expansion: 1
 # step size to create successor
 step_size : 1
 
@@ -68,7 +68,7 @@ vehicle_width : 1
 # [m] --- The length of the vehicle
 vehicle_length : 2
 # smooth the path or not
-smooth : true 
+smooth : false 
 # [degree] --- max steering angle in degree
 max_steering_angle: 30
 # **********************Search parameters*****************

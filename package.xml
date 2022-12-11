@@ -2,7 +2,7 @@
 <package>
   <name>hybrid_astar</name>
   <version>0.0.3</version>
-  <description>The revised hybrid_astar package</description>
+  <description>The revised(adaptive) hybrid_astar package</description>
   <maintainer email="jialiang.han@outlook.com">Jialiang Han</maintainer>
   <license>BSD</license>
   <author email="jialiang.han@outlook.com">Jialiang Han</author>

@@ -1,47 +1,6 @@
-#include <pluginlib/class_list_macros.h>
 #include "planner.h"
 
-// register this planner as a BaseGlobalPlanner plugin
-PLUGINLIB_EXPORT_CLASS(HybridAStar::Planner, nav_core::BaseGlobalPlanner)
-
 using namespace HybridAStar;
-
-//  these function are for move base plugin
-//###################################################
-//                                   Plugin functions
-//###################################################
-
-Planner::Planner(std::string name, costmap_2d::Costmap2DROS *costmap_ros)
-{
-  initialize(name, costmap_ros);
-}
-
-void Planner::initialize(std::string name, costmap_2d::Costmap2DROS *costmap_ros)
-{
-}
-
-bool Planner::makePlan(const geometry_msgs::PoseStamped &start, const geometry_msgs::PoseStamped &goal, std::vector<geometry_msgs::PoseStamped> &plan)
-{
-
-  plan.push_back(start);
-  for (int i = 0; i < 20; i++)
-  {
-    geometry_msgs::PoseStamped new_goal = goal;
-    tf::Quaternion goal_quat = tf::createQuaternionFromYaw(1.54);
-
-    new_goal.pose.position.x = -2.5 + (0.05 * i);
-    new_goal.pose.position.y = -3.5 + (0.05 * i);
-
-    new_goal.pose.orientation.x = goal_quat.x();
-    new_goal.pose.orientation.y = goal_quat.y();
-    new_goal.pose.orientation.z = goal_quat.z();
-    new_goal.pose.orientation.w = goal_quat.w();
-
-    plan.push_back(new_goal);
-  }
-  plan.push_back(goal);
-  return true;
-}
 
 //###################################################
 //                                        CONSTRUCTOR
@@ -271,33 +230,33 @@ void Planner::MakePlan()
       y = height - 2;
       t = Utility::ConvertDegToRad(0);
       t = Utility::RadToZeroTo2P(t);
-      nStart.setX(x);
-      nStart.setY(y);
-      nStart.setT(t);
+      nStart.SetX(x);
+      nStart.SetY(y);
+      nStart.SetT(t);
       // set theta to a value (0,2PI]
       t = Utility::RadToZeroTo2P(t);
       x = width - 2;
       y = 2;
       t = Utility::ConvertDegToRad(0);
-      nGoal.setX(x);
-      nGoal.setY(y);
-      nGoal.setT(t);
+      nGoal.SetX(x);
+      nGoal.SetY(y);
+      nGoal.SetT(t);
     }
     else
     {
       x = start_.pose.pose.position.x / params_.cell_size;
       y = start_.pose.pose.position.y / params_.cell_size;
       t = tf::getYaw(start_.pose.pose.orientation);
-      nStart.setX(x);
-      nStart.setY(y);
-      nStart.setT(t);
+      nStart.SetX(x);
+      nStart.SetY(y);
+      nStart.SetT(t);
       // retrieving goal position
       x = goal_.pose.position.x / params_.cell_size;
       y = goal_.pose.position.y / params_.cell_size;
       t = tf::getYaw(goal_.pose.orientation);
-      nGoal.setX(x);
-      nGoal.setY(y);
-      nGoal.setT(t);
+      nGoal.SetX(x);
+      nGoal.SetY(y);
+      nGoal.SetT(t);
     }
 
     std::srand(0);
@@ -372,6 +331,106 @@ void Planner::MakePlan()
   }
 }
 
+void Planner::MakePlan(const geometry_msgs::PoseStamped &start, const geometry_msgs::PoseStamped &goal, std::vector<geometry_msgs::PoseStamped> &plan)
+{
+  // if a start as well as goal are defined go ahead and plan
+
+  DLOG(INFO) << "valid start and valid goal, start to make plan!";
+  // LISTS ALLOCATED ROW MAJOR ORDER
+  int width = grid_->info.width;
+  int height = grid_->info.height;
+  int depth = params_.headings;
+  int length = width * height * depth + height * width + width;
+  DLOG(INFO) << "map size is " << width << " " << height << " length is " << length;
+  // define list pointers and initialize lists
+  Node3D *nodes3D = new Node3D[length]();
+  Node2D *nodes2D = new Node2D[width * height]();
+
+  float x, y, t;
+  Node3D nStart, nGoal;
+  // set theta to a value (0,2PI]
+  if (params_.fix_start_goal)
+  {
+    x = 2;
+    y = height - 2;
+    t = Utility::ConvertDegToRad(0);
+    t = Utility::RadToZeroTo2P(t);
+    nStart.SetX(x);
+    nStart.SetY(y);
+    nStart.SetT(t);
+    // set theta to a value (0,2PI]
+    t = Utility::RadToZeroTo2P(t);
+    x = width - 2;
+    y = 2;
+    t = Utility::ConvertDegToRad(0);
+    nGoal.SetX(x);
+    nGoal.SetY(y);
+    nGoal.SetT(t);
+  }
+  else
+  {
+    Utility::TypeConversion(start, nStart);
+    Utility::TypeConversion(goal, nGoal);
+    // x = start_.pose.pose.position.x / params_.cell_size;
+    // y = start_.pose.pose.position.y / params_.cell_size;
+    // t = tf::getYaw(start_.pose.pose.orientation);
+    // nStart.SetX(x);
+    // nStart.SetY(y);
+    // nStart.SetT(t);
+    // // retrieving goal position
+    // x = goal_.pose.position.x / params_.cell_size;
+    // y = goal_.pose.position.y / params_.cell_size;
+    // t = tf::getYaw(goal_.pose.orientation);
+    // nGoal.SetX(x);
+    // nGoal.SetY(y);
+    // nGoal.SetT(t);
+  }
+
+  std::srand(0);
+  Clear();
+  // START AND TIME THE PLANNING
+  ros::Time t0 = ros::Time::now();
+  Utility::Path3D path, temp;
+  if (params_.use_rrt)
+  {
+    LOG(INFO) << "Use RRT!";
+    path = rrt_planner_ptr_->GetPath(nStart, nGoal);
+  }
+  else if (params_.use_a_star)
+  {
+    LOG(INFO) << "Use A star!";
+    path = a_star_planner_ptr_->GetPath(nStart, nGoal, nodes2D);
+  }
+  else
+  {
+    // FIND THE PATH
+    LOG(INFO) << "Use hybrid a star!";
+    path = hybrid_a_star_ptr_->GetPath(nStart, nGoal, nodes3D, nodes2D);
+  }
+  LOG(INFO) << "path length is " << Utility::GetLength(path);
+  //  set path
+  smoother_ptr_->SetPath(path);
+  // CREATE THE UPDATED PATH
+  path_publisher_ptr_->UpdatePath(smoother_ptr_->GetPath());
+  // DLOG(INFO) << "path before smooth size is " << smoother_ptr_->GetPath().size();
+  // SMOOTH THE PATH
+  if (params_.smooth)
+  {
+    smoother_ptr_->SmoothPath(voronoi_diagram_);
+    // CREATE THE UPDATED PATH
+    // DLOG(INFO) << "smoothed path size is " << smoother_ptr_->GetPath().size();
+    smoothed_path_publisher_ptr_->UpdatePath(smoother_ptr_->GetPath());
+  }
+  ros::Time t1 = ros::Time::now();
+  ros::Duration d(t1 - t0);
+  // LOG(INFO) << "TIME in ms: " << d * 1000;
+  LOG(INFO) << "TIME in second: " << d;
+  Publish(nodes3D, nodes2D, width, height, depth);
+  Utility::TypeConversion(path, plan);
+  delete[] nodes3D;
+  delete[] nodes2D;
+  // set these two flag to false when finished planning to avoid unwanted planning
+}
 void Planner::Clear()
 {
   // CLEAR THE VISUALIZATION

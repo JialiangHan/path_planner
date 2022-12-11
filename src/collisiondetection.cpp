@@ -725,14 +725,15 @@ std::vector<std::pair<float, float>> CollisionDetection::SelectStepSizeAndSteeri
   float steering_angle, distance_to_goal = Utility::GetDistance(pred, goal);
 
   // 3. find angle to goal
-  float angle_to_goal, orientation_diff, steering_angle_toward_goal, final_orientation;
+  float angle_to_goal, orientation_diff, steering_angle_toward_goal;
+  // final_orientation;
   if (params_.add_one_more_successor)
   {
     float weighting = distance_to_goal / distance_start_to_goal;
     angle_to_goal = Utility::GetAngle(pred, goal);
     orientation_diff = -Utility::RadNormalization(pred.GetT() - goal.GetT());
     steering_angle_toward_goal = -Utility::RadNormalization(weighting * angle_to_goal + (1 - weighting) * orientation_diff);
-    final_orientation = Utility::RadNormalization(pred.GetT() + steering_angle_toward_goal);
+    // final_orientation = Utility::RadNormalization(pred.GetT() + steering_angle_toward_goal);
     // DLOG(INFO) << "angle to goal is " << Utility::ConvertRadToDeg(Utility::RadNormalization(Utility::GetAngle(pred, goal_)));
     // DLOG(INFO) << "steering angle is " << Utility::ConvertRadToDeg(angle_to_goal);
   }
@@ -1127,8 +1128,8 @@ void CollisionDetection::BuildNormalizedObstacleDensityMap()
 float CollisionDetection::GetNormalizedObstacleDensity(const Node3D &node3d)
 {
   // DLOG(INFO) << "GetNormalizedObstacleDensity in:";
-  float obstacle_density;
-  uint current_index;
+  float obstacle_density = 0;
+  uint current_index = 0;
   if (!params_.consider_steering_angle_range_for_obstacle_density)
   {
     current_index = GetNode3DIndexOnGridMap(node3d);
@@ -1377,7 +1378,8 @@ std::vector<std::pair<float, float>> CollisionDetection::FindStepSizeAndSteering
 
 float CollisionDetection::FindStepSize(const Node3D &pred, const float &steering_angle, const Node3D &goal, const float &fixed_step_size)
 {
-  float step_size = 0, available_step_size = 0, min_distance_to_obstacle;
+  // float step_size = 0, available_step_size = 0, min_distance_to_obstacle;
+  float step_size = 0, min_distance_to_obstacle = obstacle_detection_range_;
   float distance_to_goal = Utility::GetDistance(pred, goal);
   std::vector<std::pair<float, Utility::AngleRange>> step_size_angle_range_vec = FindFreeAngleRangeAndObstacleAngleRange(pred, false);
   float final_orientation = Utility::RadNormalization(pred.GetT() + steering_angle);
@@ -1391,7 +1393,7 @@ float CollisionDetection::FindStepSize(const Node3D &pred, const float &steering
   }
   float weight_step_size = GetStepSizeWeight(GetNormalizedObstacleDensity(pred));
 
-  available_step_size = ((min_distance_to_obstacle - 0.5 * params_.vehicle_length) > fixed_step_size) ? (min_distance_to_obstacle - 0.5 * params_.vehicle_length) : 0;
+  // available_step_size = ((min_distance_to_obstacle - 0.5 * params_.vehicle_length) > fixed_step_size) ? (min_distance_to_obstacle - 0.5 * params_.vehicle_length) : 0;
 
   step_size = weight_step_size * min_distance_to_obstacle;
 

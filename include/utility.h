@@ -19,6 +19,7 @@
 #include "gflags/gflags.h"
 #include "computational_geometry.h"
 #include <bits/stdc++.h>
+#include <tf/tf.h>
 namespace Utility
 {
     //******************typedef****************
@@ -32,6 +33,15 @@ namespace Utility
     // path from start to goal
     typedef std::vector<HybridAStar::Node2D> Path2D;
     //*******************type conversion*******************
+    /**
+     * @brief this function convert type a to type b
+     *
+     */
+    void TypeConversion(const geometry_msgs::PoseStamped &start, HybridAStar::Node3D &node3d);
+
+    void TypeConversion(const HybridAStar::Node3D &node3d, geometry_msgs::PoseStamped &pose);
+
+    void TypeConversion(const Path3D &path3d, std::vector<geometry_msgs::PoseStamped> &plan);
     void ConvertRosPathToVectorVector3D(
         const nav_msgs::Path::ConstPtr &path,
         std::vector<Eigen::Vector3f> &vector_3d_vec);

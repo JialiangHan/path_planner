@@ -59,7 +59,7 @@ namespace HybridAStar
        */
         std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir);
 
-        std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir, const uint &step_size);
+        std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir, const int &step_size);
         /**
          * @brief update heuristic for a star
          * 

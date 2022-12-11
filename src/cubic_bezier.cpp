@@ -73,7 +73,7 @@ namespace CubicBezier
         // control_points_vec_.clear();
         float start_angle = start_point_.z();
         float goal_angle = goal_point_.z();
-        Eigen::Vector3f first_control_point, second_control_point, direction;
+        Eigen::Vector3f first_control_point(0, 0, 0), second_control_point(0, 0, 0), direction(0, 0, 0);
         direction.x() = std::cos(start_angle);
         direction.y() = std::sin(start_angle);
         if (use_random_)

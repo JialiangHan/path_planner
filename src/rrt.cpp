@@ -261,8 +261,8 @@ namespace RRTPlanner
             // 2. randomly choose y
             float y = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / map_height_));
             // 3. collision check
-            random_node.setX(x);
-            random_node.setY(y);
+            random_node.SetX(x);
+            random_node.SetY(y);
             if (configuration_space_ptr_->IsTraversable(random_node))
             {
                 // DLOG(INFO) << "random node is " << x << " " << y;
@@ -601,7 +601,7 @@ namespace RRTPlanner
             }
             // DLOG(INFO) << i << "th iteration";
             float curvature = cubic_bezier.GetCurvatureAt(x / length);
-            node3d.setT(cubic_bezier.GetAngleAt(x / length));
+            node3d.SetT(cubic_bezier.GetAngleAt(x / length));
             // DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY();
             // collision check
             if (configuration_space_ptr_->IsTraversable(node3d))
@@ -1075,7 +1075,7 @@ namespace RRTPlanner
     Node3D RRTPlanner::TreatNode(const Node3D &goal)
     {
         Node3D out = goal;
-        out.setT(Utility::RadToZeroTo2P(out.GetT() + M_PI));
+        out.SetT(Utility::RadToZeroTo2P(out.GetT() + M_PI));
         return out;
     }
 }

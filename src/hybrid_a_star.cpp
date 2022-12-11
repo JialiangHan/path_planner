@@ -66,7 +66,7 @@ namespace HybridAStar
     std::shared_ptr<Node3D> start_ptr = std::make_shared<Node3D>(start);
     openlist.push(start_ptr);
 
-    iPred = start.setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings);
+    iPred = start.SetIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings);
     nodes3D[iPred] = start;
     // NODE POINTER
     std::shared_ptr<Node3D> nPred;
@@ -79,7 +79,7 @@ namespace HybridAStar
       nPred = openlist.top();
       number_nodes_explored++;
       // set index
-      iPred = nPred->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings);
+      iPred = nPred->SetIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings);
       iterations++;
 
       // RViz visualization
@@ -209,7 +209,7 @@ namespace HybridAStar
             // create possible successor
             nSucc = node;
             // set index of the successor
-            iSucc = nSucc->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings);
+            iSucc = nSucc->SetIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings);
             // ensure successor is on grid and traversable
             if (configuration_space_ptr_->IsTraversable(nSucc))
             {
@@ -272,9 +272,9 @@ namespace HybridAStar
     float curve_cost = 0, twoDCost = 0, twoDoffset = 0;
     // translate and rotate
     Node3D goal_rotated_translated;
-    goal_rotated_translated.setX(abs(goal.GetX() - start.GetX()));
-    goal_rotated_translated.setY(abs(goal.GetY() - start.GetY()));
-    goal_rotated_translated.setT(Utility::RadToZeroTo2P(goal.GetT() - start.GetT()));
+    goal_rotated_translated.SetX(abs(goal.GetX() - start.GetX()));
+    goal_rotated_translated.SetY(abs(goal.GetY() - start.GetY()));
+    goal_rotated_translated.SetT(Utility::RadToZeroTo2P(goal.GetT() - start.GetT()));
     // DLOG(INFO) << "goal is " << goal.GetX() << " " << goal.GetY() << " " << Utility::ConvertRadToDeg(goal.GetT());
     // DLOG(INFO) << "start is " << start.GetX() << " " << start.GetY() << " " << Utility::ConvertRadToDeg(start.GetT());
     // DLOG(INFO) << "goal rotated is " << goal_rotated_translated.GetX() << " " << goal_rotated_translated.GetY() << " " << Utility::ConvertRadToDeg(goal_rotated_translated.GetT());
@@ -336,17 +336,47 @@ namespace HybridAStar
     Utility::Path3D path_vec;
     int i = 0;
     float x = 0.f;
-
     Eigen::Vector3f vector3d_start = Utility::ConvertNode3DToVector3f(start);
     // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
     Eigen::Vector3f vector3d_goal = Utility::ConvertNode3DToVector3f(goal);
     // Dubins/RS curve
-    if (params_.collision_detection_params.curve_type_analytical_expansion == 0)
+    if (params_.curve_type_analytical_expansion == 0)
     {
-      /* code */
+      // start
+      float q0[] = {start.GetX(), start.GetY(), start.GetT()};
+      // goal
+      float q1[] = {goal.GetX(), goal.GetY(), goal.GetT()};
+      // initialize the path
+      DubinsPath path;
+      // calculate the path
+      dubins_init(q0, q1, params_.min_turning_radius, &path);
+      float length = dubins_path_length(&path);
+      while (x < length)
+      {
+        float q[3];
+        dubins_path_sample(&path, x, q);
+        Node3D node3d;
+        node3d.SetX(q[0]);
+        node3d.SetY(q[1]);
+        node3d.SetT(Utility::RadToZeroTo2P(q[2]));
+        // collision check
+        if (configuration_space_ptr_->IsTraversable(node3d))
+        {
+          path_vec.emplace_back(node3d);
+          x += params_.curve_step_size;
+          i++;
+        }
+        else
+        {
+          DLOG(INFO) << "Dubins shot collided, discarding the path";
+          path_vec.clear();
+          break;
+          // return nullptr;
+        }
+      }
     }
     // beizer curve
-    if (params_.collision_detection_params.curve_type_analytical_expansion == 1)
+    if (params_.curve_type_analytical_expansion == 1)
     {
       CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width_, map_height_);
       float length = cubic_bezier.GetLength();
@@ -358,7 +388,7 @@ namespace HybridAStar
         // DLOG(INFO) << i << "th iteration";
         Node3D node3d = Utility::ConvertVector3fToNode3D(cubic_bezier.GetValueAt(x / length));
         float curvature = cubic_bezier.GetCurvatureAt(x / length);
-        node3d.setT(cubic_bezier.GetAngleAt(x / length));
+        node3d.SetT(cubic_bezier.GetAngleAt(x / length));
         // DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY();
         // collision check
         if (configuration_space_ptr_->IsTraversable(node3d))
@@ -683,9 +713,9 @@ namespace HybridAStar
         {
           // DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
           // DLOG(INFO) << "current path index is " << index;
-          end_point.setX(path_[index - 1].GetX());
-          end_point.setY(path_[index - 1].GetY());
-          end_point.setT(path_[index - 1].GetT());
+          end_point.SetX(path_[index - 1].GetX());
+          end_point.SetY(path_[index - 1].GetY());
+          end_point.SetT(path_[index - 1].GetT());
           break;
         }
         if (Utility::GetDistance(path_[index], path_[index + 1]) < 0.1)
@@ -718,9 +748,9 @@ namespace HybridAStar
         {
           DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
           DLOG(INFO) << "current path index is " << index;
-          end_point.setX(path_[index].GetX());
-          end_point.setY(path_[index].GetY());
-          end_point.setT(path_[index].GetT());
+          end_point.SetX(path_[index].GetX());
+          end_point.SetY(path_[index].GetY());
+          end_point.SetT(path_[index].GetT());
           break;
         }
       }

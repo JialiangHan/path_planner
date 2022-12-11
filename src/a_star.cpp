@@ -67,7 +67,7 @@ namespace HybridAStar
         // push on priority queue
         std::shared_ptr<Node2D> start_ptr = std::make_shared<Node2D>(start_);
         openlist.push(start_ptr);
-        iPred = start_.setIdx(width);
+        iPred = start_.SetIdx(width);
         nodes2D[iPred] = start_;
         // NODE POINTER
         std::shared_ptr<Node2D> nPred;
@@ -80,7 +80,7 @@ namespace HybridAStar
             nPred = openlist.top();
             number_nodes_explored++;
             // set index
-            iPred = nPred->setIdx(width);
+            iPred = nPred->SetIdx(width);
             // _____________________________
             // LAZY DELETION of rewired node
             // if there exists a pointer this node has already been expanded
@@ -137,7 +137,7 @@ namespace HybridAStar
                         // create possible successor
                         nSucc = successor_vec[i];
                         // set index of the successor
-                        iSucc = nSucc->setIdx(width);
+                        iSucc = nSucc->SetIdx(width);
                         // ensure successor is on grid ROW MAJOR
                         // ensure successor is not blocked by obstacle
                         // ensure successor is not on closed list
@@ -179,7 +179,7 @@ namespace HybridAStar
         return successor_vec;
     }
 
-    std::vector<std::shared_ptr<Node2D>> AStar::CreateSuccessor(const Node2D &pred, const uint &possible_dir, const uint &step_size)
+    std::vector<std::shared_ptr<Node2D>> AStar::CreateSuccessor(const Node2D &pred, const uint &possible_dir, const int &step_size)
     {
         // DLOG(INFO) << "CreateSuccessor in:";
         std::vector<std::shared_ptr<Node2D>> successor_vec;
