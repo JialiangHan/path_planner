@@ -42,32 +42,34 @@ namespace Utility
     void TypeConversion(const HybridAStar::Node3D &node3d, geometry_msgs::PoseStamped &pose);
 
     void TypeConversion(const Path3D &path3d, std::vector<geometry_msgs::PoseStamped> &plan);
-    void ConvertRosPathToVectorVector3D(
+
+    void TypeConversion(
         const nav_msgs::Path::ConstPtr &path,
         std::vector<Eigen::Vector3f> &vector_3d_vec);
 
     Eigen::Vector2f ConvertIndexToEigenVector2f(const int &index,
                                                 const int &map_width);
 
-    nav_msgs::Path ConvertVectorVector3DToRosPath(
-        const std::vector<Eigen::Vector3f> &vector_3d_vec);
+    void TypeConversion(
+        const std::vector<Eigen::Vector3f> &vector_3d_vec, nav_msgs::Path &path);
 
-    Eigen::Vector2f ConvertVector3fToVector2f(const Eigen::Vector3f &vector_3d);
-    Eigen::Vector3f ConvertVector2fToVector3f(const Eigen::Vector2f &vector_2d);
+    void TypeConversion(const Eigen::Vector3f &vector_3d, Eigen::Vector2f &vector_2d);
 
-    Eigen::Vector3f ConvertNode3DToVector3f(const HybridAStar::Node3D &node3d);
-    Eigen::Vector2f ConvertNod2DToVector2f(const HybridAStar::Node2D &node2d);
-    Eigen::Vector2f ConvertNod3DToVector2f(const HybridAStar::Node3D &node3d);
+    void TypeConversion(const HybridAStar::Node3D &node3d, Eigen::Vector3f &vector);
 
-    HybridAStar::Node3D ConvertVector3fToNode3D(const Eigen::Vector3f &vector3d);
+    void TypeConversion(const HybridAStar::Node2D &node2d, Eigen::Vector2f &vector2f);
 
-    HybridAStar::Node3D ConvertVector2fToNode3D(const Eigen::Vector2f &vector2d);
+    void TypeConversion(const HybridAStar::Node3D &node3d, Eigen::Vector2f &vector2f);
 
-    HybridAStar::Node2D ConvertNode3DToNode2D(const HybridAStar::Node3D &node3d);
+    void TypeConversion(const Eigen::Vector3f &vector3d, HybridAStar::Node3D &node_3d);
 
-    HybridAStar::Node3D ConvertNode2DToNode3D(const HybridAStar::Node2D &node2d);
+    void TypeConversion(const Eigen::Vector2f &vector2d, HybridAStar::Node3D &node3d);
 
-    Path3D ConvertPath2DToPath3D(const Path2D &path_2d);
+    void TypeConversion(const HybridAStar::Node3D &node3d, HybridAStar::Node2D &node_2d);
+
+    void TypeConversion(const HybridAStar::Node2D &node2d, HybridAStar::Node3D &node_3d);
+
+    void TypeConversion(const Path2D &path_2d, Path3D &path_3d);
     //**********************computational geometry****************
 
     /**

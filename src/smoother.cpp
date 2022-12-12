@@ -149,10 +149,10 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
         {
           DLOG(WARNING) << "correction is zero, no correction performed!!!";
         }
-        smoothed_path[i].setX(xi(0, 0));
-        smoothed_path[i].setY(xi(1, 0));
+        smoothed_path[i].SetX(xi(0, 0));
+        smoothed_path[i].SetY(xi(1, 0));
         Eigen::Vector2f Dxi = xi - xim1;
-        smoothed_path[i - 1].setT(std::atan2(Dxi(1, 0), Dxi(0, 0)));
+        smoothed_path[i - 1].SetT(std::atan2(Dxi(1, 0), Dxi(0, 0)));
         // DLOG(INFO) << i << "th node after correction: x: " << xi(0, 0) << " y: " << xi(1, 0);
       }
 

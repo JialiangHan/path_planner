@@ -26,7 +26,6 @@ namespace HybridAStar
         {
             for (const auto &point3d : anchor_points3d_vec_)
             {
-                // anchor_points2d_vec_.emplace_back(Utility::ConvertVector3fToVector2f(point3d));
                 float angle = point3d.z();
                 Eigen::Vector3f direction;
                 direction.x() = std::cos(angle);
@@ -59,9 +58,11 @@ namespace HybridAStar
         if (anchor_points_vec_size == 0)
         {
             //use the way in paper
-            t_start = Utility::ConvertVector3fToVector2f((goal_point_ - start_point_)).norm() / 3;
+            Eigen::Vector2f dist_vector;
+            Utility::TypeConversion(goal_point_ - start_point_, dist_vector);
+            t_start = dist_vector.norm() / 3;
             first_control_point = start_point_ + direction_start * t_start;
-            t_goal = Utility::ConvertVector3fToVector2f((goal_point_ - start_point_)).norm() / 3;
+            t_goal = dist_vector.norm() / 3;
             last_control_point = goal_point_ - direction_goal * t_goal;
 
             control_points_vec_.emplace_back(first_control_point);
@@ -71,11 +72,12 @@ namespace HybridAStar
         else if (anchor_points_vec_size == 1)
         {
             Eigen::Vector3f anchor_point_3d = anchor_points3d_vec_.front();
-
-            t_start = Utility::ConvertVector3fToVector2f((anchor_point_3d - start_point_)).norm() / 3;
-
+            Eigen::Vector2f anchor_to_start, anchor_to_goal;
+            Utility::TypeConversion(anchor_point_3d - start_point_, anchor_to_start);
+            Utility::TypeConversion(anchor_point_3d - goal_point_, anchor_to_goal);
+            t_start = anchor_to_start.norm() / 3;
             first_control_point = start_point_ + direction_start * t_start;
-            t_goal = Utility::ConvertVector3fToVector2f((anchor_point_3d - goal_point_)).norm() / 3;
+            t_goal = anchor_to_goal.norm() / 3;
             control_points_vec_.emplace_back(first_control_point);
 
             last_control_point = goal_point_ - direction_goal * t_goal;
@@ -101,9 +103,12 @@ namespace HybridAStar
             //calculate first and last control points
             Eigen::Vector3f first_anchor_point_3d = anchor_points3d_vec_.front();
             Eigen::Vector3f last_anchor_point_3d = anchor_points3d_vec_.back();
-            t_start = Utility::ConvertVector3fToVector2f((first_anchor_point_3d - start_point_)).norm() / 10;
+            Eigen::Vector2f anchor_to_start, anchor_to_goal;
+            Utility::TypeConversion(first_anchor_point_3d - start_point_, anchor_to_start);
+            Utility::TypeConversion(last_anchor_point_3d - goal_point_, anchor_to_goal);
+            t_start = anchor_to_start.norm() / 10;
             first_control_point = start_point_ + direction_start * t_start;
-            t_goal = Utility::ConvertVector3fToVector2f((last_anchor_point_3d - goal_point_)).norm() / 10;
+            t_goal = anchor_to_goal.norm() / 10;
             control_points_vec_.emplace_back(first_control_point);
             last_control_point = goal_point_ - direction_goal * t_goal;
             // DLOG(INFO) << "first control point is " << first_control_point.x() << " " << first_control_point.y() << " " << first_control_point.z();

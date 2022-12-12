@@ -104,8 +104,6 @@ namespace HybridAStar
                     DLOG(INFO) << "in publishing";
                     visualization_ptr_->publishNode2DPoses((*nPred));
                     visualization_ptr_->publishNode2DPose((*nPred));
-                    // visualization_ptr_->publishNode3DPoses(Utility::ConvertNode2DToNode3D(*nPred));
-                    // visualization_ptr_->publishNode3DPose(Utility::ConvertNode2DToNode3D(*nPred));
                     d.sleep();
                 }
                 // remove node from open list
@@ -284,8 +282,11 @@ namespace HybridAStar
                                    Node2D *nodes2D)
     {
         Utility::Path3D path_3d;
-        GetAStarCost(nodes2D, Utility::ConvertNode3DToNode2D(start), Utility::ConvertNode3DToNode2D(goal));
-        path_3d = Utility::ConvertPath2DToPath3D(path_);
+        Node2D start_2d, goal_2d;
+        Utility::TypeConversion(start, start_2d);
+        Utility::TypeConversion(goal, goal_2d);
+        GetAStarCost(nodes2D, start_2d, goal_2d);
+        Utility::TypeConversion(path_, path_3d);
         return path_3d;
     }
 
@@ -298,8 +299,10 @@ namespace HybridAStar
         }
 
         float min_distance = 10000;
+        HybridAStar::Node3D node_3d;
+        Utility::TypeConversion(current_node, node_3d);
         std::vector<std::pair<float, Utility::AngleRange>> step_size_angle_range =
-            configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(Utility::ConvertNode2DToNode3D(current_node), false);
+            configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(node_3d, false);
         for (const auto &element : step_size_angle_range)
         {
             if (min_distance > element.first)

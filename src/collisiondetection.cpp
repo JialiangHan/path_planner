@@ -219,14 +219,18 @@ bool CollisionDetection::configurationTest(const Eigen::Vector2f &start, const E
 }
 bool CollisionDetection::configurationTest(const Node3D &start, const Node3D &end)
 {
-
-  return configurationTest(Utility::ConvertNod3DToVector2f(start), Utility::ConvertNod3DToVector2f(end));
+  Eigen::Vector2f start_vec, end_vec;
+  Utility::TypeConversion(start, start_vec);
+  Utility::TypeConversion(end, end_vec);
+  return configurationTest(start_vec, end_vec);
 }
 
 bool CollisionDetection::configurationTest(const std::shared_ptr<Node2D> &node2d_start_ptr, const std::shared_ptr<Node2D> &node2d_end_ptr)
 {
-
-  return configurationTest(Utility::ConvertNod2DToVector2f(*node2d_start_ptr), Utility::ConvertNod2DToVector2f(*node2d_end_ptr));
+  Eigen::Vector2f start_vec, end_vec;
+  Utility::TypeConversion(*node2d_start_ptr, start_vec);
+  Utility::TypeConversion(*node2d_end_ptr, end_vec);
+  return configurationTest(start_vec, end_vec);
 }
 
 void CollisionDetection::getConfiguration(const Node3D &node, float &x, float &y, float &t) const
@@ -353,6 +357,7 @@ void CollisionDetection::SetDistanceAngleRangeMap()
 {
   // DLOG(INFO) << "SetDistanceAngleRangeMap in:";
   std::vector<std::pair<float, Utility::AngleRange>> distance_angle_range_vec;
+  Node3D node_3d;
   for (uint x = 0; x < grid_ptr_->info.width; ++x)
   {
     for (uint y = 0; y < grid_ptr_->info.height; ++y)
@@ -361,7 +366,8 @@ void CollisionDetection::SetDistanceAngleRangeMap()
       distance_angle_range_vec.clear();
       uint current_point_index = GetNode3DIndexOnGridMap(x, y);
       Eigen::Vector2f current_point(x, y);
-      std::vector<std::pair<float, float>> angle_distance_vec = SweepDistanceAndAngle(Utility::ConvertVector2fToNode3D(current_point), obstacle_detection_range_, false);
+      Utility::TypeConversion(current_point, node_3d);
+      std::vector<std::pair<float, float>> angle_distance_vec = SweepDistanceAndAngle(node_3d, obstacle_detection_range_, false);
       float range_start = -1, range_range = -1, min_distance;
       // flag to indicate whether angle range start or not
       bool free_angle_range_flag = false, obstacle_angle_range_flag = false;
@@ -936,7 +942,7 @@ std::vector<std::pair<float, float>> CollisionDetection::SweepDistanceAndAngle(c
   {
     // DLOG(INFO) << "angle is " << Utility::ConvertRadToDeg(angle);
     // 1. create segment according node3d, radius and angle
-    // ComputationalGeometry::Segment segment = ComputationalGeometry::Segment(Utility::ConvertNod3DToVector2f(node3d), radius, angle);
+
     distance = FindNoCollisionDistance(node3d, radius, angle);
 
     out.emplace_back(std::pair<float, float>(angle, distance));
@@ -958,6 +964,8 @@ float CollisionDetection::FindNoCollisionDistance(const Node3D &node3d, const fl
   // DLOG_IF(INFO, out == 0) << "distance is " << out;
   // 1. calculate node3d index
   uint current_index = GetNode3DIndexOnGridMap(node3d);
+  Eigen::Vector2f node3d_vec;
+  Utility::TypeConversion(node3d, node3d_vec);
   // 2. based on this index, find in range obstacles
   if (in_range_obstacle_map_.find(current_index) != in_range_obstacle_map_.end())
   {
@@ -965,7 +973,7 @@ float CollisionDetection::FindNoCollisionDistance(const Node3D &node3d, const fl
     // 5. get distance from node3d to nearest obstacle in this direction
     for (const auto &in_range_polygon : in_range_obstacle_map_[current_index])
     {
-      float temp = Utility::GetDistanceFromPolygonToPointAtAngle(in_range_polygon, Utility::ConvertNod3DToVector2f(node3d), angle);
+      float temp = Utility::GetDistanceFromPolygonToPointAtAngle(in_range_polygon, node3d_vec, angle);
       // DLOG(INFO) << "temp is " << temp;
       if (temp < 0)
       {

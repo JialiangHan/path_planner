@@ -542,16 +542,19 @@ namespace RRTPlanner
     { // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath in:";
         std::vector<Eigen::Vector3f> anchor_points_vec;
         Utility::Path3D out;
+        Eigen::Vector3f node_vec, start_3d, goal_3d;
         for (uint index = 1; index < path.size() - 1; ++index)
         {
             // DLOG(INFO) << "path point is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
             // not necessary to do this check, greater than 1
-
-            anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path[index]));
+            Utility::TypeConversion(path[index], node_vec);
+            anchor_points_vec.emplace_back(node_vec);
             // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
         }
         // DLOG(INFO) << "end point is " << end_point.GetX() << " " << end_point.GetY() << " " << Utility::ConvertRadToDeg(end_point.GetT());
-        HybridAStar::PiecewiseCubicBezier pwcb(Utility::ConvertNode3DToVector3f(start_), Utility::ConvertNode3DToVector3f(goal_));
+        Utility::TypeConversion(start_, start_3d);
+        Utility::TypeConversion(goal_, goal_3d);
+        HybridAStar::PiecewiseCubicBezier pwcb(start_3d, goal_3d);
         pwcb.SetAnchorPoints(anchor_points_vec);
         // for (const auto &point : anchor_points_vec)
         // {
@@ -566,7 +569,8 @@ namespace RRTPlanner
         for (const auto &vector : path_vec)
         {
             // DLOG(INFO) << "vector is " << vector.x() << " " << vector.y() << " " << Utility::ConvertRadToDeg(vector.z());
-            Node3D node3d = Utility::ConvertVector3fToNode3D(vector);
+            Node3D node3d;
+            Utility::TypeConversion(vector, node3d);
             out.emplace_back(node3d);
             // DLOG(INFO) << "point is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
         }
@@ -579,9 +583,10 @@ namespace RRTPlanner
         Utility::Path3D path_vec;
         int i = 0;
         float x = 0.f;
-        Eigen::Vector3f vector3d_start = Utility::ConvertNode3DToVector3f(start);
+        Eigen::Vector3f vector3d_start, vector3d_goal;
 
-        Eigen::Vector3f vector3d_goal = Utility::ConvertNode3DToVector3f(goal);
+        Utility::TypeConversion(start, vector3d_start);
+        Utility::TypeConversion(goal, vector3d_goal);
 
         CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width_, map_height_);
         float length = cubic_bezier.GetLength();
@@ -596,7 +601,7 @@ namespace RRTPlanner
             }
             else
             {
-                node3d = Utility::ConvertVector3fToNode3D(cubic_bezier.GetValueAt(x / length));
+                Utility::TypeConversion(cubic_bezier.GetValueAt(x / length), node3d);
                 node3d.SetPred(pred_ptr);
             }
             // DLOG(INFO) << i << "th iteration";

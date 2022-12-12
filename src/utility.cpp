@@ -4,23 +4,49 @@ namespace Utility
 {
     //*******************type conversion*******************
 
-    HybridAStar::Node2D ConvertNode3DToNode2D(const HybridAStar::Node3D &node3d)
+    void TypeConversion(const geometry_msgs::PoseStamped &start, HybridAStar::Node3D &node3d)
     {
-        HybridAStar::Node2D out;
-        out.setX(node3d.GetX());
-        out.setY(node3d.GetY());
-        return out;
+        node3d.SetX(start.pose.position.x);
+        node3d.SetY(start.pose.position.y);
+        node3d.SetT(tf::getYaw(start.pose.orientation));
+        return;
+    }
+    void TypeConversion(const HybridAStar::Node3D &node3d, geometry_msgs::PoseStamped &pose)
+    {
+        tf::Quaternion pose_quat = tf::createQuaternionFromYaw(node3d.GetT());
+
+        pose.pose.position.x = node3d.GetX();
+        pose.pose.position.y = node3d.GetY();
+
+        pose.pose.orientation.x = pose_quat.x();
+        pose.pose.orientation.y = pose_quat.y();
+        pose.pose.orientation.z = pose_quat.z();
+        pose.pose.orientation.w = pose_quat.w();
     }
 
-    HybridAStar::Node3D ConvertNode2DToNode3D(const HybridAStar::Node2D &node2d)
+    void TypeConversion(const Path3D &path3d, std::vector<geometry_msgs::PoseStamped> &plan)
     {
-        HybridAStar::Node3D out;
-        out.setX(node2d.GetX());
-        out.setY(node2d.GetY());
-        out.setT(0);
-        return out;
+        for (const auto &element : path3d)
+        {
+            geometry_msgs::PoseStamped pose;
+            TypeConversion(element, pose);
+            plan.push_back(pose);
+        }
     }
-    void ConvertRosPathToVectorVector3D(
+
+    void TypeConversion(const HybridAStar::Node3D &node3d, HybridAStar::Node2D &node_2d)
+    {
+        node_2d.SetX(node3d.GetX());
+        node_2d.SetY(node3d.GetY());
+    }
+
+    void TypeConversion(const HybridAStar::Node2D &node2d, HybridAStar::Node3D &node_3d)
+    {
+        node_3d.SetX(node2d.GetX());
+        node_3d.SetY(node2d.GetY());
+        node_3d.SetT(0);
+    }
+    void TypeConversion(
         const nav_msgs::Path::ConstPtr &path,
         std::vector<Eigen::Vector3f> &vector_3d_vec)
     {
@@ -43,11 +69,12 @@ namespace Utility
         out.y() = (index / map_width);
         return out;
     }
-    nav_msgs::Path ConvertVectorVector3DToRosPath(
-        const std::vector<Eigen::Vector3f> &vector_3d_vec)
+
+    void TypeConversion(
+        const std::vector<Eigen::Vector3f> &vector_3d_vec, nav_msgs::Path &path)
     {
-        nav_msgs::Path out;
-        out.header.stamp = ros::Time::now();
+
+        path.header.stamp = ros::Time::now();
         for (const auto &vector3d : vector_3d_vec)
         {
             geometry_msgs::PoseStamped vertex;
@@ -58,68 +85,54 @@ namespace Utility
             vertex.pose.orientation.y = 0;
             vertex.pose.orientation.z = 0;
             vertex.pose.orientation.w = 0;
-            out.poses.emplace_back(vertex);
+            path.poses.emplace_back(vertex);
         }
-        return out;
     }
-    Eigen::Vector2f ConvertVector3fToVector2f(const Eigen::Vector3f &vector_3d)
+    void TypeConversion(const Eigen::Vector3f &vector_3d, Eigen::Vector2f &vector_2d)
     {
-        Eigen::Vector2f out;
-        out.x() = vector_3d.x();
-        out.y() = vector_3d.y();
-        return out;
-    }
-    Eigen::Vector3f ConvertVector2fToVector3f(const Eigen::Vector2f &vector_2d)
-    {
-        Eigen::Vector3f out;
-        out.x() = vector_2d.x();
-        out.y() = vector_2d.y();
-        out.z() = 0;
-        return out;
-    }
-    Eigen::Vector3f ConvertNode3DToVector3f(const HybridAStar::Node3D &node3d)
-    {
-        Eigen::Vector3f out;
-        out.x() = node3d.GetX();
-        out.y() = node3d.GetY();
-        out.z() = node3d.GetT();
-        return out;
-    }
-    Eigen::Vector2f ConvertNod3DToVector2f(const HybridAStar::Node3D &node3d)
-    {
-        Eigen::Vector3f vector3f = ConvertNode3DToVector3f(node3d);
-        return ConvertVector3fToVector2f(vector3f);
-    }
-    Eigen::Vector2f ConvertNod2DToVector2f(const HybridAStar::Node2D &node2d)
-    {
-        Eigen::Vector2f out(node2d.GetX(), node2d.GetY());
-        return out;
-    }
-    HybridAStar::Node3D ConvertVector3fToNode3D(const Eigen::Vector3f &vector3d)
-    {
-        float x = vector3d.x();
-        float y = vector3d.y();
-        float t = vector3d.z();
-        HybridAStar::Node3D node3d(x, y, t, 0, 0, nullptr);
-        return node3d;
+        vector_2d.x() = vector_3d.x();
+        vector_2d.y() = vector_3d.y();
     }
 
-    HybridAStar::Node3D ConvertVector2fToNode3D(const Eigen::Vector2f &vector2d)
+    void TypeConversion(const HybridAStar::Node3D &node3d, Eigen::Vector3f &vector_3d)
     {
-        float x = vector2d.x();
-        float y = vector2d.y();
-        HybridAStar::Node3D node3d(x, y, 0, 0, 0, nullptr);
-        return node3d;
+        vector_3d.x() = node3d.GetX();
+        vector_3d.y() = node3d.GetY();
+        vector_3d.z() = node3d.GetT();
     }
 
-    Utility::Path3D ConvertPath2DToPath3D(const Path2D &path_2d)
+    void TypeConversion(const HybridAStar::Node3D &node3d, Eigen::Vector2f &vector2f)
     {
-        Utility::Path3D path_3d;
+        Eigen::Vector3f vector3f;
+        TypeConversion(node3d, vector3f);
+        TypeConversion(vector3f, vector2f);
+    }
+    void TypeConversion(const HybridAStar::Node2D &node2d, Eigen::Vector2f &vector2f)
+    {
+        vector2f.x() = node2d.GetX();
+        vector2f.y() = node2d.GetY();
+    }
+    void TypeConversion(const Eigen::Vector3f &vector3d, HybridAStar::Node3D &node_3d)
+    {
+        node_3d.SetX(vector3d.x());
+        node_3d.SetY(vector3d.y());
+        node_3d.SetT(vector3d.z());
+    }
+
+    void TypeConversion(const Eigen::Vector2f &vector2d, HybridAStar::Node3D &node3d)
+    {
+        node3d.SetX(vector2d.x());
+        node3d.SetY(vector2d.y());
+    }
+
+    void TypeConversion(const Path2D &path_2d, Path3D &path_3d)
+    {
+        HybridAStar::Node3D node_3d;
         for (const auto &element : path_2d)
         {
-            path_3d.emplace_back(ConvertVector2fToNode3D(ConvertNod2DToVector2f(element)));
+            TypeConversion(element, node_3d);
+            path_3d.emplace_back(node_3d);
         }
-        return path_3d;
     }
     //**********************computational geometry****************
 
@@ -339,7 +352,8 @@ namespace Utility
     }
     int IsInsidePolygon(const Polygon &polygon, const Eigen::Vector3f &point)
     {
-        Eigen::Vector2f point_2d = ConvertVector3fToVector2f(point);
+        Eigen::Vector2f point_2d;
+        TypeConversion(point, point_2d);
         return IsInsidePolygon(polygon, point_2d);
     }
 
@@ -428,7 +442,9 @@ namespace Utility
     float GetDistanceFromPointToPoint(const Eigen::Vector3f &vector_3d,
                                       const Eigen::Vector2f &vector_2d)
     {
-        return GetDistanceFromPointToPoint(ConvertVector3fToVector2f(vector_3d),
+        Eigen::Vector2f vector2d_1;
+        TypeConversion(vector_3d, vector2d_1);
+        return GetDistanceFromPointToPoint(vector2d_1,
                                            vector_2d);
     }
     float GetDistanceFromPointToPoint(const Eigen::Vector2f &p1,
@@ -1024,14 +1040,18 @@ namespace Utility
     float GetDistance(const HybridAStar::Node2D &start,
                       const HybridAStar::Node2D &goal)
     {
-        return GetDistanceFromPointToPoint(ConvertNod2DToVector2f(start),
-                                           ConvertNod2DToVector2f(goal));
+        Eigen::Vector2f start_vec, goal_vec;
+        TypeConversion(start, start_vec);
+        TypeConversion(goal, goal_vec);
+        return GetDistanceFromPointToPoint(start_vec, goal_vec);
     }
     float GetDistance(const HybridAStar::Node3D &start,
                       const HybridAStar::Node3D &goal)
     {
-        return GetDistanceFromPointToPoint(ConvertNod3DToVector2f(start),
-                                           ConvertNod3DToVector2f(goal));
+        Eigen::Vector2f start_vec, goal_vec;
+        TypeConversion(start, start_vec);
+        TypeConversion(goal, goal_vec);
+        return GetDistanceFromPointToPoint(start_vec, goal_vec);
     }
     bool IsCloseEnough(const HybridAStar::Node3D &start,
                        const HybridAStar::Node3D &goal, const float &distance_range,
@@ -1162,13 +1182,19 @@ namespace Utility
                    const HybridAStar::Node3D &goal)
     {
         // DLOG(INFO) << "start node is " << start.GetX() << " " << start.GetY() << " goal is " << goal.GetX() << " " << goal.GetY();
-        return GetAngle(ConvertVector3fToVector2f(ConvertNode3DToVector3f(start)), ConvertVector3fToVector2f(ConvertNode3DToVector3f(goal)));
+        Eigen::Vector2f start_2d, goal_2d;
+        TypeConversion(start, start_2d);
+        TypeConversion(goal, goal_2d);
+        return GetAngle(start_2d, goal_2d);
     }
     float GetAngle(const HybridAStar::Node2D &start,
                    const HybridAStar::Node2D &goal)
     {
         // DLOG(INFO) << "start node is " << start.GetX() << " " << start.GetY() << " goal is " << goal.GetX() << " " << goal.GetY();
-        return GetAngle(ConvertNod2DToVector2f(start), ConvertNod2DToVector2f(goal));
+        Eigen::Vector2f start_2d, goal_2d;
+        TypeConversion(start, start_2d);
+        TypeConversion(goal, goal_2d);
+        return GetAngle(start_2d, goal_2d);
     }
     // checked, correct
     float GetAngle(const Eigen::Vector2f &start, const Eigen::Vector2f &goal)
@@ -1217,7 +1243,9 @@ namespace Utility
 
     AngleRange GetAngleRangeFromPointToEdgeAtRadius(const HybridAStar::Node3D &point, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end)
     {
-        return GetAngleRangeFromPointToEdgeAtRadius(ConvertNod3DToVector2f(point), radius, start, end);
+        Eigen::Vector2f point_vec;
+        TypeConversion(point, point_vec);
+        return GetAngleRangeFromPointToEdgeAtRadius(point_vec, radius, start, end);
     }
     // checked ,correct
     AngleRange GetAngleRangeFromPointToEdgeAtRadius(const Eigen::Vector2f &point, const float &radius, const Eigen::Vector2f &start, const Eigen::Vector2f &end)
@@ -1263,7 +1291,7 @@ namespace Utility
             }
             // 3.2.2 edge is partially inside circle
             float intersection_angle = GetAngle(point, intersection_points[0]);
-            float start_angle;
+            float start_angle = 0;
             if (is_start_inside_circle && !is_end_inside_circle)
             {
                 start_angle = GetAngle(point, start);
@@ -1834,7 +1862,7 @@ namespace Utility
     std::pair<float, float> CompareAngle(const float &first_angle, const float &second_angle)
     {
         std::pair<float, float> out;
-        float greater_angle, smaller_angle;
+        float greater_angle = 0, smaller_angle = 0;
         // float normalized_first_angle = RadToZeroTo2P(first_angle);
         // float normalized_second_angle = RadToZeroTo2P(second_angle);
         if (first_angle > second_angle)
@@ -1962,7 +1990,7 @@ namespace Utility
         {
             return out;
         };
-        for (size_t i = 1; i <= (number_of_successors - 1) / 2; i++)
+        for (int i = 1; i <= (number_of_successors - 1) / 2; i++)
         {
             out.emplace_back(i * ConvertDegToRad(steering_angle));
             out.emplace_back(-(i * ConvertDegToRad(steering_angle)));

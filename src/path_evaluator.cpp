@@ -175,7 +175,9 @@ namespace PathEvaluator
                 {
                     Eigen::Vector2f obstacle_2d = Utility::ConvertIndexToEigenVector2f(index, map_width);
                     Utility::Polygon obstacle = Utility::CreatePolygon(obstacle_2d);
-                    Utility::Polygon vehicle = Utility::CreatePolygon(Utility::ConvertVector3fToVector2f(vector_3d), vehicle_width_, vehicle_length_, vector_3d.z());
+                    Eigen::Vector2f vehicle_2d;
+                    Utility::TypeConversion(vector_3d, vehicle_2d);
+                    Utility::Polygon vehicle = Utility::CreatePolygon(vehicle_2d, vehicle_width_, vehicle_length_, vector_3d.z());
                     float distance = Utility::GetDistanceFromPolygonToPolygon(vehicle, obstacle);
                     if (distance < clearance)
                     {
@@ -214,7 +216,7 @@ namespace PathEvaluator
     void PathEvaluator::CallbackPath(const nav_msgs::Path::ConstPtr &path, const std::string &topic_name)
     {
         std::vector<Eigen::Vector3f> vector_3d_vec;
-        Utility::ConvertRosPathToVectorVector3D(path, vector_3d_vec);
+        Utility::TypeConversion(path, vector_3d_vec);
         //reverse path since path is from goal to start.
         // std::reverse(vector_3d_vec.begin(), vector_3d_vec.end());
         CalculateCurvature(vector_3d_vec, topic_name);

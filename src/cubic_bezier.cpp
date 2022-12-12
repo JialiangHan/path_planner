@@ -114,7 +114,9 @@ namespace CubicBezier
         { //use the way in paper
             direction.x() = std::cos(start_angle);
             direction.y() = std::sin(start_angle);
-            float t = (Utility::ConvertVector3fToVector2f(goal_point_ - start_point_)).norm() / 3;
+            Eigen::Vector2f temp;
+            Utility::TypeConversion(goal_point_ - start_point_, temp);
+            float t = temp.norm() / 3;
             first_control_point = start_point_ + direction * t;
             direction.x() = std::cos(goal_angle);
             direction.y() = std::sin(goal_angle);
@@ -164,7 +166,9 @@ namespace CubicBezier
         // DLOG(INFO) << "In calculateLength()";
         for (uint i = 0; i < 100; ++i)
         {
-            length_ += Utility::ConvertVector3fToVector2f(GetValueAt((i + 1) / 100.0) - GetValueAt(i / 100.0)).norm();
+            Eigen::Vector2f temp;
+            Utility::TypeConversion(GetValueAt((i + 1) / 100.0) - GetValueAt(i / 100.0), temp);
+            length_ += temp.norm();
         }
         // DLOG(INFO) << "length is " << length_;
     }
@@ -219,8 +223,9 @@ namespace CubicBezier
     float CubicBezier::GetCurvatureAt(const float &t)
     {
         float curvature = 0;
-        Eigen::Vector2f first_order_derivative = Utility::ConvertVector3fToVector2f(GetFirstOrderDerivativeValueAt(t));
-        Eigen::Vector2f second_order_derivative = Utility::ConvertVector3fToVector2f(GetSecondOrderDerivativeValueAt(t));
+        Eigen::Vector2f first_order_derivative, second_order_derivative;
+        Utility::TypeConversion(GetFirstOrderDerivativeValueAt(t), first_order_derivative);
+        Utility::TypeConversion(GetSecondOrderDerivativeValueAt(t), second_order_derivative);
         if (first_order_derivative.norm() != 0)
         {
             curvature = std::abs(Utility::CrossProduct(first_order_derivative, second_order_derivative)) / std::pow(first_order_derivative.norm(), 3);

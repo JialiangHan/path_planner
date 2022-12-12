@@ -336,9 +336,11 @@ namespace HybridAStar
     Utility::Path3D path_vec;
     int i = 0;
     float x = 0.f;
-    Eigen::Vector3f vector3d_start = Utility::ConvertNode3DToVector3f(start);
+    Eigen::Vector3f vector3d_start, vector3d_goal;
+    Utility::TypeConversion(start, vector3d_start);
     // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
-    Eigen::Vector3f vector3d_goal = Utility::ConvertNode3DToVector3f(goal);
+    Utility::TypeConversion(goal, vector3d_goal);
+
     // Dubins/RS curve
     if (params_.curve_type_analytical_expansion == 0)
     {
@@ -386,7 +388,9 @@ namespace HybridAStar
       while (x < length)
       {
         // DLOG(INFO) << i << "th iteration";
-        Node3D node3d = Utility::ConvertVector3fToNode3D(cubic_bezier.GetValueAt(x / length));
+        Node3D node3d;
+        Utility::TypeConversion(cubic_bezier.GetValueAt(x / length), node3d);
+
         float curvature = cubic_bezier.GetCurvatureAt(x / length);
         node3d.SetT(cubic_bezier.GetAngleAt(x / length));
         // DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY();
@@ -696,6 +700,9 @@ namespace HybridAStar
     std::vector<Eigen::Vector3f> anchor_points_vec;
     piecewise_cubic_bezier_path_.clear();
     Node3D end_point;
+    Eigen::Vector3f start_vector, end_point_vec;
+    Utility::TypeConversion(start_, start_vector);
+    Utility::TypeConversion(end_point, end_point_vec);
     // for (uint jj = 1; jj < path_.size() - 1; ++jj)
     // {
     //   DLOG(INFO) << "path point is " << path_[jj].GetX() << " " << path_[jj].GetY() << " " << path_[jj].GetT();
@@ -723,16 +730,20 @@ namespace HybridAStar
           continue;
           // DLOG(INFO) << "points are too close to each other!!!!";
         }
-        anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
+        Eigen::Vector3f vector_3d;
+        Utility::TypeConversion(path_[index], vector_3d);
+        anchor_points_vec.emplace_back(vector_3d);
         // DLOG(INFO) << "current path index is " << index;
       }
       else
       {
         distance_to_prev = Utility::GetDistance(path_[index], path_[index - 1]);
         distance_to_succ = Utility::GetDistance(path_[index], path_[index + 1]);
+        Eigen::Vector3f vector_3d;
+        Utility::TypeConversion(path_[index], vector_3d);
         if (distance_to_succ >= 1 && distance_to_prev >= 1)
         {
-          anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
+          anchor_points_vec.emplace_back(vector_3d);
           // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
         }
         else if (distance_to_succ >= 1 && distance_to_prev < 1)
@@ -741,7 +752,7 @@ namespace HybridAStar
         }
         else if (distance_to_prev >= 1 && distance_to_succ < 1)
         {
-          anchor_points_vec.emplace_back(Utility::ConvertNode3DToVector3f(path_[index]));
+          anchor_points_vec.emplace_back(vector_3d);
           // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
         }
         if (index == analytical_expansion_index_)
@@ -756,7 +767,7 @@ namespace HybridAStar
       }
     }
     // DLOG(INFO) << "end point is " << end_point.GetX() << " " << end_point.GetY() << " " << Utility::ConvertRadToDeg(end_point.GetT());
-    PiecewiseCubicBezier pwcb(Utility::ConvertNode3DToVector3f(start_), Utility::ConvertNode3DToVector3f(end_point));
+    PiecewiseCubicBezier pwcb(start_vector, end_point_vec);
     pwcb.SetAnchorPoints(anchor_points_vec);
     // for (const auto &point : anchor_points_vec)
     // {
@@ -771,7 +782,8 @@ namespace HybridAStar
     for (const auto &vector : path_vec)
     {
       // DLOG(INFO) << "vector is " << vector.x() << " " << vector.y() << " " << Utility::ConvertRadToDeg(vector.z());
-      Node3D node3d = Utility::ConvertVector3fToNode3D(vector);
+      Node3D node3d;
+      Utility::TypeConversion(vector, node3d);
       piecewise_cubic_bezier_path_.emplace_back(node3d);
       // DLOG(INFO) << "point is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
     }
