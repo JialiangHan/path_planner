@@ -5,11 +5,11 @@ using namespace HybridAStar;
 //                                     CUSP DETECTION
 //###################################################
 inline bool isCusp(const std::vector<Node3D>& path, int i) {
-  bool revim2 = path[i - 2].GetPrim() > 3;
-  bool revim1 = path[i - 1].GetPrim() > 3;
-  bool revi = path[i].GetPrim() > 3;
-  bool revip1 = path[i + 1].GetPrim() > 3;
-  //  bool revip2 = path[i + 2].GetPrim() > 3 ;
+  bool revim2 = path[i - 2].getPrim() > 3;
+  bool revim1 = path[i - 1].getPrim() > 3;
+  bool revi = path[i].getPrim() > 3;
+  bool revip1 = path[i + 1].getPrim() > 3;
+  //  bool revip2 = path[i + 2].getPrim() > 3 ;
   return (revim2 != revim1 || revim1 != revi || revi != revip1);
 }
 
@@ -62,11 +62,11 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
       // choose the first three nodes of the path
       for (uint i = 2; i < path_before_smooth.size() - 2; ++i)
       {
-        Eigen::Vector2f xim2(path_before_smooth[i - 2].GetX(), path_before_smooth[i - 2].GetY());
-        Eigen::Vector2f xim1(path_before_smooth[i - 1].GetX(), path_before_smooth[i - 1].GetY());
-        Eigen::Vector2f xi(path_before_smooth[i].GetX(), path_before_smooth[i].GetY());
-        Eigen::Vector2f xip1(path_before_smooth[i + 1].GetX(), path_before_smooth[i + 1].GetY());
-        Eigen::Vector2f xip2(path_before_smooth[i + 2].GetX(), path_before_smooth[i + 2].GetY());
+        Eigen::Vector2f xim2(path_before_smooth[i - 2].getX(), path_before_smooth[i - 2].getY());
+        Eigen::Vector2f xim1(path_before_smooth[i - 1].getX(), path_before_smooth[i - 1].getY());
+        Eigen::Vector2f xi(path_before_smooth[i].getX(), path_before_smooth[i].getY());
+        Eigen::Vector2f xip1(path_before_smooth[i + 1].getX(), path_before_smooth[i + 1].getY());
+        Eigen::Vector2f xip2(path_before_smooth[i + 2].getX(), path_before_smooth[i + 2].getY());
         Eigen::Vector2f correction(0, 0);
         // //DLOG(INFO) << "xim2: " << xim2(0,0) << " " << xim2(1,0)
         //  << "xim1: " << xim1(0,0) << " " << xim1(1,0)
@@ -149,10 +149,10 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
         {
           DLOG(WARNING) << "correction is zero, no correction performed!!!";
         }
-        smoothed_path[i].SetX(xi(0, 0));
-        smoothed_path[i].SetY(xi(1, 0));
+        smoothed_path[i].setX(xi(0, 0));
+        smoothed_path[i].setY(xi(1, 0));
         Eigen::Vector2f Dxi = xi - xim1;
-        smoothed_path[i - 1].SetT(std::atan2(Dxi(1, 0), Dxi(0, 0)));
+        smoothed_path[i - 1].setT(std::atan2(Dxi(1, 0), Dxi(0, 0)));
         // DLOG(INFO) << i << "th node after correction: x: " << xi(0, 0) << " y: " << xi(1, 0);
       }
 
@@ -173,7 +173,7 @@ void Smoother::SmoothPath(const DynamicVoronoi &voronoi)
   path_ = smoothed_path;
   // for (auto node : path_)
   // {
-  //   DLOG(INFO) << "smoothed path is x: " << node.GetX() << " y: " << node.GetY() << " t: " << node.GetT();
+  //   DLOG(INFO) << "smoothed path is x: " << node.getX() << " y: " << node.getY() << " t: " << node.getT();
   // }
 }
 
@@ -557,7 +557,7 @@ int Smoother::PreprocessPath()
   //remove some duplicates
   for (uint index = 0; index < path_.size(); ++index)
   {
-    // //DLOG(INFO) << "path point is x: " << path_[index].GetX() << " y: " << path_[index].GetY() << " t: " << path_[index].GetT();
+    // //DLOG(INFO) << "path point is x: " << path_[index].getX() << " y: " << path_[index].getY() << " t: " << path_[index].getT();
     if (index != path_.size() - 1)
     {
       if (path_[index] == path_[index + 1])
@@ -582,8 +582,8 @@ float Smoother::GetPathDiff(const std::vector<Node3D> &path_before_smooth, const
     float diff = 0.0;
     for (uint i = 0; i < path_after_smooth.size(); ++i)
     {
-      Eigen::Vector2f xi_before(path_before_smooth[i].GetX(), path_before_smooth[i].GetY());
-      Eigen::Vector2f xi_after(path_after_smooth[i].GetX(), path_after_smooth[i].GetY());
+      Eigen::Vector2f xi_before(path_before_smooth[i].getX(), path_before_smooth[i].getY());
+      Eigen::Vector2f xi_after(path_after_smooth[i].getX(), path_after_smooth[i].getY());
       diff += (xi_after - xi_before).norm();
     }
     diff = diff / path_after_smooth.size();

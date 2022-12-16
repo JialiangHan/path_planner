@@ -64,17 +64,17 @@ namespace HybridAStar
         }
         else
         {
-            if (node3d.GetX() < params_.position_resolution && node3d.GetY() < params_.position_resolution)
+            if (node3d.getX() < params_.position_resolution && node3d.getY() < params_.position_resolution)
             {
-                // DLOG(INFO) << "index : " << index << " not found in dubins map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
+                // DLOG(INFO) << "index : " << index << " not found in dubins map, node is " << node3d.getX() << " " << node3d.getY() << " " << Utility::ConvertRadToDeg(node3d.getT());
             }
             else
             {
-                // DLOG(WARNING) << "Warning: index : " << index << " not found in dubins map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
+                // DLOG(WARNING) << "Warning: index : " << index << " not found in dubins map, node is " << node3d.getX() << " " << node3d.getY() << " " << Utility::ConvertRadToDeg(node3d.getT());
             }
 
             // const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
-            // DLOG(INFO) << "(int)(theta / delta_heading_in_rad) " << (int)(Utility::RadToZeroTo2P(node3d.GetT()) / delta_heading_in_rad);
+            // DLOG(INFO) << "(int)(theta / delta_heading_in_rad) " << (int)(Utility::RadToZeroTo2P(node3d.getT()) / delta_heading_in_rad);
         }
         return out;
     }
@@ -90,7 +90,7 @@ namespace HybridAStar
         }
         else
         {
-            // DLOG(INFO) << "index not found in rs map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
+            // DLOG(INFO) << "index not found in rs map, node is " << node3d.getX() << " " << node3d.getY() << " " << node3d.getT();
         }
         return out;
     }
@@ -106,16 +106,16 @@ namespace HybridAStar
         }
         else
         {
-            // DLOG(INFO) << "index " << index << " not found in cubic bezier map, node is " << node3d.GetX() << " " << node3d.GetY() << " " << node3d.GetT();
+            // DLOG(INFO) << "index " << index << " not found in cubic bezier map, node is " << node3d.getX() << " " << node3d.getY() << " " << node3d.getT();
         }
         return out;
     }
     int LookupTable::CalculateNode3DIndex(const Node3D &node3d) const
     {
         int out;
-        float x_float = node3d.GetX();
-        float y_float = node3d.GetY();
-        float t_float = Utility::RadToZeroTo2P(node3d.GetT());
+        float x_float = node3d.getX();
+        float y_float = node3d.getY();
+        float t_float = Utility::RadToZeroTo2P(node3d.getT());
         // DLOG(INFO) << "t is " << t_float;
         out = CalculateNode3DIndex(x_float, y_float, t_float);
         return out;

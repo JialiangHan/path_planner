@@ -211,10 +211,10 @@ TEST(Utility, IsAngleRangeInclude)
 TEST(Utility, GetAngle)
 {
     HybridAStar::Node2D start, goal;
-    start.SetX(0);
-    start.SetY(0);
-    goal.SetX(0);
-    goal.SetY(-1);
+    start.setX(0);
+    start.setY(0);
+    goal.setX(0);
+    goal.setY(-1);
 
     float result = Utility::GetAngle(start, goal);
 

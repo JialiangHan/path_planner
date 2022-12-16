@@ -1,35 +1,52 @@
 /**
  * @file a_star.h
  * @author Jialiang Han (hanjiali@umich.edu)
- * @brief this is a class only for a star algorithm
- * @version 0.1
- * @date 2022-01-11
- * 
+ * @brief this is a class only for a star algorithm, Inheritance from expander
+ * @version 0.2
+ * @date 2022-12-13
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #pragma once
 
+#include "expander.h"
 #include <boost/heap/binomial_heap.hpp>
 #include "visualize.h"
 #include "collisiondetection.h"
 #include "utility.h"
+#include <tf/transform_datatypes.h>
 namespace HybridAStar
 {
 
     /*!
  * \brief A class that encompasses the functions central to the search.
  */
-    class AStar
+    class AStar : public Expander
     {
     public:
-        /// The default constructor
-        AStar(){};
-        // AStar(const std::shared_ptr<CollisionDetection> &configuration_space_ptr,
-        //       const std::shared_ptr<Visualize> &visualization_ptr, const uint &possible_direction, const bool &visualization2D);
+        AStar(std::string frame_id, costmap_2d::Costmap2D *_costmap)
+            : Expander(frame_id, _costmap)
+        {
+        }
         AStar(const ParameterAStar &params,
-              const std::shared_ptr<Visualize> &visualization_ptr);
-
+              const std::shared_ptr<Visualize> &visualization_ptr) : Expander()
+        {
+            params_ = params;
+            configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params));
+            visualization_ptr_ = visualization_ptr;
+        };
+        /**
+         * @brief Find the path between the start pose and goal pose
+         * @param start the reference of start pose
+         * @param goal the reference of goal pose
+         * @param cells_x the number of the cells of the costmap in x axis
+         * @param cells_y the number of the cells of the costmap in y axis
+         * @param plan the refrence of plan;
+         * @return true if a valid plan was found.
+         */
+        bool calculatePath(const geometry_msgs::PoseStamped &start, const geometry_msgs::PoseStamped &goal,
+                           int cells_x, int cells_y, std::vector<geometry_msgs::PoseStamped> &plan, ros::Publisher &pub, visualization_msgs::MarkerArray &pathNodes);
         /**
          * @brief set map and calculate lookup table
          *
@@ -76,6 +93,15 @@ namespace HybridAStar
         void TracePath(std::shared_ptr<Node2D> node2d_ptr);
 
         int FindStepSize(const Node2D &current_node);
+        // similar to CreateSuccessor
+        std::vector<Node2D *> getAdjacentPoints(int cells_x, int cells_y, const unsigned char *charMap, Node2D *pathNode2D, Node2D *point);
+
+        /**
+         * @brief transform the 2Dnode to geometry_msgs::PoseStamped, similar to TracePath
+         * @param node the ptr of node
+         * @param plan the refrence of plan
+         */
+        void nodeToPlan(Node2D *node, std::vector<geometry_msgs::PoseStamped> &plan);
 
     private:
         ParameterAStar params_;

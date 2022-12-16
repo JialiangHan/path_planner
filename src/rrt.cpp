@@ -89,8 +89,8 @@ namespace RRTPlanner
             {
                 break;
             }
-            // DLOG(INFO) << "current node is " << node3d_ptr->GetX() << " " << node3d_ptr->GetY() << " and its pred is " << node3d_ptr->GetPred()->GetX() << " " << node3d_ptr->GetPred()->GetY();
-            node3d_ptr = node3d_ptr->GetPred();
+            // DLOG(INFO) << "current node is " << node3d_ptr->getX() << " " << node3d_ptr->getY() << " and its pred is " << node3d_ptr->getSmartPtrPred(PtrPred(PtrPred()->getX() << " " << node3d_ptr->getSmartPtrPred()->getY();
+            node3d_ptr = node3d_ptr->getSmartPtrPred();
         }
         std::reverse(path.begin(), path.end());
         return path;
@@ -196,14 +196,14 @@ namespace RRTPlanner
         std::shared_ptr<Node3D> closest_node_ptr = std::make_shared<Node3D>(closest_node);
         if (params_.twoD_rrt)
         {
-            xSucc = closest_node.GetX() + stepsize_steering_angle.first * cos(stepsize_steering_angle.second);
-            ySucc = closest_node.GetY() + stepsize_steering_angle.first * sin(stepsize_steering_angle.second);
-            tSucc = Utility::RadToZeroTo2P(closest_node.GetT() + stepsize_steering_angle.second);
+            xSucc = closest_node.getX() + stepsize_steering_angle.first * cos(stepsize_steering_angle.second);
+            ySucc = closest_node.getY() + stepsize_steering_angle.first * sin(stepsize_steering_angle.second);
+            tSucc = Utility::RadToZeroTo2P(closest_node.getT() + stepsize_steering_angle.second);
         }
         else
         {
 
-            // DLOG_IF(INFO, (pred.GetX() > 76) && (pred.GetX() < 77) && (pred.GetY() > 1) && (pred.GetY() < 2)) << "in create successor, current node is " << pred.GetX() << " " << pred.GetY() << " " << Utility::ConvertRadToDeg(pred.GetT());
+            // DLOG_IF(INFO, (pred.getX() > 76) && (pred.getX() < 77) && (pred.getY() > 1) && (pred.getY() < 2)) << "in create successor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
             if (stepsize_steering_angle.first <= 1e-3)
             {
                 // DLOG(INFO) << "current step size is zero, no need to create successor!!";
@@ -239,12 +239,12 @@ namespace RRTPlanner
                 dy = 0;
                 // DLOG(INFO) << "forward straight";
             }
-            xSucc = closest_node.GetX() + dx * cos(closest_node.GetT()) - dy * sin(closest_node.GetT());
-            ySucc = closest_node.GetY() + dx * sin(closest_node.GetT()) + dy * cos(closest_node.GetT());
-            tSucc = Utility::RadToZeroTo2P(closest_node.GetT() + steering_angle);
+            xSucc = closest_node.getX() + dx * cos(closest_node.getT()) - dy * sin(closest_node.getT());
+            ySucc = closest_node.getY() + dx * sin(closest_node.getT()) + dy * cos(closest_node.getT());
+            tSucc = Utility::RadToZeroTo2P(closest_node.getT() + steering_angle);
         }
 
-        // DLOG_IF(INFO, (closest_node.GetX() > 76) && (closest_node.GetX() < 77) && (closest_node.GetY() > 1) && (closest_node.GetY() < 2)) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+        // DLOG_IF(INFO, (closest_node.getX() > 76) && (closest_node.getX() < 77) && (closest_node.getY() > 1) && (closest_node.getY() < 2)) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
         DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
         Node3D successor(xSucc, ySucc, tSucc, 0, 0, closest_node_ptr);
         return successor;
@@ -261,8 +261,8 @@ namespace RRTPlanner
             // 2. randomly choose y
             float y = static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / map_height_));
             // 3. collision check
-            random_node.SetX(x);
-            random_node.SetY(y);
+            random_node.setX(x);
+            random_node.setY(y);
             if (configuration_space_ptr_->IsTraversable(random_node))
             {
                 // DLOG(INFO) << "random node is " << x << " " << y;
@@ -315,15 +315,15 @@ namespace RRTPlanner
             closest_node = rrt[closest_index];
         }
 
-        // DLOG(INFO) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " random node is " << random_node.GetX() << " " << random_node.GetY() << " " << Utility::ConvertRadToDeg(random_node.GetT()) << " distance is " << min_distance;
+        // DLOG(INFO) << "closest node is " << closest_node.getX() << " " << closest_node.getY() << " " << Utility::ConvertRadToDeg(closest_node.getT()) << " random node is " << random_node.getX() << " " << random_node.getY() << " " << Utility::ConvertRadToDeg(random_node.getT()) << " distance is " << min_distance;
         return closest_node;
     }
 
     float RRTPlanner::FindSteeringAngle(const Node3D &closest_node, const Node3D &direction_node)
     {
         float steering_angle, angle_between_two_nodes = Utility::RadNormalization(Utility::GetAngle(closest_node, direction_node));
-        // 3. steering angle is the angle between closest node and random node, and when close to goal(distance to goal < some certain number), steering angle need to be goal.GetT()- closest node.GetT()
-        // DLOG(INFO) << "angle between two nodes is " << Utility::ConvertRadToDeg(angle_between_two_nodes) << " goal angle is " << Utility::ConvertRadToDeg(random_node.GetT()) << " target angle is " << Utility::ConvertRadToDeg(target_angle);
+        // 3. steering angle is the angle between closest node and random node, and when close to goal(distance to goal < some certain number), steering angle need to be goal.getT()- closest node.getT()
+        // DLOG(INFO) << "angle between two nodes is " << Utility::ConvertRadToDeg(angle_between_two_nodes) << " goal angle is " << Utility::ConvertRadToDeg(random_node.getT()) << " target angle is " << Utility::ConvertRadToDeg(target_angle);
         // DLOG(INFO) << "angle between two node is " << Utility::ConvertRadToDeg(angle_between_two_nodes);
         if (params_.consider_steering_angle_range)
         {
@@ -337,7 +337,7 @@ namespace RRTPlanner
             }
             else
             {
-                steering_angle = -Utility::RadNormalization(Utility::RadNormalization(closest_node.GetT()) - angle_between_two_nodes);
+                steering_angle = -Utility::RadNormalization(Utility::RadNormalization(closest_node.getT()) - angle_between_two_nodes);
             }
         }
         // DLOG_IF(INFO, (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < Utility::ConvertDegToRad(-30))) << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
@@ -372,7 +372,7 @@ namespace RRTPlanner
         {
             // DLOG(INFO) << "Towards Goal!";
             float angle_between_current_goal = Utility::RadNormalization(Utility::GetAngle(current, goal_));
-            steering_angle = Utility::RadNormalization(angle_between_current_goal - Utility ::RadNormalization(current.GetT()));
+            steering_angle = Utility::RadNormalization(angle_between_current_goal - Utility ::RadNormalization(current.getT()));
             if (steering_angle > max_steering_angle)
             {
                 steering_angle = max_steering_angle;
@@ -383,7 +383,7 @@ namespace RRTPlanner
             }
             if ((steering_angle > max_steering_angle) || (steering_angle < -max_steering_angle))
             {
-                // DLOG(INFO) << " steering angle is " << Utility::ConvertRadToDeg(steering_angle) << " angle between current node and goal is " << Utility::ConvertRadToDeg(angle_between_current_goal) << " current node orientation is " << Utility ::ConvertRadToDeg(current.GetT());
+                // DLOG(INFO) << " steering angle is " << Utility::ConvertRadToDeg(steering_angle) << " angle between current node and goal is " << Utility::ConvertRadToDeg(angle_between_current_goal) << " current node orientation is " << Utility ::ConvertRadToDeg(current.getT());
             }
         }
         // DLOG_IF(INFO, (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < Utility::ConvertDegToRad(-30))) << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
@@ -392,7 +392,7 @@ namespace RRTPlanner
 
     std::pair<float, float> RRTPlanner::FindStepSizeAndSteeringAngle(const Node3D &closest_node, const Node3D &direction_node)
     {
-        // DLOG(INFO) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " direction_node is " << direction_node.GetX() << " " << direction_node.GetY() << " " << Utility::ConvertRadToDeg(direction_node.GetT());
+        // DLOG(INFO) << "closest node is " << closest_node.getX() << " " << closest_node.getY() << " " << Utility::ConvertRadToDeg(closest_node.getT()) << " direction_node is " << direction_node.getX() << " " << direction_node.getY() << " " << Utility::ConvertRadToDeg(direction_node.getT());
 
         float steering_angle = FindSteeringAngle(closest_node, direction_node);
         float step_size = FindStepSize(closest_node, steering_angle, direction_node);
@@ -410,7 +410,7 @@ namespace RRTPlanner
 
         bool consider_steering_angle_range = false;
         std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(closest_node, consider_steering_angle_range);
-        float final_orientation = Utility::RadNormalization(steering_angle + Utility::RadNormalization(closest_node.GetT()));
+        float final_orientation = Utility::RadNormalization(steering_angle + Utility::RadNormalization(closest_node.getT()));
         // find distance to obstacle in steering angle direction
         DLOG_IF(WARNING, available_angle_range_vec.size() == 0) << "available_angle_range_vec size is " << available_angle_range_vec.size();
         if (params_.use_AEB_rrt && params_.number_of_step_size != 0)
@@ -545,13 +545,13 @@ namespace RRTPlanner
         Eigen::Vector3f node_vec, start_3d, goal_3d;
         for (uint index = 1; index < path.size() - 1; ++index)
         {
-            // DLOG(INFO) << "path point is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+            // DLOG(INFO) << "path point is " << path_[index].getX() << " " << path_[index].getY() << " " << Utility::ConvertRadToDeg(path_[index].getT());
             // not necessary to do this check, greater than 1
             Utility::TypeConversion(path[index], node_vec);
             anchor_points_vec.emplace_back(node_vec);
-            // DLOG(INFO) << "anchor points is " << path_[index].GetX() << " " << path_[index].GetY() << " " << Utility::ConvertRadToDeg(path_[index].GetT());
+            // DLOG(INFO) << "anchor points is " << path_[index].getX() << " " << path_[index].getY() << " " << Utility::ConvertRadToDeg(path_[index].getT());
         }
-        // DLOG(INFO) << "end point is " << end_point.GetX() << " " << end_point.GetY() << " " << Utility::ConvertRadToDeg(end_point.GetT());
+        // DLOG(INFO) << "end point is " << end_point.getX() << " " << end_point.getY() << " " << Utility::ConvertRadToDeg(end_point.getT());
         Utility::TypeConversion(start_, start_3d);
         Utility::TypeConversion(goal_, goal_3d);
         HybridAStar::PiecewiseCubicBezier pwcb(start_3d, goal_3d);
@@ -572,7 +572,7 @@ namespace RRTPlanner
             Node3D node3d;
             Utility::TypeConversion(vector, node3d);
             out.emplace_back(node3d);
-            // DLOG(INFO) << "point is " << node3d.GetX() << " " << node3d.GetY() << " " << Utility::ConvertRadToDeg(node3d.GetT());
+            // DLOG(INFO) << "point is " << node3d.getX() << " " << node3d.getY() << " " << Utility::ConvertRadToDeg(node3d.getT());
         }
         // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath out.";
         return out;
@@ -602,12 +602,12 @@ namespace RRTPlanner
             else
             {
                 Utility::TypeConversion(cubic_bezier.GetValueAt(x / length), node3d);
-                node3d.SetPred(pred_ptr);
+                node3d.setSmartPtrPred(pred_ptr);
             }
             // DLOG(INFO) << i << "th iteration";
             float curvature = cubic_bezier.GetCurvatureAt(x / length);
-            node3d.SetT(cubic_bezier.GetAngleAt(x / length));
-            // DLOG(INFO) << "current node is " << node3d.GetX() << " " << node3d.GetY();
+            node3d.setT(cubic_bezier.GetAngleAt(x / length));
+            // DLOG(INFO) << "current node is " << node3d.getX() << " " << node3d.getY();
             // collision check
             if (configuration_space_ptr_->IsTraversable(node3d))
             {
@@ -637,7 +637,7 @@ namespace RRTPlanner
         // Some kind of collision detection for all curves
         if (path_vec.size() != 0)
         {
-            goal.SetPred(pred_ptr);
+            goal.setSmartPtrPred(pred_ptr);
             path_vec.emplace_back(goal);
             // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
             DLOG(INFO) << "Analytical expansion connected, returning path";
@@ -676,7 +676,7 @@ namespace RRTPlanner
             else
             {
                 rrt.emplace_back(current);
-                // DLOG(INFO) << "add node " << current.GetX() << " " << current.GetY() << " " << Utility::ConvertRadToDeg(current.GetT());
+                // DLOG(INFO) << "add node " << current.getX() << " " << current.getY() << " " << Utility::ConvertRadToDeg(current.getT());
             }
         }
     }
@@ -773,7 +773,7 @@ namespace RRTPlanner
                 }
             }
             std::shared_ptr<Node3D> parent_ptr = std::make_shared<Node3D>(best_parent_pair.first);
-            current.SetPred(parent_ptr);
+            current.setSmartPtrPred(parent_ptr);
             // after found min cost and new parent, a collision check is also needed.
             if (configuration_space_ptr_->IsTraversable(current))
             {
@@ -785,11 +785,11 @@ namespace RRTPlanner
             {
                 // reset min cost
                 min_cost = 100000;
-                // DLOG(INFO) << "best parent is " << best_parent_pair.first.GetX() << " " << best_parent_pair.first.GetY() << " " << best_parent_pair.first.GetT();
+                // DLOG(INFO) << "best parent is " << best_parent_pair.first.getX() << " " << best_parent_pair.first.getY() << " " << best_parent_pair.first.getT();
                 int index = Utility::FindIndex(neighbors_and_cost_so_far, best_parent_pair);
                 // for (const auto &element : neighbors_and_cost_so_far)
                 // {
-                //     DLOG(INFO) << "node is " << element.first.GetX() << " " << element.first.GetY() << " " << element.first.GetT() << " cost is " << element.second;
+                //     DLOG(INFO) << "node is " << element.first.getX() << " " << element.first.getY() << " " << element.first.getT() << " cost is " << element.second;
                 // }
 
                 // DLOG(INFO) << "index is " << index << " size of vector is " << neighbors_and_cost_so_far.size();
@@ -817,7 +817,7 @@ namespace RRTPlanner
         if (std::find(rrt.begin(), rrt.end(), current) != rrt.end())
         {
             // DLOG(INFO) << "node already inside rrt, do not add element!!";
-            // DLOG(INFO) << "current node is " << current.GetX() << " " << current.GetY() << " " << Utility::ConvertRadToDeg(current.GetT());
+            // DLOG(INFO) << "current node is " << current.getX() << " " << current.getY() << " " << Utility::ConvertRadToDeg(current.getT());
             // for (const auto &element : rrt)
             // {
             //     if (element == current)
@@ -828,7 +828,7 @@ namespace RRTPlanner
             //     {
             //         // DLOG(INFO) << "element is not equal to current node";
             //     }
-            //     // DLOG(INFO) << "element is " << element.GetX() << " " << element.GetY() << " " << Utility::ConvertRadToDeg(element.GetT());
+            //     // DLOG(INFO) << "element is " << element.getX() << " " << element.getY() << " " << Utility::ConvertRadToDeg(element.getT());
             // }
 
             return true;
@@ -840,15 +840,15 @@ namespace RRTPlanner
     {
         float cost_so_far = 0;
         std::shared_ptr<Node3D> node3d_ptr = std::make_shared<Node3D>(current);
-        while (node3d_ptr != nullptr && current.GetPred() != nullptr)
+        while (node3d_ptr != nullptr && current.getSmartPtrPred(PtrPred() != nullptr)
         {
-            cost_so_far += Utility::GetDistance(current, *current.GetPred());
+            cost_so_far += Utility::GetDistance(current, *current.getSmartPtrPred(PtrPred());
             if (*node3d_ptr == start_)
             {
                 break;
             }
-            // DLOG(INFO) << "current node is " << node3d_ptr->GetX() << " " << node3d_ptr->GetY() << " and its pred is " << node3d_ptr->GetPred()->GetX() << " " << node3d_ptr->GetPred()->GetY();
-            node3d_ptr = node3d_ptr->GetPred();
+            // DLOG(INFO) << "current node is " << node3d_ptr->getX() << " " << node3d_ptr->getY() << " and its pred is " << node3d_ptr->getSmartPtrPred()->getX() << " " << node3d_ptr->getSmartPtrPred()->getY();
+            node3d_ptr = node3d_ptr->getSmartPtrPred();
         }
         return cost_so_far;
     }
@@ -896,8 +896,8 @@ namespace RRTPlanner
         while (1)
         {
             direction_node = FindDirectionNode(failure_counts, rrt_start.first, rrt_start.second);
-            DLOG_IF(INFO, rrt_start.second == RRTFlag::Start) << "extend start rrt tree. direction node is " << direction_node.GetX() << " " << direction_node.GetY() << " " << Utility::ConvertRadToDeg(direction_node.GetT());
-            DLOG_IF(INFO, rrt_start.second == RRTFlag::Goal) << "extend goal rrt tree. direction node is " << direction_node.GetX() << " " << direction_node.GetY() << " " << Utility::ConvertRadToDeg(direction_node.GetT());
+            DLOG_IF(INFO, rrt_start.second == RRTFlag::Start) << "extend start rrt tree. direction node is " << direction_node.getX() << " " << direction_node.getY() << " " << Utility::ConvertRadToDeg(direction_node.getT());
+            DLOG_IF(INFO, rrt_start.second == RRTFlag::Goal) << "extend goal rrt tree. direction node is " << direction_node.getX() << " " << direction_node.getY() << " " << Utility::ConvertRadToDeg(direction_node.getT());
             std::pair<Status, Node3D> status_successor = Extend(rrt_start.first, direction_node);
             if (status_successor.first != Status::Trapped)
             {
@@ -931,7 +931,7 @@ namespace RRTPlanner
 
     std::pair<Status, Node3D> RRTPlanner::Extend(RRT &rrt, const Node3D &target, const bool &flag)
     {
-        DLOG(INFO) << "Extend to " << target.GetX() << " " << target.GetY() << " " << Utility::ConvertRadToDeg(target.GetT());
+        DLOG(INFO) << "Extend to " << target.getX() << " " << target.getY() << " " << Utility::ConvertRadToDeg(target.getT());
         std::pair<Status, Node3D> status_and_node;
         Node3D successor, closest_node;
         std::pair<float, float> step_size_steering_angle_pair;
@@ -987,8 +987,8 @@ namespace RRTPlanner
             status_and_node.first = Status::Trapped;
             // DLOG(INFO) << "Trapped.";
         }
-        // DLOG(INFO) << "status is " << status_and_node.first << " closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.GetX() << " " << successor.GetY() << " " << Utility::ConvertRadToDeg(successor.GetT());
-        // DLOG_IF(INFO, (step_size_steering_angle_pair.second > Utility::ConvertDegToRad(30)) || (step_size_steering_angle_pair.second < Utility::ConvertDegToRad(-30)) || (step_size_steering_angle_pair.first < params_.step_size)) << "closest node is " << closest_node.GetX() << " " << closest_node.GetY() << " " << Utility::ConvertRadToDeg(closest_node.GetT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.GetX() << " " << successor.GetY() << " " << Utility::ConvertRadToDeg(successor.GetT());
+        // DLOG(INFO) << "status is " << status_and_node.first << " closest node is " << closest_node.getX() << " " << closest_node.getY() << " " << Utility::ConvertRadToDeg(closest_node.getT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.getX() << " " << successor.getY() << " " << Utility::ConvertRadToDeg(successor.getT());
+        // DLOG_IF(INFO, (step_size_steering_angle_pair.second > Utility::ConvertDegToRad(30)) || (step_size_steering_angle_pair.second < Utility::ConvertDegToRad(-30)) || (step_size_steering_angle_pair.first < params_.step_size)) << "closest node is " << closest_node.getX() << " " << closest_node.getY() << " " << Utility::ConvertRadToDeg(closest_node.getT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.getX() << " " << successor.getY() << " " << Utility::ConvertRadToDeg(successor.getT());
         // DLOG_IF(INFO, status_and_node.first == Status::Trapped) << "status is in collision or step size is zero.";
         // DLOG_IF(INFO, status_and_node.first == Status::Reached) << "status is reached, target node reached.";
         // DLOG_IF(INFO, status_and_node.first == Status::Advanced) << "status is advanced, not reached and not in collision.";
@@ -998,7 +998,7 @@ namespace RRTPlanner
 
     std::pair<Status, Node3D> RRTPlanner::Connect(RRT &rrt, const Node3D &target)
     {
-        DLOG(INFO) << "in connect. target is " << target.GetX() << " " << target.GetY() << " " << Utility::ConvertRadToDeg(target.GetT());
+        DLOG(INFO) << "in connect. target is " << target.getX() << " " << target.getY() << " " << Utility::ConvertRadToDeg(target.getT());
         std::pair<Status, Node3D> current_status_and_successor;
         while (1)
         {
@@ -1044,11 +1044,11 @@ namespace RRTPlanner
         Utility::Path3D path_to_goal = TracePath(rrt_goal, connect_point);
         // for (const auto &element : path_to_start)
         // {
-        //     // DLOG(INFO) << "element in path_to_start is " << element.GetX() << " " << element.GetY();
+        //     // DLOG(INFO) << "element in path_to_start is " << element.getX() << " " << element.getY();
         // }
         // for (const auto &element : path_to_goal)
         // {
-        //     // DLOG(INFO) << "element in path_to_goal is " << element.GetX() << " " << element.GetY();
+        //     // DLOG(INFO) << "element in path_to_goal is " << element.getX() << " " << element.getY();
         // }
         // reverse path to start
         std::reverse(path_to_goal.begin(), path_to_goal.end());
@@ -1064,7 +1064,7 @@ namespace RRTPlanner
 
         // for (const auto &element : path_)
         // {
-        //     DLOG(INFO) << "element in path is " << element.GetX() << " " << element.GetY();
+        //     DLOG(INFO) << "element in path is " << element.getX() << " " << element.getY();
         // }
     }
 
@@ -1080,7 +1080,7 @@ namespace RRTPlanner
     Node3D RRTPlanner::TreatNode(const Node3D &goal)
     {
         Node3D out = goal;
-        out.SetT(Utility::RadToZeroTo2P(out.GetT() + M_PI));
+        out.setT(Utility::RadToZeroTo2P(out.getT() + M_PI));
         return out;
     }
 }

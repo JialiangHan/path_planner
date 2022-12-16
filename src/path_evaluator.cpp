@@ -188,7 +188,7 @@ namespace PathEvaluator
             }
             // //find its nearest obstacle
 
-            // node_2d.SetIdx(map_width);
+            // node_2d.setIdx(map_width);
             // //find its neighbor in a defined range;
 
             clearance_vec.emplace_back(clearance);

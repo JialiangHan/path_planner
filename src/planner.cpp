@@ -230,33 +230,33 @@ void Planner::MakePlan()
       y = height - 2;
       t = Utility::ConvertDegToRad(0);
       t = Utility::RadToZeroTo2P(t);
-      nStart.SetX(x);
-      nStart.SetY(y);
-      nStart.SetT(t);
+      nStart.setX(x);
+      nStart.setY(y);
+      nStart.setT(t);
       // set theta to a value (0,2PI]
       t = Utility::RadToZeroTo2P(t);
       x = width - 2;
       y = 2;
       t = Utility::ConvertDegToRad(0);
-      nGoal.SetX(x);
-      nGoal.SetY(y);
-      nGoal.SetT(t);
+      nGoal.setX(x);
+      nGoal.setY(y);
+      nGoal.setT(t);
     }
     else
     {
       x = start_.pose.pose.position.x / params_.cell_size;
       y = start_.pose.pose.position.y / params_.cell_size;
       t = tf::getYaw(start_.pose.pose.orientation);
-      nStart.SetX(x);
-      nStart.SetY(y);
-      nStart.SetT(t);
+      nStart.setX(x);
+      nStart.setY(y);
+      nStart.setT(t);
       // retrieving goal position
       x = goal_.pose.position.x / params_.cell_size;
       y = goal_.pose.position.y / params_.cell_size;
       t = tf::getYaw(goal_.pose.orientation);
-      nGoal.SetX(x);
-      nGoal.SetY(y);
-      nGoal.SetT(t);
+      nGoal.setX(x);
+      nGoal.setY(y);
+      nGoal.setT(t);
     }
 
     std::srand(0);
@@ -290,7 +290,7 @@ void Planner::MakePlan()
     LOG(INFO) << "path length is " << Utility::GetLength(path);
     //  for (const auto &node : path)
     //  {
-    //    DLOG(INFO) << "node in path is " << node.GetX() << " " << node.GetY() << " " << node.GetT();
+    //    DLOG(INFO) << "node in path is " << node.getX() << " " << node.getY() << " " << node.getT();
     //  }
     //  set path
     smoother_ptr_->SetPath(path);
@@ -355,17 +355,17 @@ void Planner::MakePlan(const geometry_msgs::PoseStamped &start, const geometry_m
     y = height - 2;
     t = Utility::ConvertDegToRad(0);
     t = Utility::RadToZeroTo2P(t);
-    nStart.SetX(x);
-    nStart.SetY(y);
-    nStart.SetT(t);
+    nStart.setX(x);
+    nStart.setY(y);
+    nStart.setT(t);
     // set theta to a value (0,2PI]
     t = Utility::RadToZeroTo2P(t);
     x = width - 2;
     y = 2;
     t = Utility::ConvertDegToRad(0);
-    nGoal.SetX(x);
-    nGoal.SetY(y);
-    nGoal.SetT(t);
+    nGoal.setX(x);
+    nGoal.setY(y);
+    nGoal.setT(t);
   }
   else
   {
@@ -374,16 +374,16 @@ void Planner::MakePlan(const geometry_msgs::PoseStamped &start, const geometry_m
     // x = start_.pose.pose.position.x / params_.cell_size;
     // y = start_.pose.pose.position.y / params_.cell_size;
     // t = tf::getYaw(start_.pose.pose.orientation);
-    // nStart.SetX(x);
-    // nStart.SetY(y);
-    // nStart.SetT(t);
+    // nStart.setX(x);
+    // nStart.setY(y);
+    // nStart.setT(t);
     // // retrieving goal position
     // x = goal_.pose.position.x / params_.cell_size;
     // y = goal_.pose.position.y / params_.cell_size;
     // t = tf::getYaw(goal_.pose.orientation);
-    // nGoal.SetX(x);
-    // nGoal.SetY(y);
-    // nGoal.SetT(t);
+    // nGoal.setX(x);
+    // nGoal.setY(y);
+    // nGoal.setT(t);
   }
 
   std::srand(0);

@@ -64,6 +64,7 @@ class Visualize {
    // PUBLISH THE COST FOR A 2D NODE TO RViz
    /// Publishes the minimum of the cost of all nodes in a 2D grid cell
    void publishNode2DCosts(Node2D *nodes, int width, int height);
+   void publishSearchNodes(Node3D node, ros::Publisher &pub, visualization_msgs::MarkerArray &pathNodes, int i);
 
  private:
   /// A handle to the ROS node

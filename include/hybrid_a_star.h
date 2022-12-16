@@ -4,14 +4,22 @@
 #include <ompl/base/spaces/SE2StateSpace.h>
 #include <ompl/base/State.h>
 #include <boost/heap/binomial_heap.hpp>
-typedef ompl::base::SE2StateSpace::StateType State;
-
 #include "visualize.h"
 #include "collisiondetection.h"
 #include "a_star.h"
 #include "cubic_bezier.h"
 #include "lookup_table.h"
 #include "piecewise_cubic_bezier.h"
+#include <costmap_2d/costmap_2d.h>
+#include <geometry_msgs/PoseStamped.h>
+#include "expander.h"
+#include <visualization_msgs/MarkerArray.h>
+#include <ros/publisher.h>
+#include "dubins.h"
+#include "ReedsShepp.h"
+typedef ompl::base::SE2StateSpace::StateType State;
+#define point_accuracy 0.5
+#define theta_accuracy 2
 namespace HybridAStar
 {
    //###################################################
@@ -25,7 +33,12 @@ namespace HybridAStar
       /// Sorting 3D nodes by increasing C value - the total estimated cost
       bool operator()(const std::shared_ptr<Node3D> lhs, const std::shared_ptr<Node3D> rhs) const
       {
-         return lhs->GetTotalCost() > rhs->GetTotalCost();
+         return lhs->getTotalCost() > rhs->getTotalCost();
+      }
+      // Sorting 3D nodes by increasing C value - the total estimated cost
+      bool operator()(const Node3D *lhs, const Node3D *rhs) const
+      {
+         return lhs->getTotalCost() > rhs->getTotalCost();
       }
    };
 
@@ -33,13 +46,26 @@ namespace HybridAStar
    /*!
     * \brief A class that encompasses the functions central to the search.
     */
-   class HybridAStar
+   class HybridAStar : public Expander
    {
    public:
       /// The default constructor
       HybridAStar(){};
       HybridAStar(const ParameterHybridAStar &params,
                   const std::shared_ptr<Visualize> &visualization_ptr);
+
+      /**
+       * @brief  Default constructor for the HybridAStarPlanner object
+       */
+      HybridAStar(std::string frame_id, costmap_2d::Costmap2D *_costmap)
+          : Expander(frame_id, _costmap)
+      {
+      }
+      /**
+       * @brief Default deconstructor for the HybridAStarPlanner object
+       */
+      ~HybridAStar() {}
+
       /**
        * @brief set map and calculate lookup table
        *
@@ -59,6 +85,21 @@ namespace HybridAStar
   */
       Utility::Path3D GetPath(Node3D &start, Node3D &goal,
                               Node3D *nodes3D, Node2D *nodes2D);
+
+      /**
+       * @brief Find the path between the start pose and goal pose
+       * @param start the reference of start pose
+       * @param goal the reference of goal pose
+       * @param cells_x the number of the cells of the costmap in x axis
+       * @param cells_y the number of the cells of the costmap in y axis
+       * @param plan the refrence of plan;
+       * @return true if a valid plan was found.
+       */
+      bool calculatePath(
+          const geometry_msgs::PoseStamped &start,
+          const geometry_msgs::PoseStamped &goal,
+          int cellsX, int cellsY, std::vector<geometry_msgs::PoseStamped> &plan,
+          ros::Publisher &pub, visualization_msgs::MarkerArray &pathNodes);
 
    private:
       /**
@@ -124,6 +165,43 @@ namespace HybridAStar
        */
       bool DuplicateCheck(priorityQueue &open_list, std::shared_ptr<Node3D> node_3d_ptr);
 
+      Node3D *dubinsShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap);
+      Node3D *reedsSheppShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap);
+      void updateH(Node3D &start, const Node3D &goal, Node2D *nodes2D, float *dubinsLookup, int width, int height, float inspireAstar);
+
+      /**
+       * @brief Get the adjacent pose of a given pose
+       * @param cells_x the number of the cells of the costmap in x axis
+       * @param cells_y the number of the cells of the costmap in y axis
+       * @param charMap
+       */
+      std::vector<Node3D *> getAdjacentPoints(int dir, int cells_x, int cells_y, const unsigned char *charMap, Node3D *point);
+
+      /**
+       * @brief judge whether is reach the goal pose
+       * @param node the refrence of the node
+       * @param goalPose the goal of the planner
+       * @return true if reach the goal
+       */
+      bool reachGoal(Node3D *node, Node3D *goalPose);
+
+      /**
+       * @brief get the index of node
+       * @param x the x position axis of the node
+       * @param y the y position axis of the node
+       * @param cells_x the scale of cells in x axis
+       * @param t the depth of the 3D nodes
+       * @return the index of node
+       */
+      int calcIndix(float x, float y, int cells_x, float t);
+
+      /**
+       * @brief transform the 2Dnode to geometry_msgs::PoseStamped
+       * @param node the ptr of node
+       * @param plan the refrence of plan
+       */
+      void nodeToPlan(Node3D *node, std::vector<geometry_msgs::PoseStamped> &plan);
+
    private:
       ParameterHybridAStar params_;
       Utility::Path3D piecewise_cubic_bezier_path_;
@@ -141,5 +219,6 @@ namespace HybridAStar
        *
        */
       uint analytical_expansion_index_;
+      std::unique_ptr<GridSearch> grid_a_star_heuristic_generator_;
    };
 }

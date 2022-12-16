@@ -45,8 +45,8 @@ void PathPublisher::UpdatePath(const std::vector<Node3D> &nodePath)
 void PathPublisher::AddSegment(const Node3D &node)
 {
   geometry_msgs::PoseStamped vertex;
-  vertex.pose.position.x = node.GetX() * params_.cell_size;
-  vertex.pose.position.y = node.GetY() * params_.cell_size;
+  vertex.pose.position.x = node.getX() * params_.cell_size;
+  vertex.pose.position.y = node.getY() * params_.cell_size;
   vertex.pose.position.z = 0;
   vertex.pose.orientation.x = 0;
   vertex.pose.orientation.y = 0;
@@ -76,8 +76,8 @@ void PathPublisher::AddNode(const Node3D &node, int i)
   pathNode.scale.z = 0.1;
   pathNode.color.a = 1.0;
 
-  pathNode.pose.position.x = node.GetX() * params_.cell_size;
-  pathNode.pose.position.y = node.GetY() * params_.cell_size;
+  pathNode.pose.position.x = node.getX() * params_.cell_size;
+  pathNode.pose.position.y = node.getY() * params_.cell_size;
   path_nodes_.markers.emplace_back(pathNode);
 }
 
@@ -113,8 +113,8 @@ void PathPublisher::AddVehicle(const Node3D &node, int i)
     pathVehicle.color.b = 0;
   }
   //need to figure what pose stand for a cube, should be center of cube
-  pathVehicle.pose.position.x = node.GetX() * params_.cell_size;
-  pathVehicle.pose.position.y = node.GetY() * params_.cell_size;
-  pathVehicle.pose.orientation = tf::createQuaternionMsgFromYaw(node.GetT());
+  pathVehicle.pose.position.x = node.getX() * params_.cell_size;
+  pathVehicle.pose.position.y = node.getY() * params_.cell_size;
+  pathVehicle.pose.orientation = tf::createQuaternionMsgFromYaw(node.getT());
   path_vehicles_.markers.emplace_back(pathVehicle);
 }

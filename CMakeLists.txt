@@ -34,6 +34,7 @@ find_package(catkin REQUIRED COMPONENTS
     nav_msgs
     pluginlib
     visualization_msgs
+    base_local_planner
     )
 
 FIND_PACKAGE(Glog REQUIRED)
@@ -52,30 +53,36 @@ find_package(Eigen3 REQUIRED)
 
 include_directories(${EIGEN3_INCLUDE_DIRS})
 set(SOURCES
-${CMAKE_CURRENT_SOURCE_DIR}/src/a_star.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/hybrid_a_star.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/hybrid_a_star_planner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/a_star.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bucketedqueue.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/src/collisiondetection.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/computational_geometry.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/cubic_bezier.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dubins.cpp #Andrew Walker
     ${CMAKE_CURRENT_SOURCE_DIR}/src/dynamicvoronoi.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/hybrid_a_star_planner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/hybrid_a_star.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lookup_table.cpp 
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/node_path_evaluator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/node2d.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/node3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/parameter_manager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/path_evaluator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/path_publisher.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/piecewise_cubic_bezier.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/planner.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ReedsShepp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/rrt.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/smoother.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/tf_broadcaster.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/visualize.cpp
     )
 set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/a_star.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/hybrid_a_star.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/hybrid_a_star_planner.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/bezier.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/bucketedqueue.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/bucketedqueue.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
     ${CMAKE_CURRENT_SOURCE_DIR}/include/collisiondetection.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/computational_geometry.h
@@ -83,7 +90,10 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cubic_bezier.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/dubins.h #Andrew Walker
     ${CMAKE_CURRENT_SOURCE_DIR}/include/dynamicvoronoi.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/expander.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/gradient.h #Andrew Noske
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/hybrid_a_star_planner.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/hybrid_a_star.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/lookup_table.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/lookup.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/matplotlibcpp.h
@@ -95,6 +105,7 @@ set(HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/piecewise_cubic_bezier.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/planner.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/point.h #Boris Lau, Christoph Sprunk, Wolfram Burgard
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/ReedsShepp.h 
     ${CMAKE_CURRENT_SOURCE_DIR}/include/rrt.h 
     ${CMAKE_CURRENT_SOURCE_DIR}/include/smoother.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/utility.h

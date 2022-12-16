@@ -6,17 +6,17 @@ namespace Utility
 
     void TypeConversion(const geometry_msgs::PoseStamped &start, HybridAStar::Node3D &node3d)
     {
-        node3d.SetX(start.pose.position.x);
-        node3d.SetY(start.pose.position.y);
-        node3d.SetT(tf::getYaw(start.pose.orientation));
+        node3d.setX(start.pose.position.x);
+        node3d.setY(start.pose.position.y);
+        node3d.setT(tf::getYaw(start.pose.orientation));
         return;
     }
     void TypeConversion(const HybridAStar::Node3D &node3d, geometry_msgs::PoseStamped &pose)
     {
-        tf::Quaternion pose_quat = tf::createQuaternionFromYaw(node3d.GetT());
+        tf::Quaternion pose_quat = tf::createQuaternionFromYaw(node3d.getT());
 
-        pose.pose.position.x = node3d.GetX();
-        pose.pose.position.y = node3d.GetY();
+        pose.pose.position.x = node3d.getX();
+        pose.pose.position.y = node3d.getY();
 
         pose.pose.orientation.x = pose_quat.x();
         pose.pose.orientation.y = pose_quat.y();
@@ -36,15 +36,15 @@ namespace Utility
 
     void TypeConversion(const HybridAStar::Node3D &node3d, HybridAStar::Node2D &node_2d)
     {
-        node_2d.SetX(node3d.GetX());
-        node_2d.SetY(node3d.GetY());
+        node_2d.setX(node3d.getX());
+        node_2d.setY(node3d.getY());
     }
 
     void TypeConversion(const HybridAStar::Node2D &node2d, HybridAStar::Node3D &node_3d)
     {
-        node_3d.SetX(node2d.GetX());
-        node_3d.SetY(node2d.GetY());
-        node_3d.SetT(0);
+        node_3d.setX(node2d.getX());
+        node_3d.setY(node2d.getY());
+        node_3d.setT(0);
     }
     void TypeConversion(
         const nav_msgs::Path::ConstPtr &path,
@@ -96,9 +96,9 @@ namespace Utility
 
     void TypeConversion(const HybridAStar::Node3D &node3d, Eigen::Vector3f &vector_3d)
     {
-        vector_3d.x() = node3d.GetX();
-        vector_3d.y() = node3d.GetY();
-        vector_3d.z() = node3d.GetT();
+        vector_3d.x() = node3d.getX();
+        vector_3d.y() = node3d.getY();
+        vector_3d.z() = node3d.getT();
     }
 
     void TypeConversion(const HybridAStar::Node3D &node3d, Eigen::Vector2f &vector2f)
@@ -109,20 +109,20 @@ namespace Utility
     }
     void TypeConversion(const HybridAStar::Node2D &node2d, Eigen::Vector2f &vector2f)
     {
-        vector2f.x() = node2d.GetX();
-        vector2f.y() = node2d.GetY();
+        vector2f.x() = node2d.getX();
+        vector2f.y() = node2d.getY();
     }
     void TypeConversion(const Eigen::Vector3f &vector3d, HybridAStar::Node3D &node_3d)
     {
-        node_3d.SetX(vector3d.x());
-        node_3d.SetY(vector3d.y());
-        node_3d.SetT(vector3d.z());
+        node_3d.setX(vector3d.x());
+        node_3d.setY(vector3d.y());
+        node_3d.setT(vector3d.z());
     }
 
     void TypeConversion(const Eigen::Vector2f &vector2d, HybridAStar::Node3D &node3d)
     {
-        node3d.SetX(vector2d.x());
-        node3d.SetY(vector2d.y());
+        node3d.setX(vector2d.x());
+        node3d.setY(vector2d.y());
     }
 
     void TypeConversion(const Path2D &path_2d, Path3D &path_3d)
@@ -1062,13 +1062,13 @@ namespace Utility
         {
             if (consider_orientation)
             {
-                float angle_diff = RadNormalization(start.GetT() - goal.GetT());
+                float angle_diff = RadNormalization(start.getT() - goal.getT());
                 if (abs(angle_diff) <= angle_range)
                 {
                     DLOG(INFO)
                         << "two node distance and orientation are close enough, return true";
-                    DLOG(INFO) << "current node is " << start.GetX() << " " << start.GetY() << " " << Utility::ConvertRadToDeg(start.GetT());
-                    DLOG(INFO) << "goal is " << goal.GetX() << " " << goal.GetY() << " " << Utility::ConvertRadToDeg(goal.GetT());
+                    DLOG(INFO) << "current node is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT());
+                    DLOG(INFO) << "goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT());
                     DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
                     return true;
                 }
@@ -1181,7 +1181,7 @@ namespace Utility
     float GetAngle(const HybridAStar::Node3D &start,
                    const HybridAStar::Node3D &goal)
     {
-        // DLOG(INFO) << "start node is " << start.GetX() << " " << start.GetY() << " goal is " << goal.GetX() << " " << goal.GetY();
+        // DLOG(INFO) << "start node is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY();
         Eigen::Vector2f start_2d, goal_2d;
         TypeConversion(start, start_2d);
         TypeConversion(goal, goal_2d);
@@ -1190,7 +1190,7 @@ namespace Utility
     float GetAngle(const HybridAStar::Node2D &start,
                    const HybridAStar::Node2D &goal)
     {
-        // DLOG(INFO) << "start node is " << start.GetX() << " " << start.GetY() << " goal is " << goal.GetX() << " " << goal.GetY();
+        // DLOG(INFO) << "start node is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY();
         Eigen::Vector2f start_2d, goal_2d;
         TypeConversion(start, start_2d);
         TypeConversion(goal, goal_2d);

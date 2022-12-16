@@ -235,7 +235,14 @@ namespace HybridAStar
   {
 
   public:
-    ParameterManager() {}
+    std::string odom_topic; //!< Topic name of the odometry message, provided by the robot driver or simulator
+    std::string map_frame;  //!< Global planning frame
+    ParameterManager()
+    {
+      odom_topic = "odom";
+      map_frame = "odom";
+      param_container_ptr_.reset(new ParameterContainer);
+    }
 
     ParameterManager(const ros::NodeHandle &in)
     {
@@ -243,28 +250,28 @@ namespace HybridAStar
       param_container_ptr_.reset(new ParameterContainer);
     }
 
-    virtual ~ParameterManager() {}
+    ~ParameterManager() {}
 
-    virtual void Initialization() {}
-    virtual void LoadParams();
-    virtual void LoadHybridAStarParams();
-    virtual void LoadPathParams();
-    //load param for smoother
-    virtual void LoadSmootherParams();
-    virtual void LoadPlannerParams();
-    virtual void LoadVisualizeParams();
-    virtual void LoadCollisionDetectionParams();
-    virtual void LoadRRTPlannerParams();
-    virtual void LoadAStarPlannerParams();
+    void Initialization() {}
+    void LoadParams();
+    void LoadHybridAStarParams();
+    void LoadPathParams();
+    // load param for smoother
+    void LoadSmootherParams();
+    void LoadPlannerParams();
+    void LoadVisualizeParams();
+    void LoadCollisionDetectionParams();
+    void LoadRRTPlannerParams();
+    void LoadAStarPlannerParams();
 
     // virtual void LoadAStarParams();
 
-    //load param by param name, member variable, param type
+    // load param by param name, member variable, param type
     template <typename T>
     void GetSingleParam(const std::string &param_name, T &param_data);
 
-    //get the ptr of all param
-    std::shared_ptr<ParameterContainer> GetAllParams();
+    // get the ptr of all param
+    // std::shared_ptr<ParameterContainer> GetAllParams();
 
     ParameterSmoother GetSmootherParams();
     ParameterPathPublisher GetPathPublisherParams();
@@ -275,8 +282,33 @@ namespace HybridAStar
     ParameterRRTPlanner GetRRTPlannerParams();
     ParameterAStar GetAStarPlannerParams();
 
+    /**
+     * @brief Load parameters from the ros param server.
+     * @param nh const reference to the local ros::NodeHandle
+     */
+    void loadRosParamFromNodeHandle(const ros::NodeHandle &nh);
+    /**
+     * @brief Check parameters and print warnings in case of discrepancies
+     *
+     * Call this method whenever parameters are changed using public interfaces to inform the user
+     * about some improper uses.
+     */
+    // void checkParameters() const;
+
+    /**
+     * @brief Check if some deprecated parameters are found and print warnings
+     * @param nh const reference to the local ros::NodeHandle
+     */
+    // void checkDeprecated(const ros::NodeHandle &nh) const;
+
+    /**
+     * @brief Return the internal config mutex
+     */
+    boost::mutex &configMutex() { return config_mutex_; }
+
   private:
     std::shared_ptr<ParameterContainer> param_container_ptr_;
     ros::NodeHandle nh_;
+    boost::mutex config_mutex_; //!< Mutex for config accesses and changes
   };
 }
