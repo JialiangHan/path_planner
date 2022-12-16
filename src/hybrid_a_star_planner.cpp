@@ -42,7 +42,7 @@ namespace HybridAStar
         // get parameters of TebConfig via the nodehandle and override the default config
         params_.loadRosParamFromNodeHandle(nh);
         ROS_INFO("initializing the hybrid Astar planner");
-        if (!params_.planner_params.use_a_star)
+        if (!params_.param_container_ptr_->planner_params.use_a_star)
         {
             ROS_INFO("Using hybrid_astar mode!");
         }

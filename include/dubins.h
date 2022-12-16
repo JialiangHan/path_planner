@@ -145,6 +145,6 @@ int dubins_LRL(float alpha, float beta, float d, float *outputs);
 int dubins_RLR(float alpha, float beta, float d, float *outputs);
 void dubins_segment(double t, double qi[3], double qt[3], int type);
 int dubins_init_normalised(double alpha, double beta, double d, DubinsPath *path);
-double mod2pi(double theta);
-double fmodr(double x, double y);
+float mod2pi(float theta);
+float fmodr(float x, float y);
 }

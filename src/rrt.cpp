@@ -245,8 +245,8 @@ namespace RRTPlanner
         }
 
         // DLOG_IF(INFO, (closest_node.getX() > 76) && (closest_node.getX() < 77) && (closest_node.getY() > 1) && (closest_node.getY() < 2)) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-        DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-        Node3D successor(xSucc, ySucc, tSucc, 0, 0, closest_node_ptr);
+        // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
+        Node3D successor(xSucc, ySucc, tSucc, 0, 0, false, nullptr, closest_node_ptr);
         return successor;
     }
     // looks correct
@@ -840,9 +840,9 @@ namespace RRTPlanner
     {
         float cost_so_far = 0;
         std::shared_ptr<Node3D> node3d_ptr = std::make_shared<Node3D>(current);
-        while (node3d_ptr != nullptr && current.getSmartPtrPred(PtrPred() != nullptr)
+        while (node3d_ptr != nullptr && current.getSmartPtrPred() != nullptr)
         {
-            cost_so_far += Utility::GetDistance(current, *current.getSmartPtrPred(PtrPred());
+            cost_so_far += Utility::GetDistance(current, *current.getSmartPtrPred());
             if (*node3d_ptr == start_)
             {
                 break;

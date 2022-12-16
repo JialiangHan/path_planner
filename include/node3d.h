@@ -4,6 +4,7 @@
 #include <memory>
 #include "glog/logging.h"
 #include "gflags/gflags.h"
+#include "constants.h"
 namespace HybridAStar {
 /*!
    \brief A three dimensional node class that is at the heart of the algorithm.

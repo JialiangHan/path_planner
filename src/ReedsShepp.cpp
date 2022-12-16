@@ -501,7 +501,6 @@ namespace HybridAStar
         CCSCC(x, y, phi, path);
         return path;
     }
-}
 
 const ReedsSheppStateSpace::ReedsSheppPathSegmentType
     ReedsSheppStateSpace::reedsSheppPathType[18][5] = {
@@ -547,7 +546,7 @@ ReedsSheppStateSpace::ReedsSheppPath ReedsSheppStateSpace::reedsShepp(double q0[
     double dx = q1[0] - q0[0], dy = q1[1] - q0[1], dth = q1[2] - q0[2];
     double c = cos(q0[2]), s = sin(q0[2]);
     double x = c * dx + s * dy, y = -s * dx + c * dy;
-    return ::reedsShepp(x / rho_, y / rho_, dth);
+    return HybridAStar::reedsShepp(x / rho_, y / rho_, dth);
 }
 
 std::vector<ReedsSheppStateSpace::ReedsSheppPathSegmentType> ReedsSheppStateSpace::type(double q0[3], double q1[3])
@@ -623,4 +622,5 @@ void ReedsSheppStateSpace::interpolate(double q0[3], ReedsSheppPath &path, doubl
 
     s[0] = s[0] * rho_ + q0[0];
     s[1] = s[1] * rho_ + q0[1];
+}
 }
