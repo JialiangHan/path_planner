@@ -53,7 +53,7 @@ class Node3D {
    /// set the y position
    void setY(const float &y) { this->y = y; }
    /// set the heading theta
-   void setT(float t);
+   void setT(const float &t) { this->t = t; };
    /// set the cost-so-far (real value)
    void setCostSofar(const float &g)
    {

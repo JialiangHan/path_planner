@@ -340,7 +340,6 @@ namespace HybridAStar
     Utility::TypeConversion(start, vector3d_start);
     // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
     Utility::TypeConversion(goal, vector3d_goal);
-
     // Dubins/RS curve
     if (params_.curve_type_analytical_expansion == 0)
     {
@@ -377,7 +376,7 @@ namespace HybridAStar
         }
       }
     }
-    // beizer curve
+    // bezier curve
     if (params_.curve_type_analytical_expansion == 1)
     {
       CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width_, map_height_);
@@ -392,7 +391,7 @@ namespace HybridAStar
         Utility::TypeConversion(cubic_bezier.GetValueAt(x / length), node3d);
 
         float curvature = cubic_bezier.GetCurvatureAt(x / length);
-        node3d.setT(cubic_bezier.GetAngleAt(x / length));
+        node3d.setT(Utility::RadToZeroTo2P(cubic_bezier.GetAngleAt(x / length)));
         // DLOG(INFO) << "current node is " << node3d.getX() << " " << node3d.getY();
         // collision check
         if (configuration_space_ptr_->IsTraversable(node3d))
@@ -402,6 +401,8 @@ namespace HybridAStar
             path_vec.emplace_back(node3d);
             x += params_.curve_step_size;
             i++;
+            // DLOG(INFO) << "current node is " << node3d.getX() << " " << node3d.getY();
+            // LOG(INFO) << "current node is " << node3d.getX() << " " << node3d.getY() << " " << Utility::ConvertRadToDeg(node3d.getT());
           }
           else
           {
@@ -425,9 +426,12 @@ namespace HybridAStar
     if (path_vec.size() != 0)
     {
       path_vec.emplace_back(goal);
+      // LOG(INFO) << "start point before conversion is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " after conversion is " << vector3d_start.x() << " " << vector3d_start.y() << " " << Utility::ConvertRadToDeg(vector3d_start.z());
+
+      // LOG(INFO) << "goal point before conversion is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT()) << " after conversion is " << vector3d_goal.x() << " " << vector3d_goal.y() << " " << Utility::ConvertRadToDeg(vector3d_goal.z());
       // std::string out = params_.reverse == true ? "cubic bezier" : "dubins";
       DLOG(INFO) << "Analytical expansion connected, returning path";
-      LOG(INFO) << "analytical expansion start at " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT());
+      // LOG(INFO) << "analytical expansion start at " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT());
     }
     return path_vec;
   }
@@ -442,7 +446,48 @@ namespace HybridAStar
     std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
     std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec;
     float distance_to_goal = Utility::GetDistance(pred, goal_);
-    if (true)
+    // if (true)
+    // {
+    //   float current_normalized_obstacle_density = configuration_space_ptr_->GetNormalizedObstacleDensity(pred);
+    //   float constant_density = params_.constant_density;
+    //   // LOG(INFO) << "current node normalized obstacle density is " << current_normalized_obstacle_density;
+    //   if (current_normalized_obstacle_density > constant_density)
+    //   {
+    //     // LOG(INFO) << "fixed steering angle and step size";
+    //     // assume constant speed.
+
+    //     std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
+    //     std::pair<float, float> pair;
+
+    //     if (params_.step_size > distance_to_goal)
+    //     {
+    //       pair.first = distance_to_goal;
+    //     }
+    //     else
+    //     {
+    //       pair.first = params_.step_size;
+    //     }
+
+    //     for (const auto &element : available_steering_angle_vec)
+    //     {
+    //       pair.second = element;
+    //       available_steering_angle_and_step_size_vec.emplace_back(pair);
+    //     }
+    //     // LOG(INFO) << "fix step size;";
+    //   }
+    //   else
+    //   {
+    //     // LOG(INFO) << "adaptive steering angle and step size";
+    //     // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
+    //     available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(pred, start_, goal_, params_.number_of_successors, params_.step_size);
+    //     // DLOG(INFO) << "CreateSuccessor out.";
+    //     // LOG(INFO) << "adaptive step size;";
+    //   }
+    // }
+    // else
+    // {
+    // DLOG(INFO) << "current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
+    if (params_.adaptive_steering_angle_and_step_size)
     {
       float current_normalized_obstacle_density = configuration_space_ptr_->GetNormalizedObstacleDensity(pred);
       float constant_density = params_.constant_density;
@@ -480,17 +525,6 @@ namespace HybridAStar
         // LOG(INFO) << "adaptive step size;";
       }
     }
-    else
-    {
-
-      // DLOG(INFO) << "current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
-      if (params_.adaptive_steering_angle_and_step_size)
-      {
-        // LOG(INFO) << "adaptive steering angle and step size";
-        // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
-        available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(pred, start_, goal_, params_.number_of_successors, params_.step_size);
-        // DLOG(INFO) << "CreateSuccessor out.";
-      }
       else if (params_.adaptive_step_size)
       {
         // LOG(INFO) << "fixed steering angle and step size";
@@ -533,11 +567,11 @@ namespace HybridAStar
       // {
       //   LOG(INFO) << "step size is " << element.first << " steering angle is " << Utility::ConvertRadToDeg(element.second);
       // }
-    }
+      // }
 
-    out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
-    // DLOG(INFO) << "CreateSuccessor out.";
-    return out;
+      out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
+      // DLOG(INFO) << "CreateSuccessor out.";
+      return out;
   }
 
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred, const std::vector<std::pair<float, float>> &step_size_steering_angle_vec)
@@ -722,7 +756,7 @@ namespace HybridAStar
           // DLOG(INFO) << "current path index is " << index;
           end_point.setX(path_[index - 1].getX());
           end_point.setY(path_[index - 1].getY());
-          end_point.setT(path_[index - 1].getT());
+          end_point.setT(Utility::RadToZeroTo2P(path_[index - 1].getT()));
           break;
         }
         if (Utility::GetDistance(path_[index], path_[index + 1]) < 0.1)
@@ -761,7 +795,7 @@ namespace HybridAStar
           DLOG(INFO) << "current path index is " << index;
           end_point.setX(path_[index].getX());
           end_point.setY(path_[index].getY());
-          end_point.setT(path_[index].getT());
+          end_point.setT(Utility::RadToZeroTo2P(path_[index].getT()));
           break;
         }
       }
@@ -938,7 +972,7 @@ namespace HybridAStar
       dubins_path_sample(&path, x, q);
       dubinsNodes[i].setX(q[0]);
       dubinsNodes[i].setY(q[1]);
-      dubinsNodes[i].setT(q[2]);
+      dubinsNodes[i].setT(Utility::RadToZeroTo2P(q[2]));
 
       // collision check
       // 跳出循环的条件之二：生成的路径存在碰撞节点
@@ -993,7 +1027,7 @@ namespace HybridAStar
     {
       dubinsNodes[i].setX(point_itr[0]);
       dubinsNodes[i].setY(point_itr[1]);
-      dubinsNodes[i].setT(point_itr[2]);
+      dubinsNodes[i].setT(Utility::RadToZeroTo2P(point_itr[2]));
 
       // collision check
       costmap->worldToMap(dubinsNodes[i].getX(), dubinsNodes[i].getY(), poseX, poseY);

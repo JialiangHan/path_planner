@@ -249,14 +249,14 @@ void Planner::MakePlan()
       t = tf::getYaw(start_.pose.pose.orientation);
       nStart.setX(x);
       nStart.setY(y);
-      nStart.setT(t);
+      nStart.setT(Utility::RadToZeroTo2P(t));
       // retrieving goal position
       x = goal_.pose.position.x / params_.cell_size;
       y = goal_.pose.position.y / params_.cell_size;
       t = tf::getYaw(goal_.pose.orientation);
       nGoal.setX(x);
       nGoal.setY(y);
-      nGoal.setT(t);
+      nGoal.setT(Utility::RadToZeroTo2P(t));
     }
 
     std::srand(0);

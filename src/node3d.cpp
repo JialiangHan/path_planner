@@ -41,14 +41,16 @@
 namespace HybridAStar
 {
 
-  void Node3D::setT(float _t)
-  {
-    if (_t > 3.1415)
-    {
-      _t = _t - 6.283;
-    }
-    t = _t / Constants::deltaHeadingRad;
-  }
+  // void Node3D::setT(float _t)
+  // {
+  //   // LOG(INFO) << "before setT is " << _t;
+  //   if (_t > 3.1415)
+  //   {
+  //     _t = _t - 6.283;
+  //   }
+  //   t = _t / Constants::deltaHeadingRad;
+  //   // LOG(INFO) << "after setT is " << t;
+  // }
 
   float Node3D::updateCostSofar()
   {
