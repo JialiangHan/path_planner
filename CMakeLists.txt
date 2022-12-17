@@ -35,6 +35,8 @@ find_package(catkin REQUIRED COMPONENTS
     pluginlib
     visualization_msgs
     base_local_planner
+    tf2_ros
+    ompl
     )
 
 FIND_PACKAGE(Glog REQUIRED)
@@ -51,7 +53,13 @@ include_directories(${Python3_INCLUDE_DIRS} ${NumPy_INCLUDE_DIRS})
 # endif()
 find_package(Eigen3 REQUIRED)
 
-include_directories(${EIGEN3_INCLUDE_DIRS})
+include_directories(
+    ${EIGEN3_INCLUDE_DIRS}
+    include
+    test/test_the_plugin/include
+    ${catkin_INCLUDE_DIRS}
+    ${OMPL_INCLUDE_DIRS}
+    )
 set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/a_star.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/bucketedqueue.cpp #Boris Lau, Christoph Sprunk, Wolfram Burgard
@@ -185,6 +193,14 @@ target_link_libraries(hybrid_a_star_test
                         ${GFLAGS_LIBRARY} 
                        ${GTEST_BOTH_LIBRARIES}
                        pthread)
+
+
+add_executable(test_planner test/test_the_plugin/src/test.cpp test/test_the_plugin/src/test_plugins.cpp)
+target_link_libraries(test_planner ${catkin_LIBRARIES})
+
+add_executable(tf_test_broadcaster test/test_the_plugin/src/tf_broadcaster.cpp)
+target_link_libraries(tf_test_broadcaster ${catkin_LIBRARIES})
+
 gtest_add_tests(hybrid_a_star_test
                 .noArgs
                  AUTO)
@@ -200,3 +216,7 @@ install(TARGETS ${PROJECT_NAME} tf_broadcaster
 install(DIRECTORY launch/
     DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
     )
+
+    install(FILES bgp_plugin.xml
+    DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

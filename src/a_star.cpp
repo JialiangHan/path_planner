@@ -344,9 +344,9 @@ namespace HybridAStar
             // 如果找到目标点则返回
             if (tmpStart->getX() == goalPose->getX() && tmpStart->getY() == goalPose->getY())
             {
-                std::cout << "got a plan" << std::endl;
+                LOG(INFO) << "got a plan"  ;
                 nodeToPlan(tmpStart, plan);
-                std::cout << counter << std::endl;
+                LOG(INFO) << counter  ;
                 delete[] pathNode2D;
                 return true;
             }

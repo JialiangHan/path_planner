@@ -119,7 +119,7 @@ namespace HybridAStar
   {
     std::vector<std::shared_ptr<Node2D>> adjacentNodes;
     float g = 0;
-    // std::cout << "the cost-so-far of this node" << point->getCostSofar() << std::endl;
+
     for (int x = point->getX() - 1; x <= point->getX() + 1; ++x)
     {
       for (int y = point->getY() - 1; y <= point->getY() + 1; ++y)

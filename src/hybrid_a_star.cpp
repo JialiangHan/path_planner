@@ -992,7 +992,7 @@ namespace HybridAStar
 
         if (&dubinsNodes[i] == dubinsNodes[i].getPred())
         {
-          std::cout << "looping shot";
+          LOG(INFO) << "looping shot";
         }
 
         x += Constants::dubinsStepSize;
@@ -1043,7 +1043,7 @@ namespace HybridAStar
         // }
         if (&dubinsNodes[i] == dubinsNodes[i].getPred())
         {
-          std::cout << "looping shot";
+          LOG(INFO) << "looping shot";
         }
         i++;
       }
@@ -1109,7 +1109,7 @@ namespace HybridAStar
     ros::Time end_time = ros::Time::now();
     ros::Time t1 = ros::Time::now();
     ros::Duration d(end_time - t0);
-    std::cout << "generate heuristic map costed " << d * 1000 << " ms" << std::endl;
+    LOG(INFO) << "generate heuristic map costed " << d * 1000 << " ms"  ;
 #endif
     t = tf::getYaw(goal.pose.orientation);
     Node3D *goalPose = new Node3D(goal.pose.position.x, goal.pose.position.y, t, 999, 0, false, nullptr);
@@ -1145,9 +1145,9 @@ namespace HybridAStar
 #ifdef debug_mode
         ros::Time t1 = ros::Time::now();
         ros::Duration d(t1 - t0);
-        std::cout << "got plan in ms: " << d * 1000 << std::endl;
+        LOG(INFO) << "got plan in ms: " << d * 1000  ;
 #endif
-        ROS_INFO("Got a plan,loop %d times", counter);
+        LOG(INFO) << ("Got a plan,loop %d times", counter);
         nodeToPlan(tmpNode, plan);
         return true;
       }
@@ -1162,9 +1162,9 @@ namespace HybridAStar
 #ifdef debug_mode
             ros::Time t1 = ros::Time::now();
             ros::Duration d(t1 - t0);
-            std::cout << "got plan in ms: " << d * 1000 << std::endl;
+            LOG(INFO) << "got plan in ms: " << d * 1000  ;
 #endif
-            ROS_INFO("Got a plan,expored %d nodes ", counter);
+            LOG(INFO) << ("Got a plan,expored %d nodes ", counter);
             nodeToPlan(nSucc, plan);
             return true; // 如果下一步是目标点，可以返回了
           }
@@ -1178,9 +1178,9 @@ namespace HybridAStar
 #ifdef debug_mode
             ros::Time t1 = ros::Time::now();
             ros::Duration d(t1 - t0);
-            std::cout << "got plan in ms: " << d * 1000 << std::endl;
+            LOG(INFO) << "got plan in ms: " << d * 1000  ;
 #endif
-            ROS_INFO("Got a plan,expored %d nodes ", counter);
+            LOG(INFO) << ("Got a plan,expored %d nodes ", counter);
             nodeToPlan(nSucc, plan);
             return true; // 如果下一步是目标点，可以返回了
           }

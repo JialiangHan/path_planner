@@ -16,7 +16,7 @@ namespace HybridAStar
 
     HybridAStarPlanner::HybridAStarPlanner() : initialized_(false), costmap(NULL), resolution(1.0), hybrid_a_star_ptr_(NULL)
     {
-        std::cout << "creating the hybrid Astar planner" << std::endl;
+        LOG(INFO) << "creating the hybrid Astar planner";
     }
 
     HybridAStarPlanner::~HybridAStarPlanner()
@@ -31,7 +31,7 @@ namespace HybridAStar
             initialized_ = true;
         }
         else
-            ROS_WARN("This planner has already been initialized... doing nothing");
+            LOG(WARNING) << ("This planner has already been initialized... doing nothing");
     }
 
     void HybridAStarPlanner::initialize(std::string name, costmap_2d::Costmap2D *_costmap, std::string frame_id)
@@ -41,18 +41,18 @@ namespace HybridAStar
 
         // get parameters of TebConfig via the nodehandle and override the default config
         params_.loadRosParamFromNodeHandle(nh);
-        ROS_INFO("initializing the hybrid Astar planner");
+        LOG(INFO) << ("initializing the hybrid Astar planner");
         if (!params_.param_container_ptr_->planner_params.use_a_star)
         {
-            ROS_INFO("Using hybrid_astar mode!");
+            LOG(INFO) << ("Using hybrid_astar mode!");
         }
         else
         {
-            ROS_INFO("Using Astar mode!");
+            LOG(INFO) << ("Using Astar mode!");
         }
         costmap = _costmap;
         frame_id_ = frame_id;
-        std::cout << frame_id << std::endl;
+        LOG(INFO) << frame_id;
         //  初始化发布路径的主题
         plan_pub_ = nh.advertise<nav_msgs::Path>("plan", 1);
         path_vehicles_pub_ = nh.advertise<visualization_msgs::MarkerArray>("pathVehicle", 1);
@@ -73,11 +73,11 @@ namespace HybridAStar
     {
         if (!initialized_)
         {
-            ROS_ERROR("The planner has not been initialized, please call initialize() to use the planner");
+            LOG(ERROR) << ("The planner has not been initialized, please call initialize() to use the planner");
             return false;
         }
 
-        ROS_DEBUG("Got a start: %.2f, %.2f, and a goal: %.2f, %.2f", start.pose.position.x, start.pose.position.y, goal.pose.position.x, goal.pose.position.y);
+        DLOG(INFO) << ("Got a start: %.2f, %.2f, and a goal: %.2f, %.2f", start.pose.position.x, start.pose.position.y, goal.pose.position.x, goal.pose.position.y);
         plan.clear();
 
         Expander *_planner;
@@ -94,7 +94,7 @@ namespace HybridAStar
         // 检查设定的目标点参数是否合规
         if (!(checkStartPose(start) && checkgoalPose(goal)))
         {
-            ROS_WARN("Failed to create a global plan!");
+            LOG(WARNING) << ("Failed to create a global plan!");
             return false;
         }
         plan.clear();
@@ -119,7 +119,7 @@ namespace HybridAStar
         {
             return true;
         }
-        ROS_WARN("The Start pose is out of the map!");
+        LOG(WARNING) << ("The Start pose is out of the map!");
         return false;
     } // end of checkStartPose
 
@@ -130,9 +130,9 @@ namespace HybridAStar
         {
             if (costmap->getCost(goalx, goaly) > 252)
             {
-                // std::cout << costmap->getCost(goalx, goaly) << std::endl;
-                ROS_WARN("The Goal pose is out of the map! %d", costmap->getCost(goalx, goaly));
-                ROS_WARN("The Goal pose is occupied , please reset the goal!");
+
+                LOG(WARNING) << ("The Goal pose is out of the map! %d", costmap->getCost(goalx, goaly));
+                LOG(WARNING) << ("The Goal pose is occupied , please reset the goal!");
                 return false;
             }
             return true;
@@ -144,8 +144,7 @@ namespace HybridAStar
     {
         if (!initialized_)
         {
-            ROS_ERROR(
-                "This planner has not been initialized yet, but it is being used, please call initialize() before use");
+            LOG(ERROR) << ("This planner has not been initialized yet, but it is being used, please call initialize() before use");
             return;
         }
         // create a message for the plan
@@ -165,7 +164,7 @@ namespace HybridAStar
         }
 
         plan_pub_.publish(gui_path);
-        // ROS_INFO("Publish the path to Rviz");
+        // LOG(INFO)<<("Publish the path to Rviz");
 
     } // end of publishPlan
 
@@ -173,8 +172,7 @@ namespace HybridAStar
     {
         if (!initialized_)
         {
-            ROS_ERROR(
-                "This planner has not been initialized yet, but it is being used, please call initialize() before use");
+            LOG(ERROR) << ("This planner has not been initialized yet, but it is being used, please call initialize() before use");
             return;
         }
         visualization_msgs::Marker pathVehicle;
@@ -214,6 +212,6 @@ namespace HybridAStar
         node.action = 3;
         pathNodes.markers.push_back(node);
         path_vehicles_pub_.publish(pathNodes);
-        // ROS_INFO("Clean the path nodes");
+        // LOG(INFO)<<("Clean the path nodes");
     }
 };
