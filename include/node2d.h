@@ -129,40 +129,4 @@ class Node2D {
    // cost from cost_map
    unsigned int map_cost_;
 };
-
-class GridSearch
-{
- public:
-   GridSearch()
-   {
-   }
-   ~GridSearch()
-   {
-   }
-   // used in GenerateDpmap
-   std::vector<std::shared_ptr<Node2D>> getAdjacentPoints(int cells_x, int cells_y, const unsigned char *charMap, std::shared_ptr<Node2D> point);
-   /**
-    * @brief dpmap is a map to store all Astar cost so far to goal point.
-    *
-    * @param goal_x
-    * @param goal_y
-    * @param costmap
-    * @return std::unordered_map<int, std::shared_ptr<Node2D>> first is node index
-    */
-   std::unordered_map<int, std::shared_ptr<Node2D>> GenerateDpMap(
-       const double goal_x, const double goal_y,
-       costmap_2d::Costmap2D *costmap);
-   // std::unordered_map<int, std::shared_ptr<Node2D>> dp_map_;
- private:
-   // std::unordered_map<int, std::shared_ptr<Node2D>> dp_map_;
-   struct cmp
-   {
-     // Sorting 3D nodes by increasing C value - the total estimated cost
-     bool operator()(const std::pair<int, double> &left,
-                     const std::pair<int, double> &right) const
-     {
-       return left.second >= right.second;
-     }
-   };
-};
 }

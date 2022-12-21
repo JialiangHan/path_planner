@@ -6,9 +6,7 @@
 #include "node3d.h"
 #include "parameter_manager.h"
 #include "utility.h"
-#include <unordered_map>
 #include <algorithm>
-#include <cmath>
 #include "computational_geometry.h"
 namespace HybridAStar
 {

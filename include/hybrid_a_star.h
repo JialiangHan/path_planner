@@ -11,9 +11,7 @@
 #include "lookup_table.h"
 #include "piecewise_cubic_bezier.h"
 #include <costmap_2d/costmap_2d.h>
-#include <geometry_msgs/PoseStamped.h>
 #include "expander.h"
-#include <visualization_msgs/MarkerArray.h>
 #include <ros/publisher.h>
 #include "dubins.h"
 #include "ReedsShepp.h"
@@ -236,6 +234,5 @@ namespace HybridAStar
        *
        */
       uint analytical_expansion_index_;
-      std::unique_ptr<GridSearch> grid_a_star_heuristic_generator_;
    };
 }

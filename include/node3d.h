@@ -105,8 +105,6 @@ class Node3D {
      return false;
    };
 
-   //  float updateCostSofar();
-
  private:
   /// the x position
   float x;

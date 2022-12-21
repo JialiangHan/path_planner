@@ -35,21 +35,13 @@ namespace Constants
   static const double bloating = 0;
   /// [m] --- The width of the vehicle
   static const double width = 0.18 + 2 * bloating; // 车的宽度
-  // /// [m] --- The width of the vehicle
-  // static const float width = 1.75;
   /// [m] --- The length of the vehicle
   static const double length = 0.22 + 2 * bloating; // 车的长度
-  // /// [m] --- The length of the vehicle
-  // static const float length = 2.65;
 
-  // /// [m] --- The number of discretizations in heading
-  // static const int headings = 72;
   /// [m] --- The number of discretizations in heading
   /// 车体朝向的离散数量
-  // static const int headings = 72;
   static const int headings = 72;
-  // /// [c*M_PI] --- The discretization value of heading (goal condition)
-  // static const float deltaHeadingRad = 2 * M_PI / (float)headings;
+
   /// [c*M_PI] --- The discretization value of heading (goal condition)
   static const float deltaHeadingRad = 2 * M_PI / (float)headings; // 朝向离散步长(以弧度表示)
                                                                    /// [c*M_PI] --- The heading part of the goal condition

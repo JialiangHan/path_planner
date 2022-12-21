@@ -71,10 +71,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/hybrid_a_star_planner.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/hybrid_a_star.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lookup_table.cpp 
-    # ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
-    # ${CMAKE_CURRENT_SOURCE_DIR}/src/node_path_evaluator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/node2d.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/node3d.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/parameter_manager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/path_evaluator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/path_publisher.cpp
@@ -83,7 +80,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ReedsShepp.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/rrt.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/smoother.cpp
-    # ${CMAKE_CURRENT_SOURCE_DIR}/src/tf_broadcaster.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/utility.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/visualize.cpp
     )

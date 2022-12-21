@@ -1178,14 +1178,6 @@ namespace HybridAStar
                         start.pose.position.y, start_x, start_y);
 
     //************************************************
-    // 建立启发势场取决于地图大小,231(nodes/ms)
-    // std::unordered_map<int, std::shared_ptr<Node2D>> dp_map =
-    // grid_a_star_heuristic_generator_->GenerateDpMap(goal_x, goal_y, costmap);
-
-    // ros::Time end_time = ros::Time::now();
-    // ros::Duration d(end_time - t0);
-    // LOG(INFO) << "generate heuristic map costed " << d * 1000 << " ms"  ;
-
     std::unordered_map<int, Node3D *> open_set;
     std::unordered_map<int, Node3D *> closed_set;
     open_set.emplace(startPose->getIdx(cells_x, Constants::headings, resolution, dx, dy), startPose);

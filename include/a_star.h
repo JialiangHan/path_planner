@@ -11,11 +11,9 @@
 #pragma once
 
 #include "expander.h"
-#include <boost/heap/binomial_heap.hpp>
 #include "visualize.h"
 #include "collisiondetection.h"
 #include "utility.h"
-#include <tf/transform_datatypes.h>
 namespace HybridAStar
 {
 
