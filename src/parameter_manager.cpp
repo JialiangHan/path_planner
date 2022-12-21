@@ -199,6 +199,7 @@ namespace HybridAStar
   }
   void ParameterManager::LoadHybridAStarParams()
   {
+    DLOG(INFO) << "in LoadHybridAStarParams";
     std::string ros_param_name;
     std::string node_prefix = "/move_base/HybridAStar/";
 
