@@ -15,7 +15,7 @@ else()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
 endif()
 
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
@@ -196,10 +196,10 @@ target_link_libraries(hybrid_a_star_test
 
 
 add_executable(test_planner test/test_the_plugin/src/test.cpp test/test_the_plugin/src/test_plugins.cpp)
-target_link_libraries(test_planner ${catkin_LIBRARIES})
+target_link_libraries(test_planner ${catkin_LIBRARIES} glog::glog)
 
 add_executable(tf_test_broadcaster test/test_the_plugin/src/tf_broadcaster.cpp)
-target_link_libraries(tf_test_broadcaster ${catkin_LIBRARIES})
+target_link_libraries(tf_test_broadcaster ${catkin_LIBRARIES} glog::glog)
 
 gtest_add_tests(hybrid_a_star_test
                 .noArgs

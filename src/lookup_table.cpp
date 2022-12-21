@@ -19,7 +19,7 @@ namespace HybridAStar
 
     void LookupTable::Initialize(const int &width, const int &height)
     {
-        // DLOG(INFO) << "lookup table initializing";
+        DLOG(INFO) << "lookup table initializing";
         if (map_width_ != width || map_height_ != height)
         {
             Clear();

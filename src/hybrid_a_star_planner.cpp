@@ -16,7 +16,7 @@ namespace HybridAStar
 
     HybridAStarPlanner::HybridAStarPlanner() : initialized_(false), costmap(NULL), resolution(1.0), hybrid_a_star_ptr_(NULL)
     {
-        LOG(INFO) << "creating the hybrid Astar planner";
+        DLOG(INFO) << "creating the hybrid Astar planner";
     }
 
     HybridAStarPlanner::~HybridAStarPlanner()
@@ -26,33 +26,34 @@ namespace HybridAStar
     {
         if (!initialized_)
         {
+
             initialize(name, costmap_ros->getCostmap(), costmap_ros->getGlobalFrameID());
 
             initialized_ = true;
         }
         else
-            LOG(WARNING) << ("This planner has already been initialized... doing nothing");
+            DLOG(WARNING) << "This planner has already been initialized... doing nothing";
     }
 
     void HybridAStarPlanner::initialize(std::string name, costmap_2d::Costmap2D *_costmap, std::string frame_id)
     {
         // create Node Handle with name of plugin (as used in move_base for loading)
         ros::NodeHandle nh("~/" + name);
-
+        visualization_ptr_.reset(new Visualize(params_.GetVisualizeParams()));
         // get parameters of TebConfig via the nodehandle and override the default config
         params_.loadRosParamFromNodeHandle(nh);
-        LOG(INFO) << ("initializing the hybrid Astar planner");
+        DLOG(INFO) << "initializing the hybrid Astar planner";
         if (!params_.param_container_ptr_->planner_params.use_a_star)
         {
-            LOG(INFO) << ("Using hybrid_astar mode!");
+            DLOG(INFO) << "Using hybrid_astar mode!";
         }
         else
         {
-            LOG(INFO) << ("Using Astar mode!");
+            DLOG(INFO) << "Using Astar mode!";
         }
         costmap = _costmap;
         frame_id_ = frame_id;
-        LOG(INFO) << frame_id;
+        DLOG(INFO) << frame_id;
         //  初始化发布路径的主题
         plan_pub_ = nh.advertise<nav_msgs::Path>("plan", 1);
         path_vehicles_pub_ = nh.advertise<visualization_msgs::MarkerArray>("pathVehicle", 1);
@@ -73,34 +74,36 @@ namespace HybridAStar
     {
         if (!initialized_)
         {
-            LOG(ERROR) << ("The planner has not been initialized, please call initialize() to use the planner");
+            DLOG(ERROR) << "The planner has not been initialized, please call initialize() to use the planner";
             return false;
         }
 
-        DLOG(INFO) << ("Got a start: %.2f, %.2f, and a goal: %.2f, %.2f", start.pose.position.x, start.pose.position.y, goal.pose.position.x, goal.pose.position.y);
+        DLOG(INFO) << "Got a start: " << start.pose.position.x << " " << start.pose.position.y << " and a goal: " << goal.pose.position.x << " " << goal.pose.position.y;
         plan.clear();
 
         Expander *_planner;
-
-        if (use_hybrid_astar)
+        if (!params_.param_container_ptr_->planner_params.use_a_star)
         {
-            _planner = new HybridAStar(frame_id_, costmap);
+            DLOG(INFO) << "Using hybrid_astar mode!";
+            _planner = new HybridAStar(frame_id_, costmap, params_.GetHybridAStarParams(), visualization_ptr_);
         }
         else
         {
+            DLOG(INFO) << "Using Astar mode!";
             _planner = new AStar(frame_id_, costmap);
         }
 
         // 检查设定的目标点参数是否合规
         if (!(checkStartPose(start) && checkgoalPose(goal)))
         {
-            LOG(WARNING) << ("Failed to create a global plan!");
+            DLOG(WARNING) << "Failed to create a global plan due to start or goal not available!";
             return false;
         }
         plan.clear();
         // 正式将参数传入规划器中
         if (!_planner->calculatePath(start, goal, costmap->getSizeInCellsX(), costmap->getSizeInCellsY(), plan, path_vehicles_pub_, pathNodes))
         {
+            DLOG(INFO) << "failed to find a path!!!";
             return false;
         }
 
@@ -119,7 +122,7 @@ namespace HybridAStar
         {
             return true;
         }
-        LOG(WARNING) << ("The Start pose is out of the map!");
+        DLOG(WARNING) << "The Start pose is out of the map!";
         return false;
     } // end of checkStartPose
 
@@ -131,8 +134,8 @@ namespace HybridAStar
             if (costmap->getCost(goalx, goaly) > 252)
             {
 
-                LOG(WARNING) << ("The Goal pose is out of the map! %d", costmap->getCost(goalx, goaly));
-                LOG(WARNING) << ("The Goal pose is occupied , please reset the goal!");
+                DLOG(WARNING) << "The Goal pose is out of the map! %d", costmap->getCost(goalx, goaly);
+                DLOG(WARNING) << "The Goal pose is occupied , please reset the goal!";
                 return false;
             }
             return true;
@@ -144,7 +147,7 @@ namespace HybridAStar
     {
         if (!initialized_)
         {
-            LOG(ERROR) << ("This planner has not been initialized yet, but it is being used, please call initialize() before use");
+            DLOG(ERROR) << "This planner has not been initialized yet, but it is being used, please call initialize() before use";
             return;
         }
         // create a message for the plan
@@ -172,7 +175,7 @@ namespace HybridAStar
     {
         if (!initialized_)
         {
-            LOG(ERROR) << ("This planner has not been initialized yet, but it is being used, please call initialize() before use");
+            DLOG(ERROR) << "This planner has not been initialized yet, but it is being used, please call initialize() before use";
             return;
         }
         visualization_msgs::Marker pathVehicle;

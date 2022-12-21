@@ -134,6 +134,63 @@ namespace Utility
             path_3d.emplace_back(node_3d);
         }
     }
+
+    void TypeConversion(const std::vector<std::shared_ptr<HybridAStar::Node3D>> &smart_ptr_vec, std::vector<HybridAStar::Node3D *> &ptr_vec)
+    {
+        // DLOG(INFO) << "in typeconversion. ptr_vec size is " << ptr_vec.size();
+        DLOG_IF(WARNING, smart_ptr_vec.size() <= 0) << "smart_ptr_vec size is ZERO!!!";
+        // ptr_vec.clear();
+        HybridAStar::Node3D *ptr;
+        for (const auto &element : smart_ptr_vec)
+        {
+            ptr = element.get();
+            ptr_vec.emplace_back(ptr);
+            // LOG(INFO) << "inserting " << ptr->getX() << " " << ptr->getY() << " " << ConvertRadToDeg(ptr->getT()) << "to ptr_vec.";
+        }
+        // DLOG(INFO) << "ptr_vec size is " << ptr_vec.size();
+    }
+
+    void TypeConversion(costmap_2d::Costmap2D *_costmap, std::string frame_id, nav_msgs::OccupancyGrid::Ptr &map)
+    {
+        double resolution = _costmap->getResolution();
+
+        map->header.frame_id = frame_id;
+        map->header.stamp = ros::Time::now();
+        map->info.resolution = resolution;
+
+        map->info.width = _costmap->getSizeInCellsX();
+        map->info.height = _costmap->getSizeInCellsY();
+
+        double wx, wy;
+        _costmap->mapToWorld(0, 0, wx, wy);
+        map->info.origin.position.x = wx - resolution / 2;
+        map->info.origin.position.y = wy - resolution / 2;
+        map->info.origin.position.z = 0.0;
+        map->info.origin.orientation.w = 1.0;
+
+        map->data.resize(map->info.width * map->info.height);
+        char *cost_translation_table_;
+        cost_translation_table_ = new char[256];
+
+        // special values:
+        cost_translation_table_[0] = 0;     // NO obstacle
+        cost_translation_table_[253] = 99;  // INSCRIBED obstacle
+        cost_translation_table_[254] = 100; // LETHAL obstacle
+        cost_translation_table_[255] = -1;  // UNKNOWN
+
+        // regular cost values scale the range 1 to 252 (inclusive) to fit
+        // into 1 to 98 (inclusive).
+        for (int i = 1; i < 253; i++)
+        {
+            cost_translation_table_[i] = char(1 + (97 * (i - 1)) / 251);
+        }
+        unsigned char *data = _costmap->getCharMap();
+        for (unsigned int i = 0; i < map->data.size(); i++)
+        {
+            map->data[i] = cost_translation_table_[data[i]];
+        }
+        delete[] cost_translation_table_;
+    }
     //**********************computational geometry****************
 
     bool OnSegment(const Eigen::Vector2f &p1, const Eigen::Vector2f &p3,
@@ -1996,7 +2053,7 @@ namespace Utility
             out.emplace_back(-(i * ConvertDegToRad(steering_angle)));
             // LOG(INFO) << "i is " << i << " i * ConvertDegToRad(steering_angle) " << i * ConvertDegToRad(steering_angle) << " -i * ConvertDegToRad(steering_angle)" << -(i * ConvertDegToRad(steering_angle));
         }
-
+        LOG_IF(INFO, out.size() <= 0) << "out size is ZERO!!";
         return out;
     }
 

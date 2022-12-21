@@ -25,7 +25,7 @@ curve_type_analytical_expansion: 1
 # step size to create successor
 step_size : 1
 
-adaptive_steering_angle_and_step_size: false
+adaptive_steering_angle_and_step_size: true
 
 adaptive_step_size: false
 # parameter to control whether to use fix or adaptive step size

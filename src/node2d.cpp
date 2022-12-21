@@ -58,6 +58,7 @@ namespace HybridAStar
       const double goal_x, const double goal_y,
       costmap_2d::Costmap2D *costmap)
   {
+    DLOG(INFO) << "in GridSearch::GenerateDpMap.";
     const unsigned char *charMap = costmap->getCharMap();
     int counter = 0;
     int cells_x, cells_y;
@@ -82,6 +83,8 @@ namespace HybridAStar
       open_pq.pop();
       std::shared_ptr<Node2D> current_node = open_set[id];
       dp_map_.emplace(current_node->setIdx(cells_x), current_node);
+      DLOG(INFO) << "put current node " << current_node->getX() << " " << current_node->getY() << " "
+                 << "index is " << current_node->setIdx(cells_x) << " into dpmap;";
       std::vector<std::shared_ptr<Node2D>> adjacent_nodes =
           getAdjacentPoints(cells_x, cells_y, charMap, current_node);
       for (std::vector<std::shared_ptr<Node2D>>::iterator

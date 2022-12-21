@@ -435,58 +435,126 @@ namespace HybridAStar
     }
     return path_vec;
   }
-  //###################################################
-  //                                    create successor
-  //###################################################
+
+  Node3D *HybridAStar::AnalyticExpansions(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap)
+  {
+    int i = 0;
+    float x = 0.f;
+    Eigen::Vector3f vector3d_start, vector3d_goal;
+    Utility::TypeConversion(start, vector3d_start);
+    // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
+    Utility::TypeConversion(goal, vector3d_goal);
+    unsigned int poseX, poseY;
+    // Dubins/RS curve
+    if (params_.curve_type_analytical_expansion == 0)
+    {
+      // start
+      float q0[] = {start.getX(), start.getY(), start.getT()};
+      // goal
+      float q1[] = {goal.getX(), goal.getY(), goal.getT()};
+      // initialize the path
+      DubinsPath path;
+      // calculate the path
+      dubins_init(q0, q1, params_.min_turning_radius, &path);
+      float length = dubins_path_length(&path);
+      Node3D *dubinsNodes = new Node3D[(int)(length / params_.curve_step_size) + 1];
+      while (x < length)
+      {
+        float q[3];
+        dubins_path_sample(&path, x, q);
+        dubinsNodes[i].setX(q[0]);
+        dubinsNodes[i].setY(q[1]);
+        dubinsNodes[i].setT(Utility::RadToZeroTo2P(q[2]));
+        // collision check
+        // 跳出循环的条件之二：生成的路径存在碰撞节点
+        costmap->worldToMap(dubinsNodes[i].getX(), dubinsNodes[i].getY(), poseX, poseY);
+        if (costmap->getCost(poseX, poseY) <= 1)
+        {
+          // set the predecessor to the previous step
+          if (i > 0)
+          {
+            dubinsNodes[i].setPred(&dubinsNodes[i - 1]);
+          }
+          else
+          {
+            dubinsNodes[i].setPred(&start);
+          }
+
+          if (&dubinsNodes[i] == dubinsNodes[i].getPred())
+          {
+            DLOG(INFO) << "looping shot";
+          }
+          x += params_.curve_step_size;
+          i++;
+        }
+        else
+        {
+          delete[] dubinsNodes;
+          DLOG(INFO) << "Dubins shot collided, discarding the path";
+          return nullptr;
+        }
+      }
+      return &dubinsNodes[i - 1];
+    }
+    // bezier curve
+    if (params_.curve_type_analytical_expansion == 1)
+    {
+      CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width_, map_height_);
+      float length = cubic_bezier.GetLength();
+      Node3D *bezierNodes = new Node3D[(int)(length / params_.curve_step_size) + 1];
+      i = 0;
+      x = 0;
+      while (x < length)
+      {
+        // DLOG(INFO) << i << "th iteration";
+        Utility::TypeConversion(cubic_bezier.GetValueAt(x / length), bezierNodes[i]);
+        float curvature = cubic_bezier.GetCurvatureAt(x / length);
+        bezierNodes[i].setT(Utility::RadToZeroTo2P(cubic_bezier.GetAngleAt(x / length)));
+        // DLOG(INFO) << "current node is " << node3d.getX() << " " << node3d.getY();
+        // collision check
+        costmap->worldToMap(bezierNodes[i].getX(), bezierNodes[i].getY(), poseX, poseY);
+        if (costmap->getCost(poseX, poseY) <= 1 && curvature <= 1 / params_.min_turning_radius)
+        {
+          // set the predecessor to the previous step
+          if (i > 0)
+          {
+            bezierNodes[i].setPred(&bezierNodes[i - 1]);
+          }
+          else
+          {
+            bezierNodes[i].setPred(&start);
+          }
+          if (&bezierNodes[i] == bezierNodes[i].getPred())
+          {
+            DLOG(INFO) << "looping shot";
+          }
+          x += params_.curve_step_size;
+          i++;
+        }
+        else
+        {
+          delete[] bezierNodes;
+          return nullptr;
+        }
+      }
+      // 返回末节点，通过getPred()可以找到前一节点。
+      return &bezierNodes[i - 1];
+      // DLOG(INFO) << "goal point is " << vector3d_goal.x() << " " << vector3d_goal.y();
+    }
+    return nullptr;
+  }
+
+  // ###################################################
+  //                                     create successor
+  // ###################################################
 
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred)
   {
     // DLOG(INFO) << "CreateSuccessor in:";
     std::vector<std::shared_ptr<Node3D>> out;
-    std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
     std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec;
     float distance_to_goal = Utility::GetDistance(pred, goal_);
-    // if (true)
-    // {
-    //   float current_normalized_obstacle_density = configuration_space_ptr_->GetNormalizedObstacleDensity(pred);
-    //   float constant_density = params_.constant_density;
-    //   // LOG(INFO) << "current node normalized obstacle density is " << current_normalized_obstacle_density;
-    //   if (current_normalized_obstacle_density > constant_density)
-    //   {
-    //     // LOG(INFO) << "fixed steering angle and step size";
-    //     // assume constant speed.
 
-    //     std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
-    //     std::pair<float, float> pair;
-
-    //     if (params_.step_size > distance_to_goal)
-    //     {
-    //       pair.first = distance_to_goal;
-    //     }
-    //     else
-    //     {
-    //       pair.first = params_.step_size;
-    //     }
-
-    //     for (const auto &element : available_steering_angle_vec)
-    //     {
-    //       pair.second = element;
-    //       available_steering_angle_and_step_size_vec.emplace_back(pair);
-    //     }
-    //     // LOG(INFO) << "fix step size;";
-    //   }
-    //   else
-    //   {
-    //     // LOG(INFO) << "adaptive steering angle and step size";
-    //     // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
-    //     available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(pred, start_, goal_, params_.number_of_successors, params_.step_size);
-    //     // DLOG(INFO) << "CreateSuccessor out.";
-    //     // LOG(INFO) << "adaptive step size;";
-    //   }
-    // }
-    // else
-    // {
-    // DLOG(INFO) << "current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
     if (params_.adaptive_steering_angle_and_step_size)
     {
       float current_normalized_obstacle_density = configuration_space_ptr_->GetNormalizedObstacleDensity(pred);
@@ -525,53 +593,53 @@ namespace HybridAStar
         // LOG(INFO) << "adaptive step size;";
       }
     }
-      else if (params_.adaptive_step_size)
+    else if (params_.adaptive_step_size)
+    {
+      // LOG(INFO) << "fixed steering angle and step size";
+      // assume constant speed.
+
+      std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
+      std::pair<float, float> pair;
+
+      for (const auto &element : available_steering_angle_vec)
       {
-        // LOG(INFO) << "fixed steering angle and step size";
-        // assume constant speed.
+        pair.first = configuration_space_ptr_->FindStepSize(pred, element, goal_, params_.step_size);
+        pair.second = element;
+        available_steering_angle_and_step_size_vec.emplace_back(pair);
+      }
+    }
+    else
+    {
+      // LOG(INFO) << "fixed steering angle and step size";
+      // assume constant speed.
 
-        std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
-        std::pair<float, float> pair;
+      std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
+      std::pair<float, float> pair;
 
-        for (const auto &element : available_steering_angle_vec)
-        {
-          pair.first = configuration_space_ptr_->FindStepSize(pred, element, goal_, params_.step_size);
-          pair.second = element;
-          available_steering_angle_and_step_size_vec.emplace_back(pair);
-        }
+      if (params_.step_size > distance_to_goal)
+      {
+        pair.first = distance_to_goal;
       }
       else
       {
-        // LOG(INFO) << "fixed steering angle and step size";
-        // assume constant speed.
-
-        std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
-        std::pair<float, float> pair;
-
-        if (params_.step_size > distance_to_goal)
-        {
-          pair.first = distance_to_goal;
-        }
-        else
-        {
-          pair.first = params_.step_size;
-        }
-
-        for (const auto &element : available_steering_angle_vec)
-        {
-          pair.second = element;
-          available_steering_angle_and_step_size_vec.emplace_back(pair);
-        }
+        pair.first = params_.step_size;
       }
-      // for (const auto &element : available_steering_angle_and_step_size_vec)
-      // {
-      //   LOG(INFO) << "step size is " << element.first << " steering angle is " << Utility::ConvertRadToDeg(element.second);
-      // }
-      // }
 
-      out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
-      // DLOG(INFO) << "CreateSuccessor out.";
-      return out;
+      for (const auto &element : available_steering_angle_vec)
+      {
+        pair.second = element;
+        available_steering_angle_and_step_size_vec.emplace_back(pair);
+      }
+    }
+    // for (const auto &element : available_steering_angle_and_step_size_vec)
+    // {
+    //   LOG(INFO) << "step size is " << element.first << " steering angle is " << Utility::ConvertRadToDeg(element.second);
+    // }
+    // }
+
+    out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
+    // DLOG(INFO) << "CreateSuccessor out.";
+    return out;
   }
 
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred, const std::vector<std::pair<float, float>> &step_size_steering_angle_vec)
@@ -579,8 +647,9 @@ namespace HybridAStar
     std::vector<std::shared_ptr<Node3D>> out;
     float dx, dy, xSucc, ySucc, tSucc, turning_radius, steering_angle;
     int prem;
-    std::shared_ptr<Node3D> pred_ptr = std::make_shared<Node3D>(pred);
-
+    std::shared_ptr<Node3D> pred_smart_ptr = std::make_shared<Node3D>(pred);
+    Node3D *pred_ptr;
+    pred_ptr = (Node3D *)&pred;
     for (const auto &pair : step_size_steering_angle_vec)
     {
       if (pair.first <= 1e-3)
@@ -621,7 +690,7 @@ namespace HybridAStar
       tSucc = Utility::RadToZeroTo2P(pred.getT() + steering_angle);
       // DLOG_IF(INFO, (pair.first < 1) || (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < -Utility::ConvertDegToRad(30))) << "in create successor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT()) << " step size is " << pair.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle) << " successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
       // DLOG_IF(INFO, (xSucc > 77) && (xSucc < 79) && (ySucc > 1) && (ySucc < 3)) << "in create successor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT()) << " step size is " << pair.first << " current steering angle is in DEG: " << Utility::ConvertRadToDeg(steering_angle) << " successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-      std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.getCostSofar(), 0, params_.reverse, nullptr, pred_ptr, prem));
+      std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.getCostSofar(), 0, params_.reverse, pred_ptr, pred_smart_ptr, prem));
       out.emplace_back(temp);
       if (params_.reverse)
       {
@@ -648,11 +717,11 @@ namespace HybridAStar
         ySucc = pred.getY() - dx * sin(pred.getT()) + dy * cos(pred.getT());
         tSucc = Utility::RadToZeroTo2P(pred.getT() - steering_angle);
         // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-        std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.getCostSofar(), 0, params_.reverse, nullptr, pred_ptr, prem));
+        std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.getCostSofar(), 0, params_.reverse, pred_ptr, pred_smart_ptr, prem));
         out.emplace_back(temp);
       }
     }
-    DLOG_IF(WARNING, out.size() == 0) << "WARNING: Number of successor is zero!!!!";
+    LOG_IF(WARNING, out.size() == 0) << "WARNING: Number of successor is zero!!!!";
     return out;
   }
 
@@ -921,141 +990,141 @@ namespace HybridAStar
     return false;
   }
 
-  void HybridAStar::updateH(Node3D &start, const Node3D &goal, Node2D *nodes2D,
-                            float *dubinsLookup, int width, int height, float inspireAstar)
-  {
-    float reedsSheppCost = 0;
-    // float twoDCost = 0;
-    // float twoDoffset = 0;
-#ifdef use_ReedsShepp_heuristic
-    // 假如车子可以后退，则可以启动Reeds-Shepp 算法
-    if (Constants::reverse && !Constants::dubins)
-    {
-      // reeds_shepp算法还还存在问题，启用可能会造成搜寻路径增加等问题
+  //   void HybridAStar::updateH(Node3D &start, const Node3D &goal, Node2D *nodes2D,
+  //                             float *dubinsLookup, int width, int height, float inspireAstar)
+  //   {
+  //     float reedsSheppCost = 0;
+  //     // float twoDCost = 0;
+  //     // float twoDoffset = 0;
+  // #ifdef use_ReedsShepp_heuristic
+  //     // 假如车子可以后退，则可以启动Reeds-Shepp 算法
+  //     if (Constants::reverse && !Constants::dubins)
+  //     {
+  //       // reeds_shepp算法还还存在问题，启用可能会造成搜寻路径增加等问题
 
-      ompl::base::ReedsSheppStateSpace reedsSheppPath(Constants::r);
-      State *rsStart = (State *)reedsSheppPath.allocState();
-      State *rsEnd = (State *)reedsSheppPath.allocState();
-      rsStart->setXY(start.getX(), start.getY());
-      rsStart->setYaw(start.getT());
-      rsEnd->setXY(goal.getX(), goal.getY());
-      rsEnd->setYaw(goal.getT());
-      reedsSheppCost = reedsSheppPath.distance(rsStart, rsEnd) * 1.1 +
-                       0.04 * start.getCost();
-    }
-#endif
-    start.setCostToGo(std::max(reedsSheppCost, inspireAstar)); // 将两个代价中的最大值作为启发式值
-  }
+  //       ompl::base::ReedsSheppStateSpace reedsSheppPath(Constants::r);
+  //       State *rsStart = (State *)reedsSheppPath.allocState();
+  //       State *rsEnd = (State *)reedsSheppPath.allocState();
+  //       rsStart->setXY(start.getX(), start.getY());
+  //       rsStart->setYaw(start.getT());
+  //       rsEnd->setXY(goal.getX(), goal.getY());
+  //       rsEnd->setYaw(goal.getT());
+  //       reedsSheppCost = reedsSheppPath.distance(rsStart, rsEnd) * 1.1 +
+  //                        0.04 * start.getCost();
+  //     }
+  // #endif
+  //     start.setCostToGo(std::max(reedsSheppCost, inspireAstar)); // 将两个代价中的最大值作为启发式值
+  //   }
 
-  Node3D *HybridAStar::dubinsShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap)
-  {
-    // start
-    float q0[] = {start.getX(), start.getY(), start.getT()};
-    // goal
-    float q1[] = {goal.getX(), goal.getY(), goal.getT()};
-    // initialize the path
-    DubinsPath path;
-    // calculate the path
-    dubins_init(q0, q1, Constants::r, &path);
+  // Node3D *HybridAStar::dubinsShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap)
+  // {
+  //   // start
+  //   float q0[] = {start.getX(), start.getY(), start.getT()};
+  //   // goal
+  //   float q1[] = {goal.getX(), goal.getY(), goal.getT()};
+  //   // initialize the path
+  //   DubinsPath path;
+  //   // calculate the path
+  //   dubins_init(q0, q1, Constants::r, &path);
 
-    unsigned int poseX, poseY;
+  //   unsigned int poseX, poseY;
 
-    int i = 0;
-    float x = 0.f;
-    float length = dubins_path_length(&path);
-    // printf("the length of dubins %f",length);
-    Node3D *dubinsNodes = new Node3D[(int)(length / Constants::dubinsStepSize) + 1];
+  //   int i = 0;
+  //   float x = 0.f;
+  //   float length = dubins_path_length(&path);
+  //   // printf("the length of dubins %f",length);
+  //   Node3D *dubinsNodes = new Node3D[(int)(length / Constants::dubinsStepSize) + 1];
 
-    while (x < length)
-    { // 这是跳出循环的条件之一：生成的路径没有达到所需要的长度
-      float q[3];
-      dubins_path_sample(&path, x, q);
-      dubinsNodes[i].setX(q[0]);
-      dubinsNodes[i].setY(q[1]);
-      dubinsNodes[i].setT(Utility::RadToZeroTo2P(q[2]));
+  //   while (x < length)
+  //   { // 这是跳出循环的条件之一：生成的路径没有达到所需要的长度
+  //     float q[3];
+  //     dubins_path_sample(&path, x, q);
+  //     dubinsNodes[i].setX(q[0]);
+  //     dubinsNodes[i].setY(q[1]);
+  //     dubinsNodes[i].setT(Utility::RadToZeroTo2P(q[2]));
 
-      // collision check
-      // 跳出循环的条件之二：生成的路径存在碰撞节点
-      costmap->worldToMap(dubinsNodes[i].getX(), dubinsNodes[i].getY(), poseX, poseY);
-      if (costmap->getCost(poseX, poseY) <= 1)
-      {
+  //     // collision check
+  //     // 跳出循环的条件之二：生成的路径存在碰撞节点
+  //     costmap->worldToMap(dubinsNodes[i].getX(), dubinsNodes[i].getY(), poseX, poseY);
+  //     if (costmap->getCost(poseX, poseY) <= 1)
+  //     {
 
-        // set the predecessor to the previous step
-        if (i > 0)
-        {
-          dubinsNodes[i].setPred(&dubinsNodes[i - 1]);
-        }
-        else
-        {
-          dubinsNodes[i].setPred(&start);
-        }
+  //       // set the predecessor to the previous step
+  //       if (i > 0)
+  //       {
+  //         dubinsNodes[i].setPred(&dubinsNodes[i - 1]);
+  //       }
+  //       else
+  //       {
+  //         dubinsNodes[i].setPred(&start);
+  //       }
 
-        if (&dubinsNodes[i] == dubinsNodes[i].getPred())
-        {
-          LOG(INFO) << "looping shot";
-        }
+  //       if (&dubinsNodes[i] == dubinsNodes[i].getPred())
+  //       {
+  //         DLOG(INFO) << "looping shot";
+  //       }
 
-        x += Constants::dubinsStepSize;
-        i++;
-      }
-      else
-      {
-        delete[] dubinsNodes;
-        return nullptr;
-      }
-    }
-    // 返回末节点，通过getPred()可以找到前一节点。
-    return &dubinsNodes[i - 1];
-  }
+  //       x += Constants::dubinsStepSize;
+  //       i++;
+  //     }
+  //     else
+  //     {
+  //       delete[] dubinsNodes;
+  //       return nullptr;
+  //     }
+  //   }
+  //   // 返回末节点，通过getPred()可以找到前一节点。
+  //   return &dubinsNodes[i - 1];
+  // }
 
-  Node3D *HybridAStar::reedsSheppShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap)
-  {
+  // Node3D *HybridAStar::reedsSheppShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap)
+  // {
 
-    ReedsSheppStateSpace rs_planner(Constants::r);
-    double length = -1;
-    unsigned int poseX, poseY;
-    // start
-    double q0[] = {start.getX(), start.getY(), start.getT()};
-    // goal
-    double q1[] = {goal.getX(), goal.getY(), goal.getT()};
-    std::vector<std::vector<double>> rs_path;
-    rs_planner.sample(q0, q1, Constants::dubinsStepSize, length, rs_path);
-    Node3D *dubinsNodes = new Node3D[(int)(length / Constants::dubinsStepSize) + 1];
-    int i = 0;
-    dubinsNodes[1].setPred(&start);
-    for (auto &point_itr : rs_path)
-    {
-      dubinsNodes[i].setX(point_itr[0]);
-      dubinsNodes[i].setY(point_itr[1]);
-      dubinsNodes[i].setT(Utility::RadToZeroTo2P(point_itr[2]));
+  //   ReedsSheppStateSpace rs_planner(Constants::r);
+  //   double length = -1;
+  //   unsigned int poseX, poseY;
+  //   // start
+  //   double q0[] = {start.getX(), start.getY(), start.getT()};
+  //   // goal
+  //   double q1[] = {goal.getX(), goal.getY(), goal.getT()};
+  //   std::vector<std::vector<double>> rs_path;
+  //   rs_planner.sample(q0, q1, Constants::dubinsStepSize, length, rs_path);
+  //   Node3D *dubinsNodes = new Node3D[(int)(length / Constants::dubinsStepSize) + 1];
+  //   int i = 0;
+  //   dubinsNodes[1].setPred(&start);
+  //   for (auto &point_itr : rs_path)
+  //   {
+  //     dubinsNodes[i].setX(point_itr[0]);
+  //     dubinsNodes[i].setY(point_itr[1]);
+  //     dubinsNodes[i].setT(Utility::RadToZeroTo2P(point_itr[2]));
 
-      // collision check
-      costmap->worldToMap(dubinsNodes[i].getX(), dubinsNodes[i].getY(), poseX, poseY);
-      if (costmap->getCost(poseX, poseY) < 100)
-      {
-        // set the predecessor to the previous step
-        if (i > 1)
-        {
-          dubinsNodes[i].setPred(&dubinsNodes[i - 1]);
-        }
-        // else {
-        //   dubinsNodes[i].setPred(&start);
-        // }
-        if (&dubinsNodes[i] == dubinsNodes[i].getPred())
-        {
-          LOG(INFO) << "looping shot";
-        }
-        i++;
-      }
-      else
-      {
-        delete[] dubinsNodes;
-        return nullptr;
-      }
-    }
-    // 返回末节点，通过getPred()可以找到前一节点。
-    return &dubinsNodes[i - 1];
-  }
+  //     // collision check
+  //     costmap->worldToMap(dubinsNodes[i].getX(), dubinsNodes[i].getY(), poseX, poseY);
+  //     if (costmap->getCost(poseX, poseY) < 100)
+  //     {
+  //       // set the predecessor to the previous step
+  //       if (i > 1)
+  //       {
+  //         dubinsNodes[i].setPred(&dubinsNodes[i - 1]);
+  //       }
+  //       // else {
+  //       //   dubinsNodes[i].setPred(&start);
+  //       // }
+  //       if (&dubinsNodes[i] == dubinsNodes[i].getPred())
+  //       {
+  //         DLOG(INFO) << "looping shot";
+  //       }
+  //       i++;
+  //     }
+  //     else
+  //     {
+  //       delete[] dubinsNodes;
+  //       return nullptr;
+  //     }
+  //   }
+  //   // 返回末节点，通过getPred()可以找到前一节点。
+  //   return &dubinsNodes[i - 1];
+  // }
 
   bool HybridAStar::calculatePath(
       const geometry_msgs::PoseStamped &start,
@@ -1063,38 +1132,46 @@ namespace HybridAStar
       int cellsX, int cellsY, std::vector<geometry_msgs::PoseStamped> &plan,
       ros::Publisher &pub, visualization_msgs::MarkerArray &pathNodes)
   {
-#ifdef debug_mode
-    ros::Time t0 = ros::Time::now();
-#endif
+    DLOG(INFO) << "in HybridAStar::calculatePath.";
+    // VISUALIZATION DELAY
+    ros::Duration d(0.003);
+    Utility::TypeConversion(start, start_);
+    Utility::TypeConversion(goal, goal_);
     // 初始化优先队列，未来改善混合A*算法性能，这里使用的是二项堆优先队列
     boost::heap::binomial_heap<Node3D *, boost::heap::compare<CompareNodes>> openSet;
+    int analytical_expansion_counter = 0;
     // 初始化并创建一些参数。
     // 创建charMap,charMap中存储的是地图的障碍物信息
     const unsigned char *charMap = costmap->getCharMap();
-
+    Node2D *nodes2D = new Node2D[cellsX * cellsY]();
     /****************************************************************
      * 分辨率太高会导致混合A*计算量过高，且意义不大, 因此
      * 这里把resolution写死，由于本人能力有限暂时此功，其实是无奈之举，
      * 未来需要在后续的代码中加入能够自动调节分辨率的功能，增加代码鲁棒性
      ****************************************************************/
     float resolution = 0.125; // costmap->getResolution()
-    // unsigned int originalX, originalY, goalX, goalY;
-    int cells_x, cells_y;
-    cells_x = cellsX / 2.5;
-    cells_y = cellsY / 2.5;
-    int counter = 0;
-    int dir;
-    int iPred;
+    int cells_x;
+    // cells_y;
+    // // TODO why divided by 2.5?
+    // cells_x = cellsX / 2.5;
+    // cells_y = cellsY / 2.5;
+    cells_x = cellsX;
+    // cells_y = cellsY;
+    // number of nodes explored
+    int number_nodes_explored = 0, dir = 3, iPred;
     float t, g;
+    // t为目标点朝向
+    t = tf::getYaw(start.pose.orientation);
     unsigned int dx, dy;
     unsigned int goal_x, goal_y, start_x, start_y;
     costmap->worldToMap(0, 0, dx, dy);
-    dx = dx / 2.5;
-    dy = dy / 2.5;
-    // t为目标点朝向
-    t = tf::getYaw(start.pose.orientation);
+    // dx = dx / 2.5;
+    // dy = dy / 2.5;
+
     Node3D *startPose = new Node3D(start.pose.position.x, start.pose.position.y, t, 0, 0, false, nullptr);
 
+    t = tf::getYaw(goal.pose.orientation);
+    Node3D *goalPose = new Node3D(goal.pose.position.x, goal.pose.position.y, t, 999, 0, false, nullptr);
     costmap->worldToMap(goal.pose.position.x,
                         goal.pose.position.y, goal_x, goal_y);
     costmap->worldToMap(start.pose.position.x,
@@ -1102,94 +1179,87 @@ namespace HybridAStar
 
     //************************************************
     // 建立启发势场取决于地图大小,231(nodes/ms)
-    std::unordered_map<int, std::shared_ptr<Node2D>> dp_map =
-        grid_a_star_heuristic_generator_->GenerateDpMap(goal_x, goal_y, costmap);
+    // std::unordered_map<int, std::shared_ptr<Node2D>> dp_map =
+    // grid_a_star_heuristic_generator_->GenerateDpMap(goal_x, goal_y, costmap);
 
-#ifdef debug_mode
-    ros::Time end_time = ros::Time::now();
-    ros::Time t1 = ros::Time::now();
-    ros::Duration d(end_time - t0);
-    LOG(INFO) << "generate heuristic map costed " << d * 1000 << " ms"  ;
-#endif
-    t = tf::getYaw(goal.pose.orientation);
-    Node3D *goalPose = new Node3D(goal.pose.position.x, goal.pose.position.y, t, 999, 0, false, nullptr);
+    // ros::Time end_time = ros::Time::now();
+    // ros::Duration d(end_time - t0);
+    // LOG(INFO) << "generate heuristic map costed " << d * 1000 << " ms"  ;
+
     std::unordered_map<int, Node3D *> open_set;
     std::unordered_map<int, Node3D *> closed_set;
-
-    if (Constants::reverse)
-    {
-      dir = 6;
-    }
-    else
-    {
-      dir = 3;
-    }
     open_set.emplace(startPose->getIdx(cells_x, Constants::headings, resolution, dx, dy), startPose);
     openSet.push(startPose);
-    Node3D *tmpNode;
+    Node3D *nPred;
     Node3D *nSucc;
-
-    while (openSet.size() && counter < Constants::iterations)
+    // update h value
+    UpdateHeuristic(*startPose, *goalPose, nodes2D);
+    // this N is for analytic expansion
+    int N = startPose->getCostToGo();
+    while (openSet.size())
     {
-      ++counter;
+      DLOG(INFO) << "open set size is " << openSet.size();
+      ++number_nodes_explored;
       // 根据混合A*算法，取堆顶的元素作为下查找节点
-      tmpNode = openSet.top();
-
-#ifdef SearchingVisulize
-      publishSearchNodes(*tmpNode, pub, pathNodes, counter);
-#endif
+      nPred = openSet.top();
+      // // TODO not publishing, check topic
+      // visualization_ptr_->publishSearchNodes(*nPred, pub, pathNodes, number_nodes_explored);
+      if (params_.visualization)
+      {
+        visualization_ptr_->publishNode3DPoses(*nPred);
+        visualization_ptr_->publishNode3DPose(*nPred);
+        d.sleep();
+      }
 
       openSet.pop(); // 出栈
-      if (reachGoal(tmpNode, goalPose))
+      if (reachGoal(nPred, goalPose))
       {
-#ifdef debug_mode
-        ros::Time t1 = ros::Time::now();
-        ros::Duration d(t1 - t0);
-        LOG(INFO) << "got plan in ms: " << d * 1000  ;
-#endif
-        LOG(INFO) << ("Got a plan,loop %d times", counter);
-        nodeToPlan(tmpNode, plan);
+        LOG(INFO) << "Got a plan, number of nodes explored are " << number_nodes_explored;
+        nodeToPlan(nPred, plan);
         return true;
       }
       else
       {
-        if (Constants::dubinsShot && tmpNode->isInRange(*goalPose) && !tmpNode->isReverse())
+        if (params_.analytical_expansion)
         {
-          nSucc = dubinsShot(*tmpNode, *goalPose, costmap);
-          // 如果Dubins方法能直接命中，即不需要进入Hybrid A*搜索了，直接返回结果
-          if (nSucc != nullptr && reachGoal(nSucc, goalPose))
+          // _______________________
+          // analytical expansion
+          if (params_.analytical_expansion_every_point)
           {
-#ifdef debug_mode
-            ros::Time t1 = ros::Time::now();
-            ros::Duration d(t1 - t0);
-            LOG(INFO) << "got plan in ms: " << d * 1000  ;
-#endif
-            LOG(INFO) << ("Got a plan,expored %d nodes ", counter);
-            nodeToPlan(nSucc, plan);
-            return true; // 如果下一步是目标点，可以返回了
+            nSucc = AnalyticExpansions(*nPred, *goalPose, costmap);
+            if (nSucc != nullptr && reachGoal(nSucc, goalPose))
+            {
+              LOG(INFO) << "Got a plan,loop " << number_nodes_explored << " times";
+              nodeToPlan(nSucc, plan);
+              return true; // 如果下一步是目标点，可以返回了
+            }
           }
-        }
-        else if (Constants::reedsSheppShot && tmpNode->isInRange(*goalPose) && !tmpNode->isReverse())
-        {
-          nSucc = reedsSheppShot(*tmpNode, *goalPose, costmap);
-          // 如果Dubins方法能直接命中，即不需要进入Hybrid A*搜索了，直接返回结果
-          if (nSucc != nullptr && reachGoal(nSucc, goalPose))
+          else
           {
-#ifdef debug_mode
-            ros::Time t1 = ros::Time::now();
-            ros::Duration d(t1 - t0);
-            LOG(INFO) << "got plan in ms: " << d * 1000  ;
-#endif
-            LOG(INFO) << ("Got a plan,expored %d nodes ", counter);
-            nodeToPlan(nSucc, plan);
-            return true; // 如果下一步是目标点，可以返回了
+            if (analytical_expansion_counter == N)
+            {
+              // DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
+              N = nPred->getCostToGo();
+              analytical_expansion_counter = 0;
+              nSucc = AnalyticExpansions(*nPred, *goalPose, costmap);
+              if (nSucc != nullptr && reachGoal(nSucc, goalPose))
+              {
+                LOG(INFO) << "Got a plan,loop " << number_nodes_explored << " times";
+                nodeToPlan(nSucc, plan);
+                return true; // 如果下一步是目标点，可以返回了
+              }
+            }
+            else
+            {
+              analytical_expansion_counter++;
+            }
           }
         }
       }
-      // 拓展tmpNode临时点目标周围的点，并且使用STL标准库的向量链表进行存储拓展点Node3D的指针数据
-      std::vector<Node3D *> adjacentNodes = getAdjacentPoints(dir, cellsX, cellsY, charMap, tmpNode);
-      // 将 tmpNode点在pathNode3D中映射的点加入闭集合中
-      closed_set.emplace(tmpNode->getIdx(cells_x, Constants::headings, resolution, dx, dy), tmpNode);
+      // 拓展nPred临时点目标周围的点，并且使用STL标准库的向量链表进行存储拓展点Node3D的指针数据
+      std::vector<Node3D *> adjacentNodes = getAdjacentPoints(dir, cellsX, cellsY, charMap, nPred);
+      // 将nPred点在pathNode3D中映射的点加入闭集合中
+      closed_set.emplace(nPred->getIdx(cells_x, Constants::headings, resolution, dx, dy), nPred);
       for (std::vector<Node3D *>::iterator it = adjacentNodes.begin(); it != adjacentNodes.end(); ++it)
       {
         // 使用stl标准库中的interator迭代器遍历相邻点
@@ -1197,13 +1267,16 @@ namespace HybridAStar
         iPred = point->getIdx(cells_x, Constants::headings, resolution, dx, dy);
         if (closed_set.find(iPred) != closed_set.end())
         {
+          DLOG(INFO) << "successor already in closed set.";
           continue;
         }
-        g = point->updateCostSofar();
+        UpdateCostSoFar(*point, params_.penalty_turning, params_.penalty_change_of_direction, params_.penalty_reverse);
         if (open_set.find(iPred) != open_set.end())
         {
+          DLOG(INFO) << "successor already in open set.";
           if (g < open_set[iPred]->getCostSofar())
           {
+            DLOG(INFO) << "but successor has a lower cost so far, update cost so far and put into open set.";
             point->setCostSofar(g);
             open_set[iPred]->setCostSofar(g);
             openSet.push(point); // 如果符合拓展点要求，则将此点加入优先队列中
@@ -1211,64 +1284,122 @@ namespace HybridAStar
         }
         else
         {
+          DLOG(INFO) << "successor is not in open set.";
           point->setCostSofar(g);
           open_set.emplace(iPred, point);
+          DLOG(INFO) << "point is " << point->getX() << " " << point->getY() << " start is " << start_x << " " << start_y;
           costmap->worldToMap(point->getX(), point->getY(), start_x, start_y);
-          updateH(*point, *goalPose, NULL, NULL, cells_x, cells_y, dp_map[start_y * cellsX + start_x]->getCostSofar() / 20);
-          openSet.push(point); // 如果符合拓展点要求，则将此点加入优先队列中
+          DLOG(INFO) << "after worldToMap point is " << point->getX() << " " << point->getY() << " start is " << start_x << " " << start_y;
+          UpdateHeuristic(*point, *goalPose, nodes2D);
+          // if (dp_map.find(start_y * cellsX + start_x) != dp_map.end())
+          // {
+          //   updateH(*point, *goalPose, NULL, NULL, cells_x, cells_y, dp_map[start_y * cellsX + start_x]->getCostSofar() / 20);
+          //   openSet.push(point); // 如果符合拓展点要求，则将此点加入优先队列中
+          // }
+          // else
+          // {
+          //   DLOG(FATAL) << "index " << start_y * cellsX + start_x << " node " << start_x << " " << start_y << " can`t be found in dp_map!!!";
+          // }
         }
       }
     }
+    DLOG(INFO) << "open set size is " << openSet.size();
+    delete[] nodes2D;
     return false;
   }
 
   std::vector<Node3D *> HybridAStar::getAdjacentPoints(int dir, int cells_x,
                                                        int cells_y, const unsigned char *charMap, Node3D *point)
   {
+    DLOG(INFO) << "in  HybridAStar::getAdjacentPoints.";
     std::vector<Node3D *> adjacentNodes;
-    Node3D *tmpPtr;
-    float xSucc;
-    float ySucc;
-    // float tSucc;
     unsigned int startX, startY;
-    float t = point->getT();
-    // int index;
-    float x = point->getX();
-    float y = point->getY();
-    // unsigned int u32_x = int(x);
-    // unsigned int u32_y = int(y);
-    for (int i = 0; i < dir; i++)
+    // float t = point->getT(), x = point->getX(), y = point->getY();
+    std::vector<float> available_steering_angle_vec;
+    std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec;
+    float distance_to_goal = Utility::GetDistance(*point, goal_);
+    if (params_.adaptive_steering_angle_and_step_size)
     {
-      if (i < 3)
+      float current_normalized_obstacle_density = configuration_space_ptr_->GetNormalizedObstacleDensity(*point);
+      float constant_density = params_.constant_density;
+      DLOG(INFO) << "current node normalized obstacle density is " << current_normalized_obstacle_density;
+      if (current_normalized_obstacle_density > constant_density)
       {
-        xSucc = x + Constants::dx[i] * cos(t) - Constants::dy[i] * sin(t);
-        ySucc = y + Constants::dx[i] * sin(t) + Constants::dy[i] * cos(t);
+        DLOG(INFO) << "fixed steering angle and step size";
+        // assume constant speed.
+        std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
+        std::pair<float, float> pair;
+
+        if (params_.step_size > distance_to_goal)
+        {
+          pair.first = distance_to_goal;
+        }
+        else
+        {
+          pair.first = params_.step_size;
+        }
+
+        for (const auto &element : available_steering_angle_vec)
+        {
+          pair.second = element;
+          available_steering_angle_and_step_size_vec.emplace_back(pair);
+        }
       }
       else
       {
-        xSucc = x - Constants::dx[i - 3] * cos(t) - Constants::dy[i - 3] * sin(t);
-        ySucc = y - Constants::dx[i - 3] * sin(t) + Constants::dy[i - 3] * cos(t);
-      }
-      if (costmap->worldToMap(xSucc, ySucc, startX, startY))
-      {
-
-        if (charMap[startX + startY * cells_x] < 250)
-        {
-          if (i < 3)
-          {
-            tmpPtr = new Node3D(xSucc, ySucc, t + Constants::dt[i], 999, 0, false, point);
-            tmpPtr->setMapCost(charMap[startX + startY * cells_x]);
-          }
-          else
-          {
-            tmpPtr = new Node3D(xSucc, ySucc, t - Constants::dt[i - 3], 999, 0, true, point);
-            tmpPtr->setMapCost(charMap[startX + startY * cells_x]);
-          }
-          adjacentNodes.push_back(tmpPtr);
-        }
+        DLOG(INFO) << "adaptive steering angle and step size";
+        // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
+        available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(*point, start_, goal_, params_.number_of_successors, params_.step_size);
+        // DLOG(INFO) << "CreateSuccessor out.";
+        // LOG(INFO) << "adaptive step size;";
       }
     }
+    else
+    {
+      DLOG(INFO) << "fix step size;";
+      available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
+      std::pair<float, float> pair;
+      if (params_.step_size > distance_to_goal)
+      {
+        pair.first = distance_to_goal;
+      }
+      else
+      {
+        pair.first = params_.step_size;
+      }
 
+      for (const auto &element : available_steering_angle_vec)
+      {
+        pair.second = element;
+        available_steering_angle_and_step_size_vec.emplace_back(pair);
+      }
+      LOG_IF(INFO, available_steering_angle_and_step_size_vec.size() <= 0) << "available_steering_angle_and_step_size_vec size is ZERO!!";
+    }
+
+    std::vector<std::shared_ptr<Node3D>> successor_vec = CreateSuccessor(*point, available_steering_angle_and_step_size_vec);
+
+    Utility::TypeConversion(successor_vec, adjacentNodes);
+    DLOG(INFO) << "adjacentNodes size is " << adjacentNodes.size();
+    // DLOG(INFO) << "current node is " << x << " " << y << " " << Utility::ConvertRadToDeg(t);
+    LOG_IF(WARNING, adjacentNodes.size() <= 0) << "number of successors is ZERO!!!";
+    // set map cost
+    for (auto &element : adjacentNodes)
+    {
+      // DLOG(INFO) << "successor is " << element->getX() << " " << element->getY() << " " << Utility::ConvertRadToDeg(element->getT());
+      if (costmap->worldToMap(element->getX(), element->getY(), startX, startY))
+      {
+        // DLOG(INFO) << "map cost for successor is " << (int)charMap[startX + startY * cells_x];
+        // TODO why 250??
+        if (charMap[startX + startY * cells_x] < 250)
+        {
+          element->setMapCost(charMap[startX + startY * cells_x]);
+        }
+      }
+      else
+      {
+        DLOG(INFO) << "convert successor " << element->getX() << " " << element->getY() << " to map failed.";
+      }
+    }
     return adjacentNodes;
   }
 
@@ -1290,33 +1421,32 @@ namespace HybridAStar
     return false;
   }
 
-  int HybridAStar::calcIndix(float x, float y, int cells_x, float t)
-  {
-    return (int(x) * cells_x + int(y)) * Constants::headings + int(t / Constants::headings);
-  }
-
   void HybridAStar::nodeToPlan(Node3D *node, std::vector<geometry_msgs::PoseStamped> &plan)
   {
+    DLOG(INFO) << "in nodeToPlan.";
     Node3D *tmpPtr = node;
     geometry_msgs::PoseStamped tmpPose;
     std::vector<geometry_msgs::PoseStamped> replan;
-    // float resolution = costmap->getResolution();
-    // unsigned int originalX, originalY;
     tmpPose.header.stamp = ros::Time::now();
     // 参数后期处理，发布到RViz上进行可视化
     while (tmpPtr != nullptr)
     {
+      DLOG(INFO) << "current node is " << tmpPtr->getX() << " " << tmpPtr->getY() << " " << Utility::ConvertRadToDeg(tmpPtr->getT());
       tmpPose.pose.position.x = tmpPtr->getX();
       tmpPose.pose.position.y = tmpPtr->getY();
       tmpPose.header.frame_id = frame_id_;
       tmpPose.pose.orientation = tf::createQuaternionMsgFromYaw(tmpPtr->getT());
       replan.push_back(tmpPose);
       tmpPtr = tmpPtr->getPred();
+      DLOG(INFO) << "next node is " << tmpPtr->getX() << " " << tmpPtr->getY() << " " << Utility::ConvertRadToDeg(tmpPtr->getT());
+      DLOG_IF(FATAL, (tmpPose.pose.position.x == tmpPtr->getX()) && (tmpPose.pose.position.y == tmpPtr->getY())) << "current node and successor are the same node!!!!";
     }
     int size = replan.size();
+    DLOG(INFO) << "replan size is " << size;
     for (int i = 0; i < size; ++i)
     {
       plan.push_back(replan[size - i - 1]);
     }
+    DLOG(INFO) << "end of nodeToPlan.";
   }
 }

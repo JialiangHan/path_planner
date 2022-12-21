@@ -4,6 +4,8 @@
 #include <unordered_map>
 #include <costmap_2d/costmap_2d.h>
 #include <vector>
+#include "glog/logging.h"
+#include "gflags/gflags.h"
 namespace HybridAStar {
 
 /*!
@@ -140,12 +142,12 @@ class GridSearch
    // used in GenerateDpmap
    std::vector<std::shared_ptr<Node2D>> getAdjacentPoints(int cells_x, int cells_y, const unsigned char *charMap, std::shared_ptr<Node2D> point);
    /**
-    * @brief
+    * @brief dpmap is a map to store all Astar cost so far to goal point.
     *
     * @param goal_x
     * @param goal_y
     * @param costmap
-    * @return std::unordered_map<int, std::shared_ptr<Node2D>>
+    * @return std::unordered_map<int, std::shared_ptr<Node2D>> first is node index
     */
    std::unordered_map<int, std::shared_ptr<Node2D>> GenerateDpMap(
        const double goal_x, const double goal_y,

@@ -20,6 +20,7 @@
 #include "computational_geometry.h"
 #include <bits/stdc++.h>
 #include <tf/tf.h>
+#include <nav_msgs/OccupancyGrid.h>
 namespace Utility
 {
     //******************typedef****************
@@ -70,6 +71,10 @@ namespace Utility
     void TypeConversion(const HybridAStar::Node2D &node2d, HybridAStar::Node3D &node_3d);
 
     void TypeConversion(const Path2D &path_2d, Path3D &path_3d);
+
+    void TypeConversion(const std::vector<std::shared_ptr<HybridAStar::Node3D>> &smart_ptr_vec, std::vector<HybridAStar::Node3D *> &ptr_vec);
+
+    void TypeConversion(costmap_2d::Costmap2D *_costmap, std::string frame_id, nav_msgs::OccupancyGrid::Ptr &map);
     //**********************computational geometry****************
 
     /**

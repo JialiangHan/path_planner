@@ -97,5 +97,6 @@ namespace HybridAStar
         bool use_hybrid_astar;
         std::shared_ptr<Planner> hybrid_a_star_ptr_;
         ParameterManager params_;
+        std::shared_ptr<Visualize> visualization_ptr_;
     };
 };

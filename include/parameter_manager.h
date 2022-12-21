@@ -18,7 +18,7 @@ namespace HybridAStar
 
     int curve_type = 0;
 
-    bool reverse = true;
+    bool reverse = false;
 
     /// [m] --- The width of the vehicle
     float vehicle_width = 1;
@@ -139,7 +139,7 @@ namespace HybridAStar
   struct ParameterHybridAStar
   {
 
-    int number_of_successors = 10;
+    int number_of_successors = 3;
     bool piecewise_cubic_bezier_interpolation = false;
     bool adaptive_steering_angle_and_step_size = false;
 
@@ -159,7 +159,7 @@ namespace HybridAStar
     /// [#] --- A movement cost penalty for change of direction (changing from primitives < 3 to primitives > 2)
     float penalty_change_of_direction = 2;
     /// A flag to toggle reversing (true = on; false = off)
-    bool reverse = true;
+    bool reverse = false;
     /// A flag for the visualization of 3D nodes (true = on; false = off)
     bool visualization = false;
     /// A flag for the visualization of 2D nodes (true = on; false = off)

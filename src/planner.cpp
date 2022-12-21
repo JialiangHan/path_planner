@@ -268,14 +268,7 @@ void Planner::MakePlan()
     {
       LOG(INFO) << "Use RRT!";
       path = rrt_planner_ptr_->GetPath(nStart, nGoal);
-      // if (true)
-      // {
-      //   // temp = rrt_planner_ptr_->ShortCut(path,false);
-      //   // path = rrt_planner_ptr_->PiecewiseCubicBezier(temp);
-      //   // path = rrt_planner_ptr_->ShortCut(path, false);
-      //   // path = rrt_planner_ptr_->ShortCut(path,false);
-      // }
-    }
+        }
     else if (params_.use_a_star)
     {
       LOG(INFO) << "Use A star!";

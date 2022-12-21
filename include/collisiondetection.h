@@ -1,7 +1,6 @@
 #pragma once
 
 #include <nav_msgs/OccupancyGrid.h>
-#include "constants.h"
 #include "lookup.h"
 #include "node2d.h"
 #include "node3d.h"

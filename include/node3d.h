@@ -91,7 +91,7 @@ class Node3D {
    void setPred(Node3D *_pred) { pred = _pred; }
    void setSmartPtrPred(const std::shared_ptr<Node3D> &pred_ptr) { this->pred_smart_ptr_ = pred_ptr; }
    /// Determines whether it is appropriate to find a analytical solution.
-   bool isInRange(const Node3D &goal) const; // 检测是否可以分析方法找到解
+   //  bool isInRange(const Node3D &goal) const; // 检测是否可以分析方法找到解
    // CUSTOM OPERATORS
    /// Custom operator to compare nodes. Nodes are equal if their x and y position as well as heading is similar.
    bool operator==(const Node3D &rhs) const
@@ -105,7 +105,7 @@ class Node3D {
      return false;
    };
 
-   float updateCostSofar();
+   //  float updateCostSofar();
 
  private:
   /// the x position

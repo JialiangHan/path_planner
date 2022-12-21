@@ -57,9 +57,24 @@ namespace HybridAStar
       /**
        * @brief  Default constructor for the HybridAStarPlanner object
        */
-      HybridAStar(std::string frame_id, costmap_2d::Costmap2D *_costmap)
+      HybridAStar(std::string frame_id, costmap_2d::Costmap2D *_costmap, const ParameterHybridAStar &params,
+                  const std::shared_ptr<Visualize> &visualization_ptr)
           : Expander(frame_id, _costmap)
       {
+         DLOG(INFO) << "constructing HybridAStar.";
+         params_ = params;
+         lookup_table_ptr_.reset(new LookupTable(params_.collision_detection_params));
+         configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params));
+
+         visualization_ptr_ = visualization_ptr;
+
+         a_star_ptr_.reset(new AStar(params_.a_star_params,
+                                     visualization_ptr_));
+
+         nav_msgs::OccupancyGrid::Ptr map;
+         map.reset(new nav_msgs::OccupancyGrid());
+         Utility::TypeConversion(costmap, frame_id, map);
+         Initialize(map);
       }
       /**
        * @brief Default deconstructor for the HybridAStarPlanner object
@@ -119,6 +134,8 @@ namespace HybridAStar
        * @return Node3D*
        */
       Utility::Path3D AnalyticExpansions(const Node3D &start, Node3D &goal);
+
+      Node3D *AnalyticExpansions(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap);
       /**
        * @brief Create Successor for node 3d
        *
@@ -165,9 +182,9 @@ namespace HybridAStar
        */
       bool DuplicateCheck(priorityQueue &open_list, std::shared_ptr<Node3D> node_3d_ptr);
 
-      Node3D *dubinsShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap);
-      Node3D *reedsSheppShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap);
-      void updateH(Node3D &start, const Node3D &goal, Node2D *nodes2D, float *dubinsLookup, int width, int height, float inspireAstar);
+      // Node3D *dubinsShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap);
+      // Node3D *reedsSheppShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap);
+      // void updateH(Node3D &start, const Node3D &goal, Node2D *nodes2D, float *dubinsLookup, int width, int height, float inspireAstar);
 
       /**
        * @brief Get the adjacent pose of a given pose
@@ -193,7 +210,7 @@ namespace HybridAStar
        * @param t the depth of the 3D nodes
        * @return the index of node
        */
-      int calcIndix(float x, float y, int cells_x, float t);
+      // int calcIndix(float x, float y, int cells_x, float t);
 
       /**
        * @brief transform the 2Dnode to geometry_msgs::PoseStamped

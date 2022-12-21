@@ -15,6 +15,8 @@
 #include <tf/transform_datatypes.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include "glog/logging.h"
+#include "gflags/gflags.h"
 // map pointer
 nav_msgs::OccupancyGridPtr grid; // 定义广播信息的格式
 tf::Transform transform;         // 创建tf的广播器

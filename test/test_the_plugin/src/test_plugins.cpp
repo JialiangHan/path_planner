@@ -57,7 +57,7 @@ TestPlanner::TestPlanner(tf2_ros::Buffer &_tf) : tf(_tf)
     // 指定costmap中的base_link为起始坐标
     robot_pose.header.frame_id = "base_link";
 
-    transformStarPose();
+    transformStartPose();
     try
     {
         planner_ = bgp_loader_.createInstance(global_planner);
@@ -65,7 +65,7 @@ TestPlanner::TestPlanner(tf2_ros::Buffer &_tf) : tf(_tf)
     }
     catch (const pluginlib::PluginlibException &ex)
     {
-        LOG(FATAL)<<ATAL("Failed to create the %s planner, are you sure it is properly registered and that the containing library is built? Exception: %s", global_planner.c_str(), ex.what());
+        LOG(FATAL) << "Failed to create the %s planner, are you sure it is properly registered and that the containing library is built? Exception: %s", global_planner.c_str(), ex.what();
         exit(1);
     }
 }
@@ -75,12 +75,12 @@ void TestPlanner::setgoal(const geometry_msgs::PoseStamped::ConstPtr &_goal)
     goal_pose.pose = _goal->pose;
     goal_pose.pose.orientation = _goal->pose.orientation;
     goal_pose.header = _goal->header;
-    transformStarPose();
+    transformStartPose();
     costmap->start();
     planner_->makePlan(start_pose, goal_pose, *planner_plan_);
 }
 
-bool TestPlanner::transformStarPose(void)
+bool TestPlanner::transformStartPose(void)
 {
     try
     {
@@ -91,8 +91,8 @@ bool TestPlanner::transformStarPose(void)
         std::cerr << e.what() << '\n';
         return false;
     }
-    start_pose.pose.position.x = start_transform.transform.translation.x;
-    start_pose.pose.position.y = start_transform.transform.translation.y;
+    start_pose.pose.position.x = start_transform.transform.translation.x + 2;
+    start_pose.pose.position.y = start_transform.transform.translation.y + 2;
     start_pose.pose.position.z = start_transform.transform.translation.z;
     start_pose.pose.orientation.w = start_transform.transform.rotation.w;
     start_pose.pose.orientation.x = start_transform.transform.rotation.x;

@@ -4,6 +4,7 @@ using namespace HybridAStar;
 //**********************constructor*******************
 CollisionDetection::CollisionDetection(const ParameterCollisionDetection &params)
 {
+  DLOG(INFO) << "in CollisionDetection";
   params_ = params;
   this->grid_ptr_ = nullptr;
   Lookup::collisionLookup(collisionLookup);
