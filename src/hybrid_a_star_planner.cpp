@@ -39,9 +39,10 @@ namespace HybridAStar
     {
         // create Node Handle with name of plugin (as used in move_base for loading)
         ros::NodeHandle nh("~/" + name);
-        visualization_ptr_.reset(new Visualize(params_.GetVisualizeParams()));
         // get parameters of TebConfig via the nodehandle and override the default config
         params_.loadRosParamFromNodeHandle(nh);
+        visualization_ptr_.reset(new Visualize(params_.GetVisualizeParams()));
+
         DLOG(INFO) << "initializing the hybrid Astar planner";
         if (!params_.param_container_ptr_->planner_params.use_a_star)
         {

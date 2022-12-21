@@ -16,17 +16,16 @@ namespace HybridAStar
   }
   void ParameterManager::loadRosParamFromNodeHandle(const ros::NodeHandle &nh)
   {
+    DLOG(INFO) << "in loadRosParamFromNodeHandle;";
     nh_ = nh;
     nh_.param("odom_topic", odom_topic, odom_topic);
     nh_.param("map_frame", map_frame, map_frame);
     LoadParams();
-    // checkParameters();
-    // checkDeprecated(nh);
   }
   void ParameterManager::LoadRRTPlannerParams()
   {
     std::string ros_param_name;
-    std::string node_prefix = "/hybrid_astar/";
+    std::string node_prefix = "/move_base/HybridAStar/";
 
     ros_param_name = "visualization";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.visualization);
@@ -87,7 +86,7 @@ namespace HybridAStar
   void ParameterManager::LoadSmootherParams()
   {
     std::string ros_param_name;
-    std::string node_prefix = "/hybrid_astar/";
+    std::string node_prefix = "/move_base/HybridAStar/";
 
     ros_param_name = "max_iterations";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->smoother_params.max_iterations);
@@ -126,7 +125,7 @@ namespace HybridAStar
   void ParameterManager::LoadCollisionDetectionParams()
   {
     std::string ros_param_name;
-    std::string node_prefix = "/hybrid_astar/";
+    std::string node_prefix = "/move_base/HybridAStar/";
 
     ros_param_name = "obstacle_detection_range";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.obstacle_detection_range);
@@ -175,7 +174,7 @@ namespace HybridAStar
   void ParameterManager::LoadPlannerParams()
   {
     std::string ros_param_name;
-    std::string node_prefix = "/hybrid_astar/";
+    std::string node_prefix = "/move_base/HybridAStar/";
 
     ros_param_name = "smooth";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.smooth);
@@ -201,7 +200,7 @@ namespace HybridAStar
   void ParameterManager::LoadHybridAStarParams()
   {
     std::string ros_param_name;
-    std::string node_prefix = "/hybrid_astar/";
+    std::string node_prefix = "/move_base/HybridAStar/";
 
     ros_param_name = "number_of_successors";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.number_of_successors);
@@ -269,7 +268,7 @@ namespace HybridAStar
   void ParameterManager::LoadPathParams()
   {
     std::string ros_param_name;
-    std::string node_prefix = "/hybrid_astar/";
+    std::string node_prefix = "/move_base/HybridAStar/";
 
     ros_param_name = "cell_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_publisher_params.cell_size);
@@ -287,7 +286,7 @@ namespace HybridAStar
   void ParameterManager::LoadVisualizeParams()
   {
     std::string ros_param_name;
-    std::string node_prefix = "/hybrid_astar/";
+    std::string node_prefix = "/move_base/HybridAStar/";
 
     ros_param_name = "cell_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->visualize_params.cell_size);
@@ -296,7 +295,7 @@ namespace HybridAStar
   void ParameterManager::LoadAStarPlannerParams()
   {
     std::string ros_param_name;
-    std::string node_prefix = "/hybrid_astar/";
+    std::string node_prefix = "/move_base/HybridAStar/";
 
     ros_param_name = "possible_direction";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->a_star_planner_params.possible_direction);
@@ -311,7 +310,7 @@ namespace HybridAStar
   void ParameterManager::GetSingleParam(const std::string &param_name, T &param_data)
   {
     nh_.getParam(param_name, param_data);
-    // DLOG(INFO) << "Load param: " << param_name << " value is :" << param_data;
+    DLOG(INFO) << "Load param: " << param_name << " value is :" << param_data;
   }
 
   // std::shared_ptr<ParameterContainer> ParameterManager::GetAllParams()
