@@ -71,7 +71,7 @@ namespace HybridAStar
 
          nav_msgs::OccupancyGrid::Ptr map;
          map.reset(new nav_msgs::OccupancyGrid());
-         Utility::TypeConversion(costmap, frame_id, map);
+         Utility::TypeConversion(_costmap, frame_id, map);
          Initialize(map);
       }
       /**

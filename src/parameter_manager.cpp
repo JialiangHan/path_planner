@@ -16,7 +16,7 @@ namespace HybridAStar
   }
   void ParameterManager::loadRosParamFromNodeHandle(const ros::NodeHandle &nh)
   {
-    DLOG(INFO) << "in loadRosParamFromNodeHandle;";
+    // DLOG(INFO) << "in loadRosParamFromNodeHandle;";
     nh_ = nh;
     nh_.param("odom_topic", odom_topic, odom_topic);
     nh_.param("map_frame", map_frame, map_frame);
@@ -199,7 +199,7 @@ namespace HybridAStar
   }
   void ParameterManager::LoadHybridAStarParams()
   {
-    DLOG(INFO) << "in LoadHybridAStarParams";
+    // DLOG(INFO) << "in LoadHybridAStarParams";
     std::string ros_param_name;
     std::string node_prefix = "/move_base/HybridAStar/";
 
@@ -311,7 +311,7 @@ namespace HybridAStar
   void ParameterManager::GetSingleParam(const std::string &param_name, T &param_data)
   {
     nh_.getParam(param_name, param_data);
-    DLOG(INFO) << "Load param: " << param_name << " value is :" << param_data;
+    // DLOG(INFO) << "Load param: " << param_name << " value is :" << param_data;
   }
 
   // std::shared_ptr<ParameterContainer> ParameterManager::GetAllParams()
