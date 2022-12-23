@@ -246,7 +246,7 @@ namespace RRTPlanner
 
         // DLOG_IF(INFO, (closest_node.getX() > 76) && (closest_node.getX() < 77) && (closest_node.getY() > 1) && (closest_node.getY() < 2)) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
         // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-        Node3D successor(xSucc, ySucc, tSucc, 0, 0, false, nullptr, closest_node_ptr);
+        Node3D successor(xSucc, ySucc, tSucc, 0, 0, false, closest_node_ptr);
         return successor;
     }
     // looks correct

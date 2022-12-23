@@ -4,7 +4,7 @@ using namespace HybridAStar;
 //**********************constructor*******************
 CollisionDetection::CollisionDetection(const ParameterCollisionDetection &params)
 {
-  DLOG(INFO) << "in CollisionDetection";
+  // DLOG(INFO) << "in CollisionDetection";
   params_ = params;
   this->grid_ptr_ = nullptr;
   Lookup::collisionLookup(collisionLookup);
@@ -79,16 +79,12 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node3D> &node3d_ptr
 
 bool CollisionDetection::IsTraversable(const Node3D &node3d)
 {
-  // DLOG(INFO) << "IsTraversable in: current node is x " << node3d.getX() << " y " << node3d.getY() << " angle is " << Utility::ConvertRadToDeg(node3d.getT());
+  // DLOG_IF(INFO, (node3d.getX() > 35) && (node3d.getX() < 37) && (node3d.getY() > 12) && (node3d.getY() < 14)) << "IsTraversable in: current node is x " << node3d.getX() << " y " << node3d.getY() << " angle is " << Utility::ConvertRadToDeg(node3d.getT());
   if (!IsOnGrid(node3d))
   {
-    // DLOG(INFO) << "IsTraversable out.";
+    // DLOG(INFO) << "current node not on grid!";
     return false;
   }
-  /* Depending on the used collision checking mechanism this needs to be adjusted
-       standard: collision checking using the spatial occupancy enumeration
-       other: collision checking using the 2d costmap and the navigation stack
-    */
 
   float x, y, t;
   // assign values to the configuration
@@ -98,7 +94,7 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
     // if (configurationTest(x, y, t))
     if (configurationTest(x, y, t) && configurationTest(node3d, *node3d.getSmartPtrPred()))
     {
-      // DLOG(INFO) << "IsTraversable out.";
+      DLOG_IF(INFO, (node3d.getX() > 35) && (node3d.getX() < 37) && (node3d.getY() > 12) && (node3d.getY() < 14)) << "IsTraversable in: current node is x " << node3d.getX() << " y " << node3d.getY() << " angle is " << Utility::ConvertRadToDeg(node3d.getT());
       return true;
     }
   }
@@ -106,7 +102,7 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
   {
     if (configurationTest(x, y, t))
     {
-      // DLOG(INFO) << "IsTraversable out.";
+      DLOG_IF(INFO, (node3d.getX() > 35) && (node3d.getX() < 37) && (node3d.getY() > 12) && (node3d.getY() < 14)) << "IsTraversable in: current node is x " << node3d.getX() << " y " << node3d.getY() << " angle is " << Utility::ConvertRadToDeg(node3d.getT());
       return true;
     }
   }
@@ -202,7 +198,7 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
     collision_result = CollisionCheck(polygon);
     if (!collision_result)
     {
-      // DLOG(INFO) << "in collision, coordinate is " << x << " " << y << " " << t;
+      DLOG_IF(INFO, (x > 35) && (x < 37) && (y > 12) && (y < 14)) << "configurationTest in: current node is x " << x << " y " << y << " angle is " << Utility::ConvertRadToDeg(t);
     }
     return collision_result;
   }
@@ -1335,12 +1331,12 @@ float CollisionDetection::IsCloseToFreeAngleRange(const std::vector<std::pair<fl
 
   if (distance_angle1 > distance_angle2)
   {
-    DLOG(INFO) << "for node " << current.getX() << " " << current.getY() << " " << current.getT() << " angle2: " << Utility::ConvertRadToDeg(angle2) << " is closest to free angle range";
+    // DLOG(INFO) << "for node " << current.getX() << " " << current.getY() << " " << current.getT() << " angle2: " << Utility::ConvertRadToDeg(angle2) << " is closest to free angle range";
     return angle2;
   }
   else
   {
-    DLOG(INFO) << "for node " << current.getX() << " " << current.getY() << " " << current.getT() << " angle1: " << Utility::ConvertRadToDeg(angle1) << " is closest to free angle range";
+    // DLOG(INFO) << "for node " << current.getX() << " " << current.getY() << " " << current.getT() << " angle1: " << Utility::ConvertRadToDeg(angle1) << " is closest to free angle range";
     return angle1;
   }
 }

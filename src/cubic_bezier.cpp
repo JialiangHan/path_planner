@@ -151,6 +151,7 @@ namespace CubicBezier
         Eigen::Vector3f out;
         out = geometrical_constraint_matrix_ * basis_matrix_ * CalculateCoefficient(t);
         // DLOG(INFO) << "out is " << out.x() << " " << out.y() << " " << out.z();
+        DLOG_IF(FATAL, std::isnan(out.x()) || std::isnan(out.y()) || std::isnan(out.z())) << "out is " << out.x() << " " << out.y() << " " << out.z();
         return out;
     }
 
@@ -166,8 +167,10 @@ namespace CubicBezier
         // DLOG(INFO) << "In calculateLength()";
         for (uint i = 0; i < 100; ++i)
         {
+            DLOG_IF(FATAL, std::isnan(GetValueAt(i / 100.0).x()) || std::isnan(GetValueAt(i / 100.0).y()) || std::isnan(GetValueAt((i + 1) / 100.0).x()) || std::isnan(GetValueAt((i + 1) / 100.0).y())) << "GetValueAt((i + 1) / 100.0) is " << GetValueAt((i + 1) / 100.0).x() << " " << GetValueAt((i + 1) / 100.0).y() << " GetValueAt(i / 100.0) is " << GetValueAt(i / 100.0).x() << " " << GetValueAt((i) / 100.0).y();
             Eigen::Vector2f temp;
             Utility::TypeConversion(GetValueAt((i + 1) / 100.0) - GetValueAt(i / 100.0), temp);
+            // DLOG(INFO) << "temp vector2f is " << temp.x() << " " << temp.y();
             length_ += temp.norm();
         }
         // DLOG(INFO) << "length is " << length_;

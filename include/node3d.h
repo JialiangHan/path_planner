@@ -14,9 +14,9 @@ namespace HybridAStar {
 class Node3D {
  public:
    /// The default constructor for 3D array initialization
-   Node3D() : Node3D(0, 0, 0, 999, 0, false, nullptr, nullptr) {}
+   Node3D() : Node3D(0, 0, 0, 999, 0, false, nullptr) {}
    /// Constructor for a node with the given arguments
-   Node3D(float _x, float _y, float _t, float _g = 999, float _h = 0, bool _reverse = false, Node3D *_pred = nullptr, const std::shared_ptr<Node3D> &_pred_smart_ptr = nullptr, int prim = 0) : x(_x), y(_y), t(_t), g(_g), h(_h), map_cost_(0), idx(-1), o(false), c(false), reverse(_reverse), pred(_pred), pred_smart_ptr_(_pred_smart_ptr)
+   Node3D(float _x, float _y, float _t, float _g = 999, float _h = 0, bool _reverse = false, const std::shared_ptr<Node3D> &_pred_smart_ptr = nullptr, int prim = 0) : x(_x), y(_y), t(_t), g(_g), h(_h), map_cost_(0), idx(-1), o(false), c(false), reverse(_reverse), pred_smart_ptr_(_pred_smart_ptr)
    {
      this->prim = prim;
    }
@@ -46,7 +46,6 @@ class Node3D {
    bool isReverse() { return reverse; }
    /// determine whether the node is open
    std::shared_ptr<Node3D> getSmartPtrPred() const { return pred_smart_ptr_; }
-   Node3D *getPred() { return pred; }
    // SetTER METHODS
    /// set the x position
    void setX(const float &x) { this->x = x; }
@@ -87,11 +86,8 @@ class Node3D {
      c = true;
      o = false;
    }
-   /// set a pointer to the predecessor of the node
-   void setPred(Node3D *_pred) { pred = _pred; }
    void setSmartPtrPred(const std::shared_ptr<Node3D> &pred_ptr) { this->pred_smart_ptr_ = pred_ptr; }
-   /// Determines whether it is appropriate to find a analytical solution.
-   //  bool isInRange(const Node3D &goal) const; // 检测是否可以分析方法找到解
+
    // CUSTOM OPERATORS
    /// Custom operator to compare nodes. Nodes are equal if their x and y position as well as heading is similar.
    bool operator==(const Node3D &rhs) const
@@ -128,8 +124,6 @@ class Node3D {
   bool reverse;
   /// the motion primitive of the node
   int prim;
-  /// the predecessor pointer
-  Node3D *pred;
   /// the predecessor pointer
   std::shared_ptr<Node3D> pred_smart_ptr_;
 };
