@@ -11,6 +11,13 @@ namespace Utility
         node3d.setT(tf::getYaw(start.pose.orientation));
         return;
     }
+
+    void TypeConversion(const geometry_msgs::PoseStamped &start, HybridAStar::Node2D &node2d)
+    {
+        node2d.setX(start.pose.position.x);
+        node2d.setY(start.pose.position.y);
+        return;
+    }
     void TypeConversion(const HybridAStar::Node3D &node3d, geometry_msgs::PoseStamped &pose)
     {
         tf::Quaternion pose_quat = tf::createQuaternionFromYaw(node3d.getT());
@@ -36,8 +43,8 @@ namespace Utility
 
     void TypeConversion(const HybridAStar::Node3D &node3d, HybridAStar::Node2D &node_2d)
     {
-        node_2d.setX(node3d.getX());
-        node_2d.setY(node3d.getY());
+        node_2d.setX(std::round(node3d.getX()));
+        node_2d.setY(std::round(node3d.getY()));
     }
 
     void TypeConversion(const HybridAStar::Node2D &node2d, HybridAStar::Node3D &node_3d)

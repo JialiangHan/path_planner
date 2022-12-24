@@ -23,9 +23,17 @@ namespace HybridAStar
     class AStar : public Expander
     {
     public:
-        AStar(std::string frame_id, costmap_2d::Costmap2D *_costmap)
+        AStar(std::string frame_id, costmap_2d::Costmap2D *_costmap, const ParameterAStar &params,
+              const std::shared_ptr<Visualize> &visualization_ptr)
             : Expander(frame_id, _costmap)
         {
+            params_ = params;
+            configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params));
+            visualization_ptr_ = visualization_ptr;
+            nav_msgs::OccupancyGrid::Ptr map;
+            map.reset(new nav_msgs::OccupancyGrid());
+            Utility::TypeConversion(_costmap, frame_id, map);
+            Initialize(map);
         }
         AStar(const ParameterAStar &params,
               const std::shared_ptr<Visualize> &visualization_ptr) : Expander()
@@ -33,6 +41,10 @@ namespace HybridAStar
             params_ = params;
             configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params));
             visualization_ptr_ = visualization_ptr;
+        };
+
+        ~AStar(){
+
         };
         /**
          * @brief Find the path between the start pose and goal pose
@@ -64,14 +76,17 @@ namespace HybridAStar
         Utility::Path3D GetPath(Node3D &start, Node3D &goal,
                                 Node2D *nodes2D);
 
+        Utility::Path3D GetPath(Node2D &start, Node2D &goal,
+                                Node2D *nodes2D);
+
     private:
         /**
-       * @brief Create possible successors of current node according its possible direction
-       * 
-       * @param pred 
-       * @param possible_dir 
-       * @return std::vector<std::shared_ptr<Node2D>> 
-       */
+         * @brief Create possible successors of current node according its possible direction
+         *
+         * @param pred
+         * @param possible_dir
+         * @return std::vector<std::shared_ptr<Node2D>>
+         */
         std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir);
 
         std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir, const int &step_size);
@@ -91,15 +106,6 @@ namespace HybridAStar
         void TracePath(std::shared_ptr<Node2D> node2d_ptr);
 
         int FindStepSize(const Node2D &current_node);
-        // similar to CreateSuccessor
-        std::vector<Node2D *> getAdjacentPoints(int cells_x, int cells_y, const unsigned char *charMap, Node2D *pathNode2D, Node2D *point);
-
-        /**
-         * @brief transform the 2Dnode to geometry_msgs::PoseStamped, similar to TracePath
-         * @param node the ptr of node
-         * @param plan the refrence of plan
-         */
-        void nodeToPlan(Node2D *node, std::vector<geometry_msgs::PoseStamped> &plan);
 
     private:
         ParameterAStar params_;

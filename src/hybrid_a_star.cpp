@@ -252,7 +252,7 @@ namespace HybridAStar
             }
             else
             {
-              DLOG(INFO) << "current node is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT()) << " is in collision!!";
+              // DLOG(INFO) << "current node is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT()) << " is in collision!!";
             }
           }
         }
@@ -296,22 +296,18 @@ namespace HybridAStar
       curve_cost = lookup_table_ptr_->GetCubicBezierCost(goal_rotated_translated);
       // DLOG(INFO) << "cubic bezier cost is " << curve_cost;
     }
-    // TODO bugs here
     //  unconstrained with obstacles
     if (!nodes2D[(int)start.getY() * map_width_ + (int)start.getX()].isDiscovered())
     {
-      // ros::Time t0 = ros::Time::now();
       // create a 2d start node
-      Node2D start2d(start.getX(), start.getY(), 0, 0, nullptr);
-      // create a 2d goal node
-      Node2D goal2d(goal.getX(), goal.getY(), 0, 0, nullptr);
-      // DLOG(INFO) << "A star start node is " << start2d.getX() << " " << start2d.getY() << " goal is " << goal2d.getX() << " " << goal2d.getY();
+      Node2D start2d, goal2d;
+      Utility::TypeConversion(start, start2d);
+      Utility::TypeConversion(goal, goal2d);
+      // DLOG(INFO) << "A star start node is " << start2d.getX() << " " << start2d.getY() << " goal is " << goal2d.getX() << " " << goal2d.getY() << " start is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT())
+      //  << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT());
 
       // run 2d AStar and return the cost of the cheapest path for that node
       nodes2D[(int)start.getY() * map_width_ + (int)start.getX()].setCostSofar(a_star_ptr_->GetAStarCost(nodes2D, start2d, goal2d, true));
-      // ros::Time t1 = ros::Time::now();
-      // ros::Duration d(t1 - t0);
-      // DLOG(INFO) << "calculated 2D Heuristic in ms: " << d * 1000;
     }
 
     // offset for same node in cell
@@ -453,132 +449,6 @@ namespace HybridAStar
     }
     return path_vec;
   }
-
-  // Node3D *HybridAStar::AnalyticExpansions(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap)
-  // {
-  //   int i = 0;
-  //   float x = 0.f;
-  //   Eigen::Vector3f vector3d_start, vector3d_goal;
-  //   Utility::TypeConversion(start, vector3d_start);
-  //   // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y() << " original start is " << start.getX() << " " << start.getY();
-  //   Utility::TypeConversion(goal, vector3d_goal);
-  //   unsigned int poseX, poseY;
-  //   // Dubins/RS curve
-  //   if (params_.curve_type_analytical_expansion == 0)
-  //   {
-  //     // start
-  //     float q0[] = {start.getX(), start.getY(), start.getT()};
-  //     // goal
-  //     float q1[] = {goal.getX(), goal.getY(), goal.getT()};
-  //     // initialize the path
-  //     DubinsPath path;
-  //     // calculate the path
-  //     dubins_init(q0, q1, params_.min_turning_radius, &path);
-  //     float length = dubins_path_length(&path);
-  //     Node3D *dubinsNodes = new Node3D[(int)(length / params_.curve_step_size) + 1];
-  //     while (x < length)
-  //     {
-  //       float q[3];
-  //       dubins_path_sample(&path, x, q);
-  //       dubinsNodes[i].setX(q[0]);
-  //       dubinsNodes[i].setY(q[1]);
-  //       dubinsNodes[i].setT(Utility::RadToZeroTo2P(q[2]));
-  //       // collision check
-  //       // 跳出循环的条件之二：生成的路径存在碰撞节点
-  //       if (costmap->worldToMap(dubinsNodes[i].getX(), dubinsNodes[i].getY(), poseX, poseY))
-  //       {
-  //         if (costmap->getCost(poseX, poseY) <= 1)
-  //         {
-  //           // set the predecessor to the previous step
-  //           if (i > 0)
-  //           {
-  //             dubinsNodes[i].setPred(&dubinsNodes[i - 1]);
-  //           }
-  //           else
-  //           {
-  //             dubinsNodes[i].setPred(&start);
-  //           }
-
-  //           if (&dubinsNodes[i] == dubinsNodes[i].getPred())
-  //           {
-  //             DLOG(INFO) << "looping shot";
-  //           }
-  //           x += params_.curve_step_size;
-  //           i++;
-  //         }
-  //         else
-  //         {
-  //           delete[] dubinsNodes;
-  //           DLOG(INFO) << "Dubins shot collided, discarding the path";
-  //           return nullptr;
-  //         }
-  //       }
-  //       else
-  //       {
-  //         delete[] dubinsNodes;
-  //         DLOG(INFO) << "Dubins shot collided, discarding the path";
-  //         return nullptr;
-  //       }
-  //     }
-  //     return &dubinsNodes[i - 1];
-  //   }
-  //   // bezier curve
-  //   if (params_.curve_type_analytical_expansion == 1)
-  //   {
-  //     // DLOG(INFO) << "vector3d_start is " << vector3d_start.x() << " " << vector3d_start.y() << " " << vector3d_start.z() << " vector3d_goal is " << vector3d_goal.x() << " " << vector3d_goal.y() << " " << vector3d_goal.z() << " map width is " << map_width_ << " map height is " << map_height_;
-  //     CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width_, map_height_);
-  //     float length = cubic_bezier.GetLength();
-  //     // DLOG(INFO) << "length for cubic bezier is " << length;
-  //     DLOG_IF(FATAL, std::isnan(length)) << "length for cubic bezier is " << length;
-  //     Node3D *bezierNodes = new Node3D[(int)(length / params_.curve_step_size) + 1];
-  //     i = 0;
-  //     x = 0;
-  //     while (x < length)
-  //     {
-  //       // DLOG(INFO) << i << "th iteration";
-  //       Utility::TypeConversion(cubic_bezier.GetValueAt(x / length), bezierNodes[i]);
-  //       float curvature = cubic_bezier.GetCurvatureAt(x / length);
-  //       bezierNodes[i].setT(Utility::RadToZeroTo2P(cubic_bezier.GetAngleAt(x / length)));
-  //       // DLOG(INFO) << "current node is " << node3d.getX() << " " << node3d.getY();
-  //       // collision check
-  //       if (costmap->worldToMap(bezierNodes[i].getX(), bezierNodes[i].getY(), poseX, poseY))
-  //       {
-  //         if (costmap->getCost(poseX, poseY) <= 1 && curvature <= 1 / params_.min_turning_radius)
-  //         {
-  //           // set the predecessor to the previous step
-  //           if (i > 0)
-  //           {
-  //             bezierNodes[i].setPred(&bezierNodes[i - 1]);
-  //           }
-  //           else
-  //           {
-  //             bezierNodes[i].setPred(&start);
-  //           }
-  //           if (&bezierNodes[i] == bezierNodes[i].getPred())
-  //           {
-  //             DLOG(INFO) << "looping shot";
-  //           }
-  //           x += params_.curve_step_size;
-  //           i++;
-  //         }
-  //         else
-  //         {
-  //           delete[] bezierNodes;
-  //           return nullptr;
-  //         }
-  //       }
-  //       else
-  //       {
-  //         delete[] bezierNodes;
-  //         return nullptr;
-  //       }
-  //     }
-  //     // 返回末节点，通过getPred()可以找到前一节点。
-  //     return &bezierNodes[i - 1];
-  //     // DLOG(INFO) << "goal point is " << vector3d_goal.x() << " " << vector3d_goal.y();
-  //   }
-  //   return nullptr;
-  // }
 
   // ###################################################
   //                                     create successor
@@ -744,7 +614,7 @@ namespace HybridAStar
       }
       else
       {
-        DLOG(INFO) << "convert successor " << temp->getX() << " " << temp->getY() << " to map failed.";
+        // DLOG(INFO) << "convert successor " << temp->getX() << " " << temp->getY() << " to map failed.";
       }
 
       if (params_.reverse)

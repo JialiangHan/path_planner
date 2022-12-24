@@ -31,7 +31,7 @@ namespace HybridAStar
     {
         start_ = start;
         goal_ = goal;
-        // DLOG(INFO) << "GetAStarCost in:";
+        // DLOG(INFO) << "GetAStarCost in: start is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY();
         // PREDECESSOR AND SUCCESSOR INDEX
         int iPred, iSucc;
         float newG;
@@ -89,7 +89,7 @@ namespace HybridAStar
                 // RViz visualization_ptr_
                 if (visualization2D_ && !in_hybrid_a)
                 {
-                    DLOG(INFO) << "in publishing";
+                    // DLOG(INFO) << "in publishing";
                     visualization_ptr_->publishNode2DPoses((*nPred));
                     visualization_ptr_->publishNode2DPose((*nPred));
                     d.sleep();
@@ -152,7 +152,7 @@ namespace HybridAStar
         }
         // return large number to guide search away
         // DLOG(INFO) << "GetAStarCost out.";
-        DLOG(INFO) << "open list is empty, end a star. number of nodes explored is " << number_nodes_explored;
+        DLOG(INFO) << "GetAStarCost in: start is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY() << ". open list is empty, end a star. number of nodes explored is " << number_nodes_explored;
         return 1000;
     }
 
@@ -278,6 +278,15 @@ namespace HybridAStar
         return path_3d;
     }
 
+    Utility::Path3D AStar::GetPath(Node2D &start, Node2D &goal,
+                                   Node2D *nodes2D)
+    {
+        Utility::Path3D path_3d;
+        GetAStarCost(nodes2D, start, goal);
+        Utility::TypeConversion(path_, path_3d);
+        return path_3d;
+    }
+
     int AStar::FindStepSize(const Node2D &current_node)
     {
         int step_size;
@@ -308,117 +317,20 @@ namespace HybridAStar
                               int cells_x, int cells_y, std::vector<geometry_msgs::PoseStamped> &plan,
                               ros::Publisher &pub, visualization_msgs::MarkerArray &pathNodes)
     {
-
-        const unsigned char *charMap = costmap->getCharMap();
-
-        int counter = 0; // 记录程序搜寻节点次数
-        // float resolution = costmap->getResolution(); // 获取代价图的分辨率
-
-        // 使用boost库中的二项堆，优化优先队列的性能
-        boost::heap::binomial_heap<Node2D *, boost::heap::compare<CompareNodes>> openSet;
-        unsigned int startx, starty, goalx, goaly;
-        // 坐标转换，将世界坐标转换为costmap使用的绝对坐标
-        costmap->worldToMap(start.pose.position.x, start.pose.position.y, startx, starty);
-        costmap->worldToMap(goal.pose.position.x, goal.pose.position.y, goalx, goaly);
-        Node2D *pathNode2D = new Node2D[cells_x * cells_y](); // 与代价图等大的2Dnode栅格节点
-
-        // 设置开始节点与结束节点指针，指针指向其对应2D节点图中的点位
-        Node2D *startPose = &pathNode2D[startx * cells_y + starty];
-        Node2D *goalPose = &pathNode2D[goalx * cells_y + goaly];
-
-        // 设置起始节点和结束节点的坐标，以便后续进行比较计算
-        goalPose->setX(goalx);
-        goalPose->setY(goaly);
-        startPose->setX(startx);
-        startPose->setY(starty);
-        startPose->setCostSofar(0);
-        openSet.push(startPose);
-        startPose->setOpenSet();
-
-        Node2D *tmpStart;
-        while (openSet.size())
+        Utility::TypeConversion(start, start_);
+        Utility::TypeConversion(goal, goal_);
+        Node2D *nodes2D = new Node2D[cells_x * cells_y]();
+        Utility::Path3D path3d = GetPath(start_, goal_, nodes2D);
+        Utility::TypeConversion(path3d, plan);
+        if (plan.size() != 0)
         {
-            ++counter;
-            tmpStart = openSet.top();
-            openSet.pop();
-            // 如果找到目标点则返回
-            if (tmpStart->getX() == goalPose->getX() && tmpStart->getY() == goalPose->getY())
-            {
-                LOG(INFO) << "got a plan"  ;
-                nodeToPlan(tmpStart, plan);
-                LOG(INFO) << counter  ;
-                delete[] pathNode2D;
-                return true;
-            }
-            std::vector<Node2D *> adjacentNodes = getAdjacentPoints(cells_x, cells_y, charMap, pathNode2D, tmpStart);
-            tmpStart->setClosedSet();
-
-            // 下面正式开始A*算法的核心搜索部分
-            for (std::vector<Node2D *>::iterator it = adjacentNodes.begin(); it != adjacentNodes.end(); ++it)
-            {
-                Node2D *point = *it;
-                float g;
-                if (!point->isClosedSet())
-                {
-                    g = point->updateCostSofar(tmpStart);
-                    // 在此拓展点为初次被探索时，设置此点的G值，设置其父节点。或是以其他路径到达此点的G值更小时，重新设置此点的父节点
-                    if (!point->isOpenSet() || (g < point->getCostSofar()))
-                    {
-                        point->setPred(tmpStart);
-                        point->setCostSofar(g);
-                        if (!point->isOpenSet())
-                        {
-                            point->updateHeuristic(goalPose); // 计算此点距离目标节点距离（作为启发值）
-                            point->setOpenSet();              // 将此拓展点加入开集合中
-                        }
-                        openSet.push(point);
-                    }
-                }
-            }
+            delete[] nodes2D;
+            return true;
         }
-
-        delete[] pathNode2D; // 删除产生的Node2D节点
-        return false;        // 搜索失败
-    }
-
-    std::vector<Node2D *> AStar::getAdjacentPoints(int cells_x, int cells_y, const unsigned char *charMap, Node2D *pathNode2D, Node2D *point)
-    {
-        std::vector<Node2D *> adjacentNodes;
-        for (int x = point->getX() - 1; x <= point->getX() + 1; ++x)
+        else
         {
-            for (int y = point->getY() - 1; y <= point->getY() + 1; ++y)
-            {
-                if (charMap[x + y * cells_x] <= 1)
-                {
-                    pathNode2D[x * cells_y + y].setX(x);
-                    pathNode2D[x * cells_y + y].setY(y);
-                    adjacentNodes.push_back(&pathNode2D[x * cells_y + y]);
-                }
-            }
-        } // end of for
-
-        return adjacentNodes;
-    }
-
-    void AStar::nodeToPlan(Node2D *node, std::vector<geometry_msgs::PoseStamped> &plan)
-    {
-        Node2D *tmpPtr = node;
-        geometry_msgs::PoseStamped tmpPose;
-        tmpPose.header.stamp = ros::Time::now();
-        // 参数后期处理，发布到RViz上进行可视化
-        tmpPose.pose.orientation = tf::createQuaternionMsgFromYaw(0);
-        std::vector<geometry_msgs::PoseStamped> replan;
-        while (tmpPtr != nullptr)
-        {
-            costmap->mapToWorld(tmpPtr->getX(), tmpPtr->getY(), tmpPose.pose.position.x, tmpPose.pose.position.y);
-            tmpPose.header.frame_id = frame_id_;
-            replan.push_back(tmpPose);
-            tmpPtr = tmpPtr->getPred();
-        }
-        int size = replan.size();
-        for (int i = 0; i < size; ++i)
-        {
-            plan.push_back(replan[size - i - 1]);
+            delete[] nodes2D;
+            return false;
         }
     }
 }

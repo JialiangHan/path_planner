@@ -94,7 +94,7 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
     // if (configurationTest(x, y, t))
     if (configurationTest(x, y, t) && configurationTest(node3d, *node3d.getSmartPtrPred()))
     {
-      DLOG_IF(INFO, (node3d.getX() > 35) && (node3d.getX() < 37) && (node3d.getY() > 12) && (node3d.getY() < 14)) << "IsTraversable in: current node is x " << node3d.getX() << " y " << node3d.getY() << " angle is " << Utility::ConvertRadToDeg(node3d.getT());
+      // DLOG_IF(INFO, (node3d.getX() > 35) && (node3d.getX() < 37) && (node3d.getY() > 12) && (node3d.getY() < 14)) << "IsTraversable in: current node is x " << node3d.getX() << " y " << node3d.getY() << " angle is " << Utility::ConvertRadToDeg(node3d.getT());
       return true;
     }
   }

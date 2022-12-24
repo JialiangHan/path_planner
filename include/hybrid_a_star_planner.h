@@ -65,13 +65,10 @@ namespace HybridAStar
         costmap_2d::Costmap2D *costmap;
 
     private:
-        /**
-         * @brief Clarn the visualization_msgs::Marker 清理可视化信息的标记点
-         */
-        void clearPathNodes(void);
+        void Clear(std::vector<geometry_msgs::PoseStamped> &plan);
 
         /**
-         * @brief Check whethe the start pose is available
+         * @brief Check whether the start pose is available
          * @param start A reference to start pose
          * @return True if the start pose is available
          */
@@ -90,5 +87,7 @@ namespace HybridAStar
         std::shared_ptr<Planner> hybrid_a_star_ptr_;
         ParameterManager params_;
         std::shared_ptr<Visualize> visualization_ptr_;
+
+        Expander *_planner;
     };
 };

@@ -45,10 +45,8 @@ TestPlanner::TestPlanner(tf2_ros::Buffer &_tf) : tf(_tf)
     make_plane = n.subscribe("/move_base_simple/goal", 1, &TestPlanner::setgoal, this);
     // 定义类插件的名称，以便之后接入系统
     global_planner = std::string("HybridAStar/HybridAStarPlanner");
-    // ros::NodeHandle nh("~/global_costmap");
     pluginlib::ClassLoader<nav_core::BaseGlobalPlanner> bgp_loader_("nav_core", "nav_core::BaseGlobalPlanner"); // 导入插件
     planner_plan_ = new std::vector<geometry_msgs::PoseStamped>();
-    // 这个global_costmap,是它自己的名字，这里需要用param服务器给到costmap的参数，才会初始化
 
     // 需要注意的是，这里的初始化函数Costmap2DROS在构造时候的问题，~代表的是私有域的数据
     costmap = new costmap_2d::Costmap2DROS("global_costmap", tf);
@@ -71,12 +69,29 @@ TestPlanner::TestPlanner(tf2_ros::Buffer &_tf) : tf(_tf)
 }
 void TestPlanner::setgoal(const geometry_msgs::PoseStamped::ConstPtr &_goal)
 {
-   
     goal_pose.pose = _goal->pose;
     goal_pose.pose.orientation = _goal->pose.orientation;
     goal_pose.header = _goal->header;
     transformStartPose();
     costmap->start();
+    if (true)
+    {
+        tf::Quaternion pose_quat = tf::createQuaternionFromYaw(0);
+        start_pose.pose.position.x = 2;
+        start_pose.pose.position.y = costmap->getCostmap()->getSizeInCellsY() - 2;
+        start_pose.pose.position.z = 0;
+        start_pose.pose.orientation.x = pose_quat.x();
+        start_pose.pose.orientation.y = pose_quat.y();
+        start_pose.pose.orientation.z = pose_quat.z();
+        start_pose.pose.orientation.w = pose_quat.w();
+        goal_pose.pose.position.x = costmap->getCostmap()->getSizeInCellsX() - 2;
+        goal_pose.pose.position.y = 2;
+        goal_pose.pose.position.z = 0;
+        goal_pose.pose.orientation.x = pose_quat.x();
+        goal_pose.pose.orientation.y = pose_quat.y();
+        goal_pose.pose.orientation.z = pose_quat.z();
+        goal_pose.pose.orientation.w = pose_quat.w();
+    }
     planner_->makePlan(start_pose, goal_pose, *planner_plan_);
 }
 
@@ -106,5 +121,9 @@ TestPlanner::~TestPlanner()
     if (costmap)
     {
         delete costmap;
+    }
+    if (planner_plan_)
+    {
+        delete planner_plan_;
     }
 }

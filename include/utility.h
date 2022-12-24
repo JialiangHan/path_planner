@@ -40,6 +40,8 @@ namespace Utility
      */
     void TypeConversion(const geometry_msgs::PoseStamped &start, HybridAStar::Node3D &node3d);
 
+    void TypeConversion(const geometry_msgs::PoseStamped &start, HybridAStar::Node2D &node2d);
+
     void TypeConversion(const HybridAStar::Node3D &node3d, geometry_msgs::PoseStamped &pose);
 
     void TypeConversion(const Path3D &path3d, std::vector<geometry_msgs::PoseStamped> &plan);

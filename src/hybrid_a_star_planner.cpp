@@ -21,6 +21,7 @@ namespace HybridAStar
 
     HybridAStarPlanner::~HybridAStarPlanner()
     {
+        delete _planner;
     }
     void HybridAStarPlanner::initialize(std::string name, costmap_2d::Costmap2DROS *costmap_ros)
     {
@@ -44,14 +45,6 @@ namespace HybridAStar
         visualization_ptr_.reset(new Visualize(params_.GetVisualizeParams()));
 
         DLOG(INFO) << "initializing the hybrid Astar planner";
-        if (!params_.param_container_ptr_->planner_params.use_a_star)
-        {
-            DLOG(INFO) << "Using hybrid_astar mode!";
-        }
-        else
-        {
-            DLOG(INFO) << "Using Astar mode!";
-        }
         costmap = _costmap;
         frame_id_ = frame_id;
         // DLOG(INFO) << frame_id;
@@ -59,6 +52,18 @@ namespace HybridAStar
         plan_pub_ = nh.advertise<nav_msgs::Path>("plan", 1);
         path_vehicles_pub_ = nh.advertise<visualization_msgs::MarkerArray>("pathVehicle", 1);
         make_plan_srv_ = nh.advertiseService("make_plan", &HybridAStarPlanner::makePlanService, this);
+
+        if (!params_.param_container_ptr_->planner_params.use_a_star)
+        {
+            DLOG(INFO) << "Using hybrid_astar mode!";
+            // DLOG(INFO) << "params in hybrid astar is " << params_.GetHybridAStarParams().adaptive_steering_angle_and_step_size;
+            _planner = new HybridAStar(frame_id_, costmap, params_.GetHybridAStarParams(), visualization_ptr_);
+        }
+        else
+        {
+            DLOG(INFO) << "Using Astar mode!";
+            _planner = new AStar(frame_id_, costmap, params_.GetAStarPlannerParams(), visualization_ptr_);
+        }
 
     } // end of constructor function HybridAStarPlanner
 
@@ -78,22 +83,8 @@ namespace HybridAStar
             DLOG(ERROR) << "The planner has not been initialized, please call initialize() to use the planner";
             return false;
         }
-
+        Clear(plan);
         DLOG(INFO) << "Got a start: " << start.pose.position.x << " " << start.pose.position.y << " and a goal: " << goal.pose.position.x << " " << goal.pose.position.y;
-        plan.clear();
-
-        Expander *_planner;
-        if (!params_.param_container_ptr_->planner_params.use_a_star)
-        {
-            DLOG(INFO) << "Using hybrid_astar mode!";
-            // DLOG(INFO) << "params in hybrid astar is " << params_.GetHybridAStarParams().adaptive_steering_angle_and_step_size;
-            _planner = new HybridAStar(frame_id_, costmap, params_.GetHybridAStarParams(), visualization_ptr_);
-        }
-        else
-        {
-            DLOG(INFO) << "Using Astar mode!";
-            _planner = new AStar(frame_id_, costmap);
-        }
 
         // 检查设定的目标点参数是否合规
         if (!(checkStartPose(start) && checkgoalPose(goal)))
@@ -101,7 +92,6 @@ namespace HybridAStar
             DLOG(WARNING) << "Failed to create a global plan due to start or goal not available!";
             return false;
         }
-        plan.clear();
         // 正式将参数传入规划器中
         if (!_planner->calculatePath(start, goal, costmap->getSizeInCellsX(), costmap->getSizeInCellsY(), plan, path_vehicles_pub_, pathNodes))
         {
@@ -109,11 +99,8 @@ namespace HybridAStar
             return false;
         }
 
-        // 参数后期处理，发布到RViz上进行可视化
-        clearPathNodes();
         // path只能发布2D的节点
         publishPlan(plan);
-        publishPathNodes(plan);
         return true;
     }
 
@@ -172,51 +159,11 @@ namespace HybridAStar
         // LOG(INFO)<<("Publish the path to Rviz");
 
     } // end of publishPlan
-
-    void HybridAStarPlanner::publishPathNodes(const std::vector<geometry_msgs::PoseStamped> &path)
+    void HybridAStarPlanner::Clear(std::vector<geometry_msgs::PoseStamped> &plan)
     {
-        if (!initialized_)
-        {
-            DLOG(ERROR) << "This planner has not been initialized yet, but it is being used, please call initialize() before use";
-            return;
-        }
-        visualization_msgs::Marker pathVehicle;
-        int nodeSize = path.size();
-        pathVehicle.header.stamp = ros::Time(0);
-        pathVehicle.color.r = 52.f / 255.f;
-        pathVehicle.color.g = 250.f / 255.f;
-        pathVehicle.color.b = 52.f / 255.f;
-        pathVehicle.type = visualization_msgs::Marker::ARROW;
-        pathVehicle.header.frame_id = frame_id_;
-        pathVehicle.scale.x = 0.22;
-        pathVehicle.scale.y = 0.18;
-        pathVehicle.scale.z = 0.12;
-        pathVehicle.color.a = 0.1;
-        // 转化节点，并同时加上时间戳等信息
-        for (int i = 0; i < nodeSize; i++)
-        {
-            pathVehicle.header.stamp = ros::Time(0);
-            pathVehicle.pose = path[i].pose;
-            pathVehicle.id = i;
-            pathNodes.markers.push_back(pathVehicle);
-        }
-        // 发布这些车辆位置标记点
-        path_vehicles_pub_.publish(pathNodes);
-
-    } // end of publishPathNodes
-
-    void HybridAStarPlanner::clearPathNodes()
-    {
-        // 初始化并配置节点为全清空模式
-        visualization_msgs::Marker node;
-        pathNodes.markers.clear();
-        node.action = visualization_msgs::Marker::DELETEALL;
-        node.header.frame_id = frame_id_;
-        node.header.stamp = ros::Time(0);
-        node.id = 0;
-        node.action = 3;
-        pathNodes.markers.push_back(node);
-        path_vehicles_pub_.publish(pathNodes);
-        // LOG(INFO)<<("Clean the path nodes");
+        plan.clear();
+        // CLEAR THE VISUALIZATION
+        visualization_ptr_->clear();
+        publishPlan(plan);
     }
 };
