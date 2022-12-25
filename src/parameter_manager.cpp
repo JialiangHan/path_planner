@@ -57,9 +57,6 @@ namespace HybridAStar
     ros_param_name = "steering_angle_resolution";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.steering_angle_resolution);
 
-    ros_param_name = "step_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.step_size);
-
     ros_param_name = "adaptive_possibility_to_goal";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.adaptive_possibility_to_goal);
 
@@ -218,8 +215,6 @@ namespace HybridAStar
     ros_param_name = "adaptive_steering_angle_and_step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_steering_angle_and_step_size);
 
-    ros_param_name = "step_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.step_size);
     ros_param_name = "adaptive_steering_angle";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_steering_angle);
 

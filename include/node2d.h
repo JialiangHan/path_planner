@@ -18,15 +18,15 @@ class Node2D {
   /// The default constructor for 2D array initialization.
    Node2D() : Node2D(0, 0, 999, 0, nullptr) {}
    /// Constructor for a node with the given arguments
-   Node2D(int _x, int _y, float _g = 999, float _h = 0, Node2D *_pred_ptr = nullptr, std::shared_ptr<Node2D> _pred_shared_ptr = nullptr) : x(_x), y(_y), g(_g), h(_h), idx(-1), o(false), c(false), d(false), pred_ptr_(_pred_ptr), pred_shared_ptr_(_pred_shared_ptr)
+   Node2D(float _x, float _y, float _g = 999, float _h = 0, Node2D *_pred_ptr = nullptr, std::shared_ptr<Node2D> _pred_shared_ptr = nullptr) : x(_x), y(_y), g(_g), h(_h), idx(-1), o(false), c(false), d(false), pred_ptr_(_pred_ptr), pred_shared_ptr_(_pred_shared_ptr)
    {
      this->map_cost_ = -1;
    }
    // GETTER METHODS
    /// get the x position
-   int getX() const { return x; }
+   float getX() const { return x; }
    /// get the y position
-   int getY() const { return y; }
+   float getY() const { return y; }
    /// get the cost-so-far (real value)
    float getCostSofar() const { return g; }
    /// get the cost-to-come (heuristic value)
@@ -49,9 +49,9 @@ class Node2D {
 
    // SETTER METHODS
    /// set the x position
-   void setX(const int &x) { this->x = x; }
+   void setX(const float &x) { this->x = x; }
    /// set the y position
-   void setY(const int &y) { this->y = y; }
+   void setY(const float &y) { this->y = y; }
    /// set the cost-so-far (real value)
    void setCostSofar(const float &g) { this->g = g; }
    /// set the cost-to-come (heuristic value)
@@ -60,9 +60,9 @@ class Node2D {
     */
    void setMapCost(unsigned int C) { map_cost_ = C; }
    /// set and get the index of the node in the 2D array
-   int setIdx(int width)
+   int setIdx(int width, int height, const float &resolution, float origin_x, float origin_y)
    {
-     this->idx = y * width + x;
+     this->idx = (int)((y - origin_y) / resolution) * width + (int)((x - origin_y) / resolution);
      return idx;
    }
    /// open the node
@@ -108,9 +108,9 @@ class Node2D {
 
  private:
    /// the x position
-   int x;
+   float x;
    /// the y position
-   int y;
+   float y;
    /// the cost-so-far
    float g;
    /// the cost-to-go
@@ -127,6 +127,6 @@ class Node2D {
    Node2D *pred_ptr_;
    std::shared_ptr<Node2D> pred_shared_ptr_ = nullptr;
    // cost from cost_map
-   unsigned int map_cost_;
+   unsigned int map_cost_ = 0;
 };
 }

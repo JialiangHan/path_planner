@@ -56,7 +56,6 @@ namespace HybridAStar
         if (!params_.param_container_ptr_->planner_params.use_a_star)
         {
             DLOG(INFO) << "Using hybrid_astar mode!";
-            // DLOG(INFO) << "params in hybrid astar is " << params_.GetHybridAStarParams().adaptive_steering_angle_and_step_size;
             _planner = new HybridAStar(frame_id_, costmap, params_.GetHybridAStarParams(), visualization_ptr_);
         }
         else

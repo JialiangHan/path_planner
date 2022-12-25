@@ -22,6 +22,8 @@ namespace HybridAStar
     /// Constructor
     CollisionDetection(){};
 
+    CollisionDetection(const ParameterCollisionDetection &params, costmap_2d::Costmap2D *_costmap);
+
     CollisionDetection(const ParameterCollisionDetection &params);
 
     bool IsTraversable(const std::shared_ptr<Node2D> &nod2d_ptr);
@@ -30,7 +32,6 @@ namespace HybridAStar
 
     bool IsTraversable(const Node3D &current_node, const Node3D &previous_node);
 
-    // TODO need a function to convert occupancygrid to a configuration space map
     /*!
      \brief updates the grid with the world map
   */
@@ -324,5 +325,9 @@ namespace HybridAStar
      *
      */
     std::unordered_map<uint, float> normalized_obstacle_density_map_;
+
+    float resolution_;
+    float origin_y_;
+    float origin_x_;
   };
 }

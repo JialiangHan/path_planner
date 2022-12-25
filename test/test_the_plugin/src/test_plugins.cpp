@@ -77,15 +77,16 @@ void TestPlanner::setgoal(const geometry_msgs::PoseStamped::ConstPtr &_goal)
     if (true)
     {
         tf::Quaternion pose_quat = tf::createQuaternionFromYaw(0);
-        start_pose.pose.position.x = 2;
-        start_pose.pose.position.y = costmap->getCostmap()->getSizeInCellsY() - 2;
+        // note: unit for pose is meter
+        start_pose.pose.position.x = 2 * costmap->getCostmap()->getResolution() + costmap->getCostmap()->getOriginX();
+        start_pose.pose.position.y = costmap->getCostmap()->getSizeInCellsY() * costmap->getCostmap()->getResolution() - 2 * costmap->getCostmap()->getResolution();
         start_pose.pose.position.z = 0;
         start_pose.pose.orientation.x = pose_quat.x();
         start_pose.pose.orientation.y = pose_quat.y();
         start_pose.pose.orientation.z = pose_quat.z();
         start_pose.pose.orientation.w = pose_quat.w();
-        goal_pose.pose.position.x = costmap->getCostmap()->getSizeInCellsX() - 2;
-        goal_pose.pose.position.y = 2;
+        goal_pose.pose.position.x = costmap->getCostmap()->getSizeInCellsX() * costmap->getCostmap()->getResolution() - 2 * costmap->getCostmap()->getResolution();
+        goal_pose.pose.position.y = 2 * costmap->getCostmap()->getResolution() + costmap->getCostmap()->getOriginY();
         goal_pose.pose.position.z = 0;
         goal_pose.pose.orientation.x = pose_quat.x();
         goal_pose.pose.orientation.y = pose_quat.y();

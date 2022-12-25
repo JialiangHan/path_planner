@@ -26,8 +26,6 @@ namespace HybridAStar
     float vehicle_length = 2;
 
     bool enable_collision_lookup = false;
-    // parameter which control the step size when has an obstacle
-    // float weight_step_size = 0.5;
 
     bool consider_steering_angle_range_for_obstacle_density = false;
 
@@ -41,7 +39,6 @@ namespace HybridAStar
 
     bool fixed_number_of_steering_angle_in_free_angle_range = true;
     float obstacle_detection_range = 5;
-    // bool make_step_size_larger_than_one = true;
   };
 
   //this struct contains some used parameters in visualize class
@@ -75,8 +72,7 @@ namespace HybridAStar
     bool consider_steering_angle_range = false;
 
     float steering_angle_resolution = 1;
-    // for create successor
-    float step_size = 1;
+
     // parameter to control whether to use adaptive possibility to goal.
     bool adaptive_possibility_to_goal = false;
 
@@ -146,8 +142,7 @@ namespace HybridAStar
     bool adaptive_step_size = true;
     // this parameter determine the frequency of analytical expansion, false means the way in the original paper
     bool analytical_expansion_every_point = true;
-    // for create successor
-    float step_size = 1;
+
     bool adaptive_steering_angle = false;
 
     bool analytical_expansion = true;

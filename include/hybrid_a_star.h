@@ -62,11 +62,15 @@ namespace HybridAStar
          DLOG(INFO) << "constructing HybridAStar.";
          params_ = params;
          lookup_table_ptr_.reset(new LookupTable(params_.collision_detection_params));
-         configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params));
+         configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params, _costmap));
+
+         resolution_ = costmap->getResolution();
+         origin_y_ = costmap->getOriginY();
+         origin_x_ = costmap->getOriginX();
 
          visualization_ptr_ = visualization_ptr;
 
-         a_star_ptr_.reset(new AStar(params_.a_star_params,
+         a_star_ptr_.reset(new AStar(frame_id, _costmap, params_.a_star_params,
                                      visualization_ptr_));
 
          nav_msgs::OccupancyGrid::Ptr map;
@@ -105,7 +109,7 @@ namespace HybridAStar
        * @param goal the reference of goal pose
        * @param cells_x the number of the cells of the costmap in x axis
        * @param cells_y the number of the cells of the costmap in y axis
-       * @param plan the refrence of plan;
+       * @param plan the reference of plan;
        * @return true if a valid plan was found.
        */
       bool calculatePath(
@@ -132,8 +136,6 @@ namespace HybridAStar
        * @return Node3D*
        */
       Utility::Path3D AnalyticExpansions(const Node3D &start, Node3D &goal);
-
-      Node3D *AnalyticExpansions(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap);
       /**
        * @brief Create Successor for node 3d
        *
@@ -180,10 +182,6 @@ namespace HybridAStar
        */
       bool DuplicateCheck(priorityQueue &open_list, std::shared_ptr<Node3D> node_3d_ptr);
 
-      // Node3D *dubinsShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap);
-      // Node3D *reedsSheppShot(Node3D &start, Node3D &goal, costmap_2d::Costmap2D *costmap);
-      // void updateH(Node3D &start, const Node3D &goal, Node2D *nodes2D, float *dubinsLookup, int width, int height, float inspireAstar);
-
    private:
       ParameterHybridAStar params_;
       Utility::Path3D piecewise_cubic_bezier_path_;
@@ -194,8 +192,12 @@ namespace HybridAStar
       std::shared_ptr<LookupTable> lookup_table_ptr_;
       std::shared_ptr<Visualize> visualization_ptr_;
       std::shared_ptr<AStar> a_star_ptr_;
+      // map related info
       uint map_width_;
       uint map_height_;
+      float resolution_;
+      float origin_x_;
+      float origin_y_;
       /**
        * @brief index of path_ which analytic expansion start.
        *

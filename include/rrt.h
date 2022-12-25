@@ -55,6 +55,7 @@ namespace RRTPlanner
         // std::shared_ptr<AStar> a_star_ptr_;
         uint map_width_;
         uint map_height_;
+        float resolution_;
 
         /**
          * @brief select a collision-free node in current map

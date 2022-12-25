@@ -28,12 +28,15 @@ namespace HybridAStar
             : Expander(frame_id, _costmap)
         {
             params_ = params;
-            configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params));
+            configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params, _costmap));
             visualization_ptr_ = visualization_ptr;
+            resolution_ = _costmap->getResolution();
+            origin_y_ = _costmap->getOriginY();
+            origin_x_ = _costmap->getOriginX();
             nav_msgs::OccupancyGrid::Ptr map;
             map.reset(new nav_msgs::OccupancyGrid());
             Utility::TypeConversion(_costmap, frame_id, map);
-            Initialize(map);
+            configuration_space_ptr_->UpdateGrid(map);
         }
         AStar(const ParameterAStar &params,
               const std::shared_ptr<Visualize> &visualization_ptr) : Expander()
@@ -89,7 +92,7 @@ namespace HybridAStar
          */
         std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir);
 
-        std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir, const int &step_size);
+        std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir, const float &step_size);
         /**
          * @brief update heuristic for a star
          * 
@@ -105,7 +108,7 @@ namespace HybridAStar
 
         void TracePath(std::shared_ptr<Node2D> node2d_ptr);
 
-        int FindStepSize(const Node2D &current_node);
+        float FindStepSize(const Node2D &current_node);
 
     private:
         ParameterAStar params_;
@@ -116,5 +119,9 @@ namespace HybridAStar
         Node2D goal_;
         std::shared_ptr<CollisionDetection> configuration_space_ptr_;
         std::shared_ptr<Visualize> visualization_ptr_;
+
+        float resolution_;
+        float origin_y_;
+        float origin_x_;
     };
 }

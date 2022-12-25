@@ -66,7 +66,7 @@ namespace HybridAStar
     std::shared_ptr<Node3D> start_ptr = std::make_shared<Node3D>(start);
     openlist.push(start_ptr);
 
-    iPred = start.setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings);
+    iPred = start.setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings, resolution_, origin_x_, origin_y_);
     nodes3D[iPred] = start;
     // NODE POINTER
     std::shared_ptr<Node3D> nPred;
@@ -79,7 +79,7 @@ namespace HybridAStar
       nPred = openlist.top();
       number_nodes_explored++;
       // set index
-      iPred = nPred->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings);
+      iPred = nPred->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings, resolution_, origin_x_, origin_y_);
       iterations++;
 
       // RViz visualization
@@ -208,7 +208,7 @@ namespace HybridAStar
             // create possible successor
             nSucc = node;
             // set index of the successor
-            iSucc = nSucc->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings);
+            iSucc = nSucc->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings, resolution_, origin_x_, origin_y_);
             // ensure successor is on grid and traversable
             if (configuration_space_ptr_->IsTraversable(*nSucc))
             {
@@ -269,6 +269,10 @@ namespace HybridAStar
   {
     // DLOG(INFO) << "UpdateHeuristic in:";
     float curve_cost = 0, twoDCost = 0, twoDoffset = 0;
+    // create a 2d start node
+    Node2D start2d, goal2d;
+    Utility::TypeConversion(start, start2d);
+    Utility::TypeConversion(goal, goal2d);
     // translate and rotate
     Node3D goal_rotated_translated;
     goal_rotated_translated.setX(abs(goal.getX() - start.getX()));
@@ -297,24 +301,19 @@ namespace HybridAStar
       // DLOG(INFO) << "cubic bezier cost is " << curve_cost;
     }
     //  unconstrained with obstacles
-    if (!nodes2D[(int)start.getY() * map_width_ + (int)start.getX()].isDiscovered())
+    if (!nodes2D[start2d.setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_)].isDiscovered())
     {
-      // create a 2d start node
-      Node2D start2d, goal2d;
-      Utility::TypeConversion(start, start2d);
-      Utility::TypeConversion(goal, goal2d);
       // DLOG(INFO) << "A star start node is " << start2d.getX() << " " << start2d.getY() << " goal is " << goal2d.getX() << " " << goal2d.getY() << " start is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT())
       //  << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT());
-
       // run 2d AStar and return the cost of the cheapest path for that node
-      nodes2D[(int)start.getY() * map_width_ + (int)start.getX()].setCostSofar(a_star_ptr_->GetAStarCost(nodes2D, start2d, goal2d, true));
+      nodes2D[start2d.getIdx()].setCostSofar(a_star_ptr_->GetAStarCost(nodes2D, start2d, goal2d, true));
     }
 
     // offset for same node in cell
     twoDoffset = sqrt(((start.getX() - (long)start.getX()) - (goal.getX() - (long)goal.getX())) * ((start.getX() - (long)start.getX()) - (goal.getX() - (long)goal.getX())) +
                       ((start.getY() - (long)start.getY()) - (goal.getY() - (long)goal.getY())) * ((start.getY() - (long)start.getY()) - (goal.getY() - (long)goal.getY())));
     // DLOG(INFO) << "twoD cost before offset is " << nodes2D[(int)start.getY() * map_width_ + (int)start.getX()].getCostSofar() << " two d offset is " << twoDoffset;
-    twoDCost = nodes2D[(int)start.getY() * map_width_ + (int)start.getX()].getCostSofar() - twoDoffset;
+    twoDCost = nodes2D[start2d.getIdx()].getCostSofar() - twoDoffset;
 
     // DLOG(INFO) << "current node is " << start.getX() << " " << start.getY() << " " << start.getT() << " a star cost is " << twoDCost << " curve cost is " << curve_cost << " heuristic is " << std::max(curve_cost, twoDCost);
     // DLOG(INFO) << "rs cost is " << curve_cost;
@@ -443,7 +442,6 @@ namespace HybridAStar
       // LOG(INFO) << "start point before conversion is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " after conversion is " << vector3d_start.x() << " " << vector3d_start.y() << " " << Utility::ConvertRadToDeg(vector3d_start.z());
 
       // LOG(INFO) << "goal point before conversion is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT()) << " after conversion is " << vector3d_goal.x() << " " << vector3d_goal.y() << " " << Utility::ConvertRadToDeg(vector3d_goal.z());
-      // std::string out = params_.reverse == true ? "cubic bezier" : "dubins";
       DLOG(INFO) << "Analytical expansion connected, returning path";
       // LOG(INFO) << "analytical expansion start at " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT());
     }
@@ -474,13 +472,13 @@ namespace HybridAStar
         std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
         std::pair<float, float> pair;
 
-        if (params_.step_size > distance_to_goal)
+        if (resolution_ > distance_to_goal)
         {
           pair.first = distance_to_goal;
         }
         else
         {
-          pair.first = params_.step_size;
+          pair.first = resolution_;
         }
 
         for (const auto &element : available_steering_angle_vec)
@@ -494,7 +492,7 @@ namespace HybridAStar
       {
         // LOG(INFO) << "adaptive steering angle and step size";
         // 1. decide step size and steering angle: in vehicle available range, if there is a free range, then go to that direction,if no free range, then based on the distance to obstacle, decide step size
-        available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(pred, start_, goal_, params_.number_of_successors, params_.step_size);
+        available_steering_angle_and_step_size_vec = configuration_space_ptr_->FindStepSizeAndSteeringAngle(pred, start_, goal_, params_.number_of_successors, resolution_);
         // DLOG(INFO) << "CreateSuccessor out.";
         // LOG(INFO) << "adaptive step size;";
       }
@@ -509,7 +507,7 @@ namespace HybridAStar
 
       for (const auto &element : available_steering_angle_vec)
       {
-        pair.first = configuration_space_ptr_->FindStepSize(pred, element, goal_, params_.step_size);
+        pair.first = configuration_space_ptr_->FindStepSize(pred, element, goal_, resolution_);
         pair.second = element;
         available_steering_angle_and_step_size_vec.emplace_back(pair);
       }
@@ -522,13 +520,13 @@ namespace HybridAStar
       std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
       std::pair<float, float> pair;
 
-      if (params_.step_size > distance_to_goal)
+      if (resolution_ > distance_to_goal)
       {
         pair.first = distance_to_goal;
       }
       else
       {
-        pair.first = params_.step_size;
+        pair.first = resolution_;
       }
 
       for (const auto &element : available_steering_angle_vec)

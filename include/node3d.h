@@ -62,18 +62,13 @@ class Node3D {
    void setCostToGo(const float &h) { this->h = h; }
    void setMapCost(unsigned int C) { map_cost_ = C; }
    /// set and get the index of the node in the 3D grid
-   int setIdx(int width, int height, const float &delta_heading_in_rad)
+   int setIdx(int width, int height, const float &delta_heading_in_rad, const float &resolution, int origin_x, int origin_y)
    {
-     this->idx = (int)(t / delta_heading_in_rad) * width * height + (int)(y)*width + (int)(x);
+     this->idx = (int)(t / delta_heading_in_rad) * width * height + (int)((y - origin_y) / resolution * width) + (int)((x - origin_x) / resolution);
      // 292080 this number is the length in planner.cpp row 260
-     DLOG_IF(INFO, idx > 292080) << "x is " << x << " y is " << y << " t is " << t << " (int)(t / delta_heading_in_rad) * width * height " << (int)(t / delta_heading_in_rad) * width * height << " (int)(y)*width " << (int)(y)*width << " (int)(x) " << (int)(x);
+     //  DLOG_IF(INFO, idx > 292080) << "x is " << x << " y is " << y << " t is " << t << " (int)(t / delta_heading_in_rad) * width * height " << (int)(t / delta_heading_in_rad) * width * height << " (int)(y)*width " << (int)(y)*width << " (int)(x) " << (int)(x);
      return idx;
    }
-   int getIdx(int width, int depth, float resolution, unsigned int dx, unsigned int dy)
-   {
-     this->idx = (int(x / resolution + dx) * width + int(y / resolution + dy)) * depth + t;
-     return idx;
-   } // 这里的resolution变动了
      /// open the node
    void setOpenSet()
    {

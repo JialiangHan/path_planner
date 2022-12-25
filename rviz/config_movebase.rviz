@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /Global Options1
+        - /Grid1
       Splitter Ratio: 0.5
     Tree Height: 719
   - Class: rviz/Selection
@@ -33,7 +34,7 @@ Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.5
-      Cell Size: 1
+      Cell Size: 2
       Class: rviz/Grid
       Color: 160; 160; 164
       Enabled: true
@@ -229,10 +230,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 15.856182098388672
+      Scale: 6.911057949066162
       Target Frame: <Fixed Frame>
-      X: 39.805267333984375
-      Y: 25.62113380432129
+      X: 79.01888275146484
+      Y: 52.72650909423828
     Saved: ~
 Window Geometry:
   Displays:

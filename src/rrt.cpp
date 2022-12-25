@@ -18,6 +18,7 @@ namespace RRTPlanner
         configuration_space_ptr_->UpdateGrid(map);
         map_width_ = configuration_space_ptr_->GetMap()->info.width;
         map_height_ = configuration_space_ptr_->GetMap()->info.height;
+        resolution_ = configuration_space_ptr_->GetMap()->info.resolution;
         // DLOG(INFO) << "hybrid a star initialized done.   ";
     }
 
@@ -397,8 +398,8 @@ namespace RRTPlanner
         float steering_angle = FindSteeringAngle(closest_node, direction_node);
         float step_size = FindStepSize(closest_node, steering_angle, direction_node);
 
-        // DLOG_IF(INFO, (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < Utility::ConvertDegToRad(-30)) || (step_size < params_.step_size)) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
-        // DLOG_IF(INFO, (step_size < params_.step_size)) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+        // DLOG_IF(INFO, (steering_angle > Utility::ConvertDegToRad(30)) || (steering_angle < Utility::ConvertDegToRad(-30)) || (step_size < resolution_)) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
+        // DLOG_IF(INFO, (step_size < resolution_)) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
 
         DLOG(INFO) << "step size is " << step_size << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
         return std::make_pair(step_size, steering_angle);
@@ -418,11 +419,11 @@ namespace RRTPlanner
             // DLOG(INFO) << "expand like AEB_RRT";
             if (Utility::GetDistance(target, goal_) < 0.1 || Utility::GetDistance(target, start_) < 0.1)
             {
-                step_size = 2 * params_.step_size;
+                step_size = 2 * resolution_;
             }
             else
             {
-                step_size = params_.step_size;
+                step_size = resolution_;
             }
         }
         else
@@ -447,13 +448,13 @@ namespace RRTPlanner
             DLOG_IF(INFO, available_step_size_obstacle == 0) << "available_step_size_obstacle is " << available_step_size_obstacle << " vehicle length is " << params_.collision_detection_params.vehicle_length << " step_size_obstacle is " << step_size_obstacle;
             // original step size is purely determined by obstacle density.
             step_size = FindOriginalStepSize(closest_node, distance_to_goal, available_step_size_obstacle);
-            if (available_step_size_obstacle > params_.step_size)
+            if (available_step_size_obstacle > resolution_)
             {
-                DLOG_IF(INFO, step_size < params_.step_size) << "step_size is " << step_size << " available step size obstacle is " << available_step_size_obstacle;
-                if (step_size < params_.step_size)
+                DLOG_IF(INFO, step_size < resolution_) << "step_size is " << step_size << " available step size obstacle is " << available_step_size_obstacle;
+                if (step_size < resolution_)
                 {
-                    step_size = params_.step_size;
-                    DLOG(INFO) << "step size (" << step_size << ") is smaller than  predefined min distance, make it to available step size: " << params_.step_size << " !!";
+                    step_size = resolution_;
+                    DLOG(INFO) << "step size (" << step_size << ") is smaller than  predefined min distance, make it to available step size: " << resolution_ << " !!";
                 }
             }
             else
@@ -470,7 +471,7 @@ namespace RRTPlanner
             step_size = distance_to_goal;
         }
         // DLOG(INFO) << "FindStepSize: step size is " << step_size;
-        DLOG_IF(INFO, step_size < params_.step_size) << "step size is " << step_size;
+        DLOG_IF(INFO, step_size < resolution_) << "step size is " << step_size;
         return step_size;
     }
 
@@ -714,12 +715,12 @@ namespace RRTPlanner
             step_size = weight_step_size * available_step_size_obstacle;
             DLOG_IF(INFO, step_size == 0) << "step_size is " << step_size << " weight is " << weight_step_size << " available step size obstacle is " << available_step_size_obstacle;
             // DLOG(INFO) << "available_step_size_obstacle is " << available_step_size_obstacle;
-            // DLOG_IF(INFO, step_size < params_.step_size) << "step_size is " << step_size << " weight is " << weight_step_size << " available step size obstacle is " << available_step_size_obstacle;
+            // DLOG_IF(INFO, step_size < resolution_) << "step_size is " << step_size << " weight is " << weight_step_size << " available step size obstacle is " << available_step_size_obstacle;
             // DLOG(INFO) << "step_size is " << step_size << " distance weight is" << distance_to_goal / distance_start_to_goal << " weight is " << weight_step_size << " available step size obstacle is " << available_step_size_obstacle;
         }
         else if (params_.number_of_step_size == 1)
         {
-            step_size = params_.step_size;
+            step_size = resolution_;
         }
         // for other discrete step size, divide obstacle density into number of step_size ranges, and make max step size the obstacle detection range
         else
@@ -736,7 +737,7 @@ namespace RRTPlanner
             // DLOG(INFO) << "obstacle density is:" << obstacle_density << " coefficient is " << coefficient;
             // use obstacle detection range/ number of step size is not a good idea
             //  float basic_step_size = obstacle_detection_range / params_.number_of_step_size;
-            float basic_step_size = params_.step_size;
+            float basic_step_size = resolution_;
             step_size = coefficient * basic_step_size;
         }
         // make sure max step size is  obstacle detection range
@@ -745,7 +746,7 @@ namespace RRTPlanner
             step_size = obstacle_detection_range;
         }
         // DLOG(INFO) << "FindOriginalStepSize: step size is " << step_size;
-        DLOG_IF(INFO, step_size < params_.step_size) << "step size is " << step_size;
+        DLOG_IF(INFO, step_size < resolution_) << "step size is " << step_size;
         return step_size;
     }
 
@@ -988,7 +989,7 @@ namespace RRTPlanner
             // DLOG(INFO) << "Trapped.";
         }
         // DLOG(INFO) << "status is " << status_and_node.first << " closest node is " << closest_node.getX() << " " << closest_node.getY() << " " << Utility::ConvertRadToDeg(closest_node.getT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.getX() << " " << successor.getY() << " " << Utility::ConvertRadToDeg(successor.getT());
-        // DLOG_IF(INFO, (step_size_steering_angle_pair.second > Utility::ConvertDegToRad(30)) || (step_size_steering_angle_pair.second < Utility::ConvertDegToRad(-30)) || (step_size_steering_angle_pair.first < params_.step_size)) << "closest node is " << closest_node.getX() << " " << closest_node.getY() << " " << Utility::ConvertRadToDeg(closest_node.getT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.getX() << " " << successor.getY() << " " << Utility::ConvertRadToDeg(successor.getT());
+        // DLOG_IF(INFO, (step_size_steering_angle_pair.second > Utility::ConvertDegToRad(30)) || (step_size_steering_angle_pair.second < Utility::ConvertDegToRad(-30)) || (step_size_steering_angle_pair.first < resolution_)) << "closest node is " << closest_node.getX() << " " << closest_node.getY() << " " << Utility::ConvertRadToDeg(closest_node.getT()) << " step size is " << step_size_steering_angle_pair.first << " steering angle is " << Utility::ConvertRadToDeg(step_size_steering_angle_pair.second) << " successor is " << successor.getX() << " " << successor.getY() << " " << Utility::ConvertRadToDeg(successor.getT());
         // DLOG_IF(INFO, status_and_node.first == Status::Trapped) << "status is in collision or step size is zero.";
         // DLOG_IF(INFO, status_and_node.first == Status::Reached) << "status is reached, target node reached.";
         // DLOG_IF(INFO, status_and_node.first == Status::Advanced) << "status is advanced, not reached and not in collision.";

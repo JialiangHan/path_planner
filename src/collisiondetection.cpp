@@ -2,6 +2,17 @@
 
 using namespace HybridAStar;
 //**********************constructor*******************
+CollisionDetection::CollisionDetection(const ParameterCollisionDetection &params, costmap_2d::Costmap2D *_costmap)
+{
+  // DLOG(INFO) << "in CollisionDetection";
+  params_ = params;
+  this->grid_ptr_ = nullptr;
+  Lookup::collisionLookup(collisionLookup);
+  resolution_ = _costmap->getResolution();
+  origin_y_ = _costmap->getOriginY();
+  origin_x_ = _costmap->getOriginX();
+}
+
 CollisionDetection::CollisionDetection(const ParameterCollisionDetection &params)
 {
   // DLOG(INFO) << "in CollisionDetection";
@@ -153,14 +164,15 @@ bool CollisionDetection::IsOnGrid(const std::shared_ptr<Node3D> &node3d_ptr) con
 
 bool CollisionDetection::IsOnGrid(const float &x, const float &y) const
 {
-  if (x >= 0 && x < (int)grid_ptr_->info.width &&
-      y >= 0 && y < (int)grid_ptr_->info.height)
+  // unit of x and y is meter, but width and height are in cells.
+  if (x >= origin_x_ && x < grid_ptr_->info.width * resolution_ &&
+      y >= origin_y_ && y < grid_ptr_->info.height * resolution_)
   {
     return true;
   }
   else
   {
-    // DLOG(WARNING) << "WARNING: current node " << x << " " << y << " is not on grid!!!";
+    LOG(WARNING) << "WARNING: current node " << x << " " << y << " is not on grid!!!";
     return false;
   }
 }
@@ -198,7 +210,7 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
     collision_result = CollisionCheck(polygon);
     if (!collision_result)
     {
-      DLOG_IF(INFO, (x > 35) && (x < 37) && (y > 12) && (y < 14)) << "configurationTest in: current node is x " << x << " y " << y << " angle is " << Utility::ConvertRadToDeg(t);
+      // DLOG_IF(INFO, (x > 35) && (x < 37) && (y > 12) && (y < 14)) << "configurationTest in: current node is x " << x << " y " << y << " angle is " << Utility::ConvertRadToDeg(t);
     }
     return collision_result;
   }
@@ -255,13 +267,14 @@ void CollisionDetection::SetObstacleVec()
 {
   // DLOG(INFO) << "SetObstacleVec in:";
   Utility::Polygon current_polygon;
-  for (uint x = 0; x < grid_ptr_->info.width; ++x)
+  for (int x = origin_x_; x < grid_ptr_->info.width * resolution_;)
   {
-    for (uint y = 0; y < grid_ptr_->info.height; ++y)
+    for (int y = origin_y_; y < grid_ptr_->info.height * resolution_;)
     {
       if (grid_ptr_->data[GetNode3DIndexOnGridMap(x, y)])
       {
-        current_polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y));
+        // polygon is a width=height=resolution rectangle
+        current_polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), resolution_, resolution_);
         if (obstacle_vec_.size() != 0)
         {
           if (Utility::IsPolygonInNeighbor(obstacle_vec_.back(), current_polygon))
@@ -282,7 +295,9 @@ void CollisionDetection::SetObstacleVec()
 
         // DLOG(INFO) << "obstacle origin is " << x << " " << y;
       }
+      y = y + resolution_;
     }
+    x = x + resolution_;
   }
   if (params_.map_boundary_obstacle)
   {
@@ -299,9 +314,9 @@ void CollisionDetection::SetInRangeObstacle(const float &range)
 {
   std::vector<Utility::Polygon> obstacle_vec;
 
-  for (uint x = 0; x < grid_ptr_->info.width; ++x)
+  for (int x = origin_x_; x < grid_ptr_->info.width * resolution_;)
   {
-    for (uint y = 0; y < grid_ptr_->info.height; ++y)
+    for (int y = origin_y_; y < grid_ptr_->info.height * resolution_;)
     {
       uint current_point_index = GetNode3DIndexOnGridMap(x, y);
       Eigen::Vector2f current_point(x, y);
@@ -309,7 +324,6 @@ void CollisionDetection::SetInRangeObstacle(const float &range)
       for (const auto &polygon : obstacle_vec_)
       {
         float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
-
         if (distance < range)
         {
           obstacle_vec.emplace_back(polygon);
@@ -317,7 +331,9 @@ void CollisionDetection::SetInRangeObstacle(const float &range)
         }
       }
       in_range_obstacle_map_.emplace(current_point_index, obstacle_vec);
+      y = y + resolution_;
     }
+    x = x + resolution_;
   }
 }
 // checked,it`s correct.
@@ -331,7 +347,7 @@ uint CollisionDetection::GetNode3DIndexOnGridMap(const float &x, const float &y)
 {
   // DLOG(INFO) << "coordinate is " << x << " " << y << " "
   //  << " final index is " << (uint)y * grid_ptr_->info.width + (uint)x;
-  return (uint)y * grid_ptr_->info.width + (uint)x;
+  return (int)((y - origin_y_) / resolution_) * grid_ptr_->info.width + (int)((x - origin_x_) / resolution_);
 }
 // checked, it`s correct.
 Utility::AngleRange CollisionDetection::GetNode3DAvailableSteeringAngleRange(const Node3D &node3d)
@@ -355,9 +371,9 @@ void CollisionDetection::SetDistanceAngleRangeMap()
   // DLOG(INFO) << "SetDistanceAngleRangeMap in:";
   std::vector<std::pair<float, Utility::AngleRange>> distance_angle_range_vec;
   Node3D node_3d;
-  for (uint x = 0; x < grid_ptr_->info.width; ++x)
+  for (int x = origin_x_; x < grid_ptr_->info.width * resolution_;)
   {
-    for (uint y = 0; y < grid_ptr_->info.height; ++y)
+    for (int y = origin_y_; y < grid_ptr_->info.height * resolution_;)
     {
       // DLOG(INFO) << "current node is " << x << " " << y;
       distance_angle_range_vec.clear();
@@ -477,7 +493,9 @@ void CollisionDetection::SetDistanceAngleRangeMap()
       }
       distance_angle_range_map_.emplace(current_point_index, distance_angle_range_vec);
       DLOG_IF(WARNING, distance_angle_range_vec.size() == 0) << "WARNING: size of distance angle range vec is zero!!!!";
+      y = y + resolution_;
     }
+    x = x + resolution_;
   }
   // DLOG(INFO) << "SetDistanceAngleRangeMap out.";
 }
@@ -492,21 +510,18 @@ void CollisionDetection::BuildCollisionLookupTable()
   int x_count, y_count;
   bool collision_result;
   std::unordered_map<uint, bool> collision_result_map;
-  float x = 0, y = 0, theta = 0;
+  float x = origin_x_, y = origin_y_, theta = 0;
 
   const float delta_heading_in_rad = 2 * M_PI / (float)params_.headings;
-  while (x < grid_ptr_->info.width)
+  while (x < grid_ptr_->info.width * resolution_)
   {
-    y = 0;
-    // theta = 0;
-    while (y < grid_ptr_->info.height)
+    y = origin_y_;
+    while (y < grid_ptr_->info.height * resolution_)
     {
-      // theta = 0;
       index = GetNode3DIndexOnGridMap(x, y);
       x_count = 0;
       while (x_count < params_.position_resolution)
       {
-        // theta = 0;
         y_count = 0;
         while (y_count < params_.position_resolution)
         {
@@ -517,10 +532,10 @@ void CollisionDetection::BuildCollisionLookupTable()
             // DLOG(INFO) << "current index is " << index << " , fine index is " << fine_index << " coordinate is " << x << " " << y << " " << theta;
             // 1. create polygon accord to its coordinate(x,y), then rotate according to heading angle t.
             //  case: some certain case this polygon is outside map
-            if ((x <= params_.vehicle_length / 2 && y <= params_.vehicle_width / 2) ||
-                (x >= grid_ptr_->info.width - params_.vehicle_length / 2 && y <= params_.vehicle_width / 2) ||
-                (x <= params_.vehicle_length / 2 && y >= grid_ptr_->info.height - params_.vehicle_width / 2) ||
-                (x >= grid_ptr_->info.width - params_.vehicle_length / 2 && y >= grid_ptr_->info.height - params_.vehicle_width / 2))
+            if (((x - origin_x_) <= params_.vehicle_length / 2 && (y - origin_y_) <= params_.vehicle_width / 2) ||
+                (x >= (grid_ptr_->info.width * resolution_ - params_.vehicle_length / 2) && (y - origin_y_) <= params_.vehicle_width / 2) ||
+                ((x - origin_x_) <= params_.vehicle_length / 2 && y >= (grid_ptr_->info.height * resolution_ - params_.vehicle_width / 2)) ||
+                (x >= (grid_ptr_->info.width * resolution_ - params_.vehicle_length / 2) && y >= (grid_ptr_->info.height * resolution_ - params_.vehicle_width / 2)))
             {
               DLOG(INFO) << "vehicle is outside map";
               collision_result = false;
@@ -539,19 +554,19 @@ void CollisionDetection::BuildCollisionLookupTable()
             // DLOG(INFO) << "collision result is " << collision_result;
             theta += delta_heading_in_rad;
           }
-          y += 1.0f / params_.position_resolution;
+          y += (1.0f / params_.position_resolution) * resolution_;
           y_count++;
         }
-        y--;
+        y = y - resolution_;
         x_count++;
-        x += 1.0f / params_.position_resolution;
+        x += (1.0f / params_.position_resolution) * resolution_;
       }
-      x--;
+      x = x - resolution_;
 
       collision_lookup_.emplace(index, collision_result_map);
-      y++;
+      y = y + resolution_;
     }
-    x++;
+    x = x + resolution_;
   }
   // DLOG(INFO) << "BuildCollisionLookupTable done.";
 }
@@ -602,7 +617,6 @@ bool CollisionDetection::CollisionCheck(const Utility::Polygon &polygon)
 bool CollisionDetection::CollisionCheck(const Eigen::Vector2f &start, const Eigen::Vector2f &end)
 {
   // DLOG(INFO) << "CollisionCheck in.";
-
   if (!IsOnGrid(start) || !IsOnGrid(end))
   {
     // DLOG(INFO) << "start or end is not on grid";
@@ -668,8 +682,8 @@ uint CollisionDetection::CalculateFineIndex(const float &x, const float &y, cons
   {
     angle = t;
   }
-  x_int = (uint)x;
-  y_int = (uint)y;
+  x_int = ((int)(x / resolution_)) * resolution_;
+  y_int = ((int)(y / resolution_)) * resolution_;
   t_index = (uint)(angle / delta_heading_in_rad);
   x_index = (x - x_int) * params_.position_resolution;
   y_index = (y - y_int) * params_.position_resolution;
@@ -1005,9 +1019,9 @@ void CollisionDetection::BuildObstacleDensityMap(const float &range)
   std::vector<Utility::Polygon> obstacle_vec;
   // this angle is the max steering angle for vehicle, unit is deg.
   float max_steering_angle = 30;
-  for (uint x = 0; x < grid_ptr_->info.width; ++x)
+  for (int x = origin_x_; x < grid_ptr_->info.width * resolution_;)
   {
-    for (uint y = 0; y < grid_ptr_->info.height; ++y)
+    for (int y = origin_y_; y < grid_ptr_->info.height * resolution_;)
     {
       // definition of obstacle density:currently obstacle density is the number of obstacle in radius(parameter range), do not consider current orientation, note: index is not fine index for this case
       if (!params_.consider_steering_angle_range_for_obstacle_density)
@@ -1080,7 +1094,9 @@ void CollisionDetection::BuildObstacleDensityMap(const float &range)
           number_of_obstacles = 0;
         }
       }
+      y = y + resolution_;
     }
+    x = x + resolution_;
   }
   // DLOG(INFO) << "BuildObstacleDensityMap out.";
 }
@@ -1169,11 +1185,11 @@ uint CollisionDetection::Get3DIndexOnGridMap(const float &x, const float &y, con
   {
     angle = theta;
   }
-  x_int = (uint)x;
-  y_int = (uint)y;
+  x_int = (uint)(x - origin_x_) / resolution_;
+  y_int = (uint)(y - origin_y_) / resolution_;
   t_index = (uint)(angle / delta_heading_in_rad);
 
-  out = t_index * params_.headings * grid_ptr_->info.width + y_int * grid_ptr_->info.width + x_int;
+  out = t_index * grid_ptr_->info.width * grid_ptr_->info.height + y_int * grid_ptr_->info.width + x_int;
   // DLOG(INFO) << "coordinate is " << x << " " << y << " " << Utility::ConvertRadToDeg(theta) << " x_int is " << x_int << " y_int is " << y_int << " t_index is " << t_index << " final index is " << out;
   return out;
 }

@@ -23,8 +23,7 @@ HybridAStar:
   curve_type : 0
     #  curve type in analytical expansion: 0 Dubins/RS curve, 1: cubic bezier
   curve_type_analytical_expansion: 1
-  # step size to create successor
-  step_size : 1
+
 
   adaptive_steering_angle_and_step_size: true
 
