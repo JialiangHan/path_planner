@@ -32,8 +32,6 @@ HybridAStar:
   constant_density: 0.6
 
   obstacle_detection_range: 4.5
-  # this parameter forces all step size larger than one
-  # make_step_size_larger_than_one: true
 
   add_one_more_successor : false
 
@@ -59,7 +57,7 @@ HybridAStar:
 
   #  COLLISION LOOKUP SPECIFIC
   # [#] --- The sqrt of the number of discrete positions per cell
-  position_resolution : 2
+  position_resolution : 1
   # **********************vehicle parameters*****************
   # [m] --- Uniformly adds a padding around the vehicle
   bloating : 0
@@ -94,8 +92,7 @@ HybridAStar:
 
   #  [m] --- The number of discretizations in heading
   headings : 72
-  #  [m] --- The cell size of the 2D grid of the world
-  cell_size : 1
+
 
   # **********************Smoother parameters*****************
   max_iterations : 100000

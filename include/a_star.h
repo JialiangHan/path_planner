@@ -24,19 +24,16 @@ namespace HybridAStar
     {
     public:
         AStar(std::string frame_id, costmap_2d::Costmap2D *_costmap, const ParameterAStar &params,
-              const std::shared_ptr<Visualize> &visualization_ptr)
+              const std::shared_ptr<Visualize> &visualization_ptr, const std::shared_ptr<CollisionDetection> &_configuration_space_ptr)
             : Expander(frame_id, _costmap)
         {
+            LOG(INFO) << "in Astar.";
             params_ = params;
-            configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params, _costmap));
+            configuration_space_ptr_ = _configuration_space_ptr;
             visualization_ptr_ = visualization_ptr;
             resolution_ = _costmap->getResolution();
             origin_y_ = _costmap->getOriginY();
             origin_x_ = _costmap->getOriginX();
-            nav_msgs::OccupancyGrid::Ptr map;
-            map.reset(new nav_msgs::OccupancyGrid());
-            Utility::TypeConversion(_costmap, frame_id, map);
-            configuration_space_ptr_->UpdateGrid(map);
         }
         AStar(const ParameterAStar &params,
               const std::shared_ptr<Visualize> &visualization_ptr) : Expander()

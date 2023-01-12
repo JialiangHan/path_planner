@@ -41,13 +41,6 @@ namespace HybridAStar
     float obstacle_detection_range = 5;
   };
 
-  //this struct contains some used parameters in visualize class
-  struct ParameterVisualize
-  {
-    /// [m] --- The cell size of the 2D grid of the world,used in planner.cpp
-    float cell_size = 1;
-  };
-
   struct ParameterRRTPlanner
   {
 
@@ -55,16 +48,14 @@ namespace HybridAStar
     ParameterCollisionDetection collision_detection_params;
     /// A flag for the visualization of 3D nodes (true = on; false = off)
     bool visualization = false;
-    /// A flag for the visualization of 2D nodes (true = on; false = off)
-    bool visualization2D = true;
+
     // max iterations for smoother
     int max_iterations = 10000;
     // probability to choose goal rather than a random node
     float possibility_to_goal = 0.5;
     // the small number which will terminate loop if path difference smaller than this number.
     float goal_range = 1e-3;
-    ///  --- The number of discretizations in heading,used in planner.cpp
-    int headings = 72;
+
     // parameter used in goal check, false means just consider coordinate not orientation
     bool consider_orientation = false;
     /// [m] --- The step size for the analytical solution (Dubin's shot) primarily relevant for collision checking
@@ -91,8 +82,7 @@ namespace HybridAStar
   // this struct contains some used parameters in path class
   struct ParameterPathPublisher
   {
-    /// [m] --- The cell size of the 2D grid of the world,used in planner.cpp
-    float cell_size = 1;
+
     // #********************** vehicle parameters *****************
 
     /// [m] --- Uniformly adds a padding around the vehicle
@@ -105,10 +95,6 @@ namespace HybridAStar
   // this struct contains some used parameter in planner.cpp
   struct ParameterPlanner
   {
-    /// A flag for the mode (true = manual; false = dynamic). Manual for  map or dynamic for dynamic map. used in planner.cpp
-    bool manual = true;
-    /// [m] --- The cell size of the 2D grid of the world,used in planner.cpp
-    float cell_size = 1;
     /// [m] --- The number of discretizations in heading,used in planner.cpp
     int headings = 72;
 
@@ -143,8 +129,6 @@ namespace HybridAStar
     // this parameter determine the frequency of analytical expansion, false means the way in the original paper
     bool analytical_expansion_every_point = true;
 
-    bool adaptive_steering_angle = false;
-
     bool analytical_expansion = true;
 
     /// [#] --- A movement cost penalty for turning (choosing non straight motion primitives)
@@ -157,8 +141,7 @@ namespace HybridAStar
     bool reverse = false;
     /// A flag for the visualization of 3D nodes (true = on; false = off)
     bool visualization = false;
-    /// A flag for the visualization of 2D nodes (true = on; false = off)
-    bool visualization2D = true;
+
     // max iterations for smoother
     int max_iterations = 10000;
     float steering_angle = 5;
@@ -176,8 +159,6 @@ namespace HybridAStar
     float curve_step_size = 1;
     /// maximum possible curvature of the non-holonomic vehicle
     float min_turning_radius = 6;
-    ///  --- The number of discretizations in heading,used in planner.cpp
-    int headings = 72;
 
     ParameterCollisionDetection collision_detection_params;
 
@@ -220,7 +201,6 @@ namespace HybridAStar
     ParameterPathPublisher path_publisher_params;
     ParameterSmoother smoother_params;
     ParameterPlanner planner_params;
-    ParameterVisualize visualize_params;
     ParameterCollisionDetection collision_detection_params;
     ParameterRRTPlanner rrt_planner_params;
     ParameterAStar a_star_planner_params;
@@ -275,7 +255,6 @@ namespace HybridAStar
     ParameterPathPublisher GetPathPublisherParams();
     ParameterPlanner GetPlannerParams();
     ParameterHybridAStar GetHybridAStarParams();
-    ParameterVisualize GetVisualizeParams();
     ParameterCollisionDetection GetCollisionDetectionParams();
     ParameterRRTPlanner GetRRTPlannerParams();
     ParameterAStar GetAStarPlannerParams();

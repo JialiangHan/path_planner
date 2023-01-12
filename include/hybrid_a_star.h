@@ -56,13 +56,13 @@ namespace HybridAStar
        * @brief  Default constructor for the HybridAStarPlanner object
        */
       HybridAStar(std::string frame_id, costmap_2d::Costmap2D *_costmap, const ParameterHybridAStar &params,
-                  const std::shared_ptr<Visualize> &visualization_ptr)
+                  const std::shared_ptr<Visualize> &visualization_ptr, const std::shared_ptr<CollisionDetection> &_configuration_space_ptr)
           : Expander(frame_id, _costmap)
       {
-         DLOG(INFO) << "constructing HybridAStar.";
+         LOG(INFO) << "constructing HybridAStar.";
          params_ = params;
          lookup_table_ptr_.reset(new LookupTable(params_.collision_detection_params));
-         configuration_space_ptr_.reset(new CollisionDetection(params_.collision_detection_params, _costmap));
+         configuration_space_ptr_ = _configuration_space_ptr;
 
          resolution_ = costmap->getResolution();
          origin_y_ = costmap->getOriginY();
@@ -70,8 +70,7 @@ namespace HybridAStar
 
          visualization_ptr_ = visualization_ptr;
 
-         a_star_ptr_.reset(new AStar(frame_id, _costmap, params_.a_star_params,
-                                     visualization_ptr_));
+         a_star_ptr_.reset(new AStar(frame_id, _costmap, params_.a_star_params, visualization_ptr_, _configuration_space_ptr));
 
          nav_msgs::OccupancyGrid::Ptr map;
          map.reset(new nav_msgs::OccupancyGrid());

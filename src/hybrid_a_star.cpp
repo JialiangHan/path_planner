@@ -20,18 +20,18 @@ namespace HybridAStar
   void HybridAStar::Initialize(nav_msgs::OccupancyGrid::Ptr map)
   {
     // update the configuration space with the current map
-    //  DLOG(INFO) << "hybrid a star initializing";
-    configuration_space_ptr_->UpdateGrid(map);
+    LOG(INFO) << "hybrid a star initializing";
+    // configuration_space_ptr_->UpdateGrid(map);
     map_width_ = configuration_space_ptr_->GetMap()->info.width;
     map_height_ = configuration_space_ptr_->GetMap()->info.height;
     lookup_table_ptr_->Initialize(map_width_, map_height_);
 
-    nav_msgs::OccupancyGrid::Ptr a_star_map = TreatAstarMap(map);
-    a_star_ptr_->Initialize(a_star_map);
+    // nav_msgs::OccupancyGrid::Ptr a_star_map = TreatAstarMap(map);
+    // a_star_ptr_->Initialize(a_star_map);
 
     // LOG_IF(INFO, params_.adaptive_steering_angle_and_step_size) << "adaptive_steering_angle_and_step_size";
     // LOG_IF(INFO, !params_.adaptive_steering_angle_and_step_size) << "use fixed step size";
-    // DLOG(INFO) << "hybrid a star initialized done.   ";
+    LOG(INFO) << "hybrid a star initialized done.   ";
   }
 
   //###################################################
@@ -66,7 +66,7 @@ namespace HybridAStar
     std::shared_ptr<Node3D> start_ptr = std::make_shared<Node3D>(start);
     openlist.push(start_ptr);
 
-    iPred = start.setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings, resolution_, origin_x_, origin_y_);
+    iPred = start.setIdx(map_width_, map_height_, (float)2 * M_PI / params_.collision_detection_params.headings, resolution_, origin_x_, origin_y_);
     nodes3D[iPred] = start;
     // NODE POINTER
     std::shared_ptr<Node3D> nPred;
@@ -79,7 +79,7 @@ namespace HybridAStar
       nPred = openlist.top();
       number_nodes_explored++;
       // set index
-      iPred = nPred->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings, resolution_, origin_x_, origin_y_);
+      iPred = nPred->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.collision_detection_params.headings, resolution_, origin_x_, origin_y_);
       iterations++;
 
       // RViz visualization
@@ -118,7 +118,7 @@ namespace HybridAStar
           TracePath(nPred);
           return path_;
         }
-        else if (Utility::IsCloseEnough(*nPred, goal, params_.goal_range, 2 * M_PI / params_.headings, true))
+        else if (Utility::IsCloseEnough(*nPred, goal, params_.goal_range, 2 * M_PI / params_.collision_detection_params.headings, true))
         {
           // DLOG(INFO) << "current node is " << nPred->getX() << " " << nPred->getY() << " " << Utility::ConvertRadToDeg(nPred->getT());
           // DLOG(INFO) << "goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT());
@@ -208,7 +208,7 @@ namespace HybridAStar
             // create possible successor
             nSucc = node;
             // set index of the successor
-            iSucc = nSucc->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.headings, resolution_, origin_x_, origin_y_);
+            iSucc = nSucc->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.collision_detection_params.headings, resolution_, origin_x_, origin_y_);
             // ensure successor is on grid and traversable
             if (configuration_space_ptr_->IsTraversable(*nSucc))
             {
@@ -939,7 +939,7 @@ namespace HybridAStar
     Utility::TypeConversion(start, start_);
     Utility::TypeConversion(goal, goal_);
     Node2D *nodes2D = new Node2D[cellsX * cellsY]();
-    Node3D *nodes3D = new Node3D[cellsX * cellsY * params_.headings + cellsY * cellsX + cellsX]();
+    Node3D *nodes3D = new Node3D[cellsX * cellsY * params_.collision_detection_params.headings + cellsY * cellsX + cellsX]();
     Utility::Path3D path3d = GetPath(start_, goal_, nodes3D, nodes2D);
     Utility::TypeConversion(path3d, plan);
     if (plan.size() != 0)

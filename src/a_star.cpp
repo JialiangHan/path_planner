@@ -6,9 +6,9 @@ namespace HybridAStar
     void AStar::Initialize(nav_msgs::OccupancyGrid::Ptr map)
     {
         // update the configuration space with the current map
-        //  DLOG(INFO) << "hybrid a star initializing";
+        LOG(INFO) << "a star initializing";
         configuration_space_ptr_->UpdateGrid(map);
-        // DLOG(INFO) << "hybrid a star initialized done.   ";
+        LOG(INFO) << " a star initialized done.   ";
     }
     struct CompareNodes
     {

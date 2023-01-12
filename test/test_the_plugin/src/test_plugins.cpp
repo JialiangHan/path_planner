@@ -74,7 +74,7 @@ void TestPlanner::setgoal(const geometry_msgs::PoseStamped::ConstPtr &_goal)
     goal_pose.header = _goal->header;
     transformStartPose();
     costmap->start();
-    if (true)
+    if (false)
     {
         tf::Quaternion pose_quat = tf::createQuaternionFromYaw(0);
         // note: unit for pose is meter
@@ -107,8 +107,8 @@ bool TestPlanner::transformStartPose(void)
         std::cerr << e.what() << '\n';
         return false;
     }
-    start_pose.pose.position.x = start_transform.transform.translation.x + 2;
-    start_pose.pose.position.y = start_transform.transform.translation.y + 2;
+    start_pose.pose.position.x = start_transform.transform.translation.x;
+    start_pose.pose.position.y = start_transform.transform.translation.y;
     start_pose.pose.position.z = start_transform.transform.translation.z;
     start_pose.pose.orientation.w = start_transform.transform.rotation.w;
     start_pose.pose.orientation.x = start_transform.transform.rotation.x;

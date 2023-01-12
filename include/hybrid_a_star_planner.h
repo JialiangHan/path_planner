@@ -88,6 +88,8 @@ namespace HybridAStar
         ParameterManager params_;
         std::shared_ptr<Visualize> visualization_ptr_;
 
+                std::shared_ptr<CollisionDetection> configuration_space_ptr_;
+
         Expander *_planner;
     };
 };

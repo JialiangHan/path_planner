@@ -32,13 +32,8 @@ namespace HybridAStar
     ros_param_name = "max_iterations";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.max_iterations);
 
-    ros_param_name = "visualization2D";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.visualization2D);
     ros_param_name = "goal_range";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.goal_range);
-
-    ros_param_name = "headings";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.headings);
 
     ros_param_name = "possibility_to_goal";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->rrt_planner_params.possibility_to_goal);
@@ -179,12 +174,6 @@ namespace HybridAStar
     ros_param_name = "headings";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.headings);
 
-    ros_param_name = "cell_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.cell_size);
-
-    ros_param_name = "manual";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.manual);
-
     ros_param_name = "use_rrt";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->planner_params.use_rrt);
 
@@ -215,9 +204,6 @@ namespace HybridAStar
     ros_param_name = "adaptive_steering_angle_and_step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_steering_angle_and_step_size);
 
-    ros_param_name = "adaptive_steering_angle";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_steering_angle);
-
     ros_param_name = "analytical_expansion_every_point";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.analytical_expansion_every_point);
 
@@ -241,8 +227,7 @@ namespace HybridAStar
 
     ros_param_name = "tie_breaker";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.tie_breaker);
-    ros_param_name = "visualization2D";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.visualization2D);
+
     ros_param_name = "goal_range";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.goal_range);
 
@@ -250,9 +235,6 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.curve_step_size);
     ros_param_name = "min_turning_radius";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.min_turning_radius);
-
-    ros_param_name = "headings";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.headings);
 
     LoadCollisionDetectionParams();
 
@@ -265,9 +247,6 @@ namespace HybridAStar
   {
     std::string ros_param_name;
     std::string node_prefix = "/move_base/HybridAStar/";
-
-    ros_param_name = "cell_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_publisher_params.cell_size);
 
     ros_param_name = "bloating";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->path_publisher_params.bloating);
@@ -283,9 +262,6 @@ namespace HybridAStar
   {
     std::string ros_param_name;
     std::string node_prefix = "/move_base/HybridAStar/";
-
-    ros_param_name = "cell_size";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->visualize_params.cell_size);
   }
 
   void ParameterManager::LoadAStarPlannerParams()
@@ -332,11 +308,6 @@ namespace HybridAStar
   ParameterPathPublisher ParameterManager::GetPathPublisherParams()
   {
     return param_container_ptr_->path_publisher_params;
-  }
-
-  ParameterVisualize ParameterManager::GetVisualizeParams()
-  {
-    return param_container_ptr_->visualize_params;
   }
 
   ParameterCollisionDetection ParameterManager::GetCollisionDetectionParams()

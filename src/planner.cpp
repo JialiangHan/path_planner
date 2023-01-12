@@ -15,7 +15,7 @@ Planner::Planner()
   path_publisher_ptr_.reset(new PathPublisher(param_manager_->GetPathPublisherParams()));
   smoothed_path_publisher_ptr_.reset(new PathPublisher(param_manager_->GetPathPublisherParams(), true));
 
-  visualization_ptr_.reset(new Visualize(param_manager_->GetVisualizeParams()));
+  visualization_ptr_.reset(new Visualize());
 
   if (params_.use_rrt)
   {
@@ -37,14 +37,8 @@ Planner::Planner()
 
   // ___________________
   // TOPICS TO SUBSCRIBE
-  if (params_.manual)
-  {
+
     sub_map_ = nh_.subscribe("/map", 1, &Planner::SetMap, this);
-  }
-  else
-  {
-    sub_map_ = nh_.subscribe("/occ_map", 1, &Planner::SetMap, this);
-  }
 
   sub_goal_ = nh_.subscribe("/move_base_simple/goal", 1, &Planner::SetGoal, this);
   sub_start_ = nh_.subscribe("/initialpose", 1, &Planner::SetStart, this);
@@ -98,31 +92,7 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
   DLOG(INFO) << "created Voronoi Diagram in ms: " << d * 1000;
   }
 
-  // plan if the switch is not set to manual and a transform is available
-  if (!params_.manual && listener_.canTransform("/map", ros::Time(0), "/base_link", ros::Time(0), "/map", nullptr))
-  {
-
-    listener_.lookupTransform("/map", "/base_link", ros::Time(0), transform_);
-
-    // assign the values to start from base_link
-    start_.pose.pose.position.x = transform_.getOrigin().x();
-    start_.pose.pose.position.y = transform_.getOrigin().y();
-    tf::quaternionTFToMsg(transform_.getRotation(), start_.pose.pose.orientation);
-
-    if (grid_->info.height >= start_.pose.pose.position.y && start_.pose.pose.position.y >= 0 &&
-        grid_->info.width >= start_.pose.pose.position.x && start_.pose.pose.position.x >= 0)
-    {
-      // set the start as valid and plan
-      valid_start_ = true;
-    }
-    else
-    {
-      valid_start_ = false;
-    }
-
-    MakePlan();
-  }
-  if (params_.fix_start_goal)
+    if (params_.fix_start_goal)
   {
     DLOG(INFO) << "in set map, start to make plan.";
     MakePlan();
@@ -134,8 +104,8 @@ void Planner::SetMap(const nav_msgs::OccupancyGrid::Ptr map)
 //###################################################
 void Planner::SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr &initial)
 {
-  float x = initial->pose.pose.position.x / params_.cell_size;
-  float y = initial->pose.pose.position.y / params_.cell_size;
+  float x = initial->pose.pose.position.x;
+  float y = initial->pose.pose.position.y;
   float t = tf::getYaw(initial->pose.pose.orientation);
   // publish the start without covariance for rviz
   geometry_msgs::PoseStamped startN;
@@ -151,11 +121,8 @@ void Planner::SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr 
     valid_start_ = true;
     start_ = *initial;
 
-    if (params_.manual)
-    {
-      DLOG(INFO) << "in SetStart, start to make plan.";
-      MakePlan();
-    }
+    DLOG(INFO) << "in SetStart, start to make plan.";
+    MakePlan();
 
     // publish start for RViz
     pub_start_.publish(startN);
@@ -172,8 +139,8 @@ void Planner::SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr 
 void Planner::SetGoal(const geometry_msgs::PoseStamped::ConstPtr &end)
 {
   // retrieving goal position
-  float x = end->pose.position.x / params_.cell_size;
-  float y = end->pose.position.y / params_.cell_size;
+  float x = end->pose.position.x;
+  float y = end->pose.position.y;
   float t = tf::getYaw(end->pose.orientation);
 
   DLOG(INFO) << "I am seeing a new goal x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t) << " deg";
@@ -183,11 +150,8 @@ void Planner::SetGoal(const geometry_msgs::PoseStamped::ConstPtr &end)
     valid_goal_ = true;
     goal_ = *end;
 
-    if (params_.manual)
-    {
-      DLOG(INFO) << "in SetGoal, start to make plan.";
-      MakePlan();
-    }
+    DLOG(INFO) << "in SetGoal, start to make plan.";
+    MakePlan();
   }
   else
   {
@@ -244,15 +208,15 @@ void Planner::MakePlan()
     }
     else
     {
-      x = start_.pose.pose.position.x / params_.cell_size;
-      y = start_.pose.pose.position.y / params_.cell_size;
+      x = start_.pose.pose.position.x;
+      y = start_.pose.pose.position.y;
       t = tf::getYaw(start_.pose.pose.orientation);
       nStart.setX(x);
       nStart.setY(y);
       nStart.setT(Utility::RadToZeroTo2P(t));
       // retrieving goal position
-      x = goal_.pose.position.x / params_.cell_size;
-      y = goal_.pose.position.y / params_.cell_size;
+      x = goal_.pose.position.x;
+      y = goal_.pose.position.y;
       t = tf::getYaw(goal_.pose.orientation);
       nGoal.setX(x);
       nGoal.setY(y);
@@ -364,19 +328,6 @@ void Planner::MakePlan(const geometry_msgs::PoseStamped &start, const geometry_m
   {
     Utility::TypeConversion(start, nStart);
     Utility::TypeConversion(goal, nGoal);
-    // x = start_.pose.pose.position.x / params_.cell_size;
-    // y = start_.pose.pose.position.y / params_.cell_size;
-    // t = tf::getYaw(start_.pose.pose.orientation);
-    // nStart.setX(x);
-    // nStart.setY(y);
-    // nStart.setT(t);
-    // // retrieving goal position
-    // x = goal_.pose.position.x / params_.cell_size;
-    // y = goal_.pose.position.y / params_.cell_size;
-    // t = tf::getYaw(goal_.pose.orientation);
-    // nGoal.setX(x);
-    // nGoal.setY(y);
-    // nGoal.setT(t);
   }
 
   std::srand(0);
@@ -444,6 +395,4 @@ void Planner::Publish(Node3D *nodes3D, Node2D *nodes2D, const int &width, const 
   smoothed_path_publisher_ptr_->PublishPath();
   smoothed_path_publisher_ptr_->PublishPathNodes();
   smoothed_path_publisher_ptr_->PublishPathVehicles();
-  visualization_ptr_->publishNode3DCosts(nodes3D, width, height, depth);
-  visualization_ptr_->publishNode2DCosts(nodes2D, width, height);
 }

@@ -20,11 +20,10 @@ class Visualize {
  public:
   // ___________
   // CONSTRUCTOR
-  /// The default constructor initializing the visualization object and setting publishers for the same.
-   Visualize(){};
-   Visualize(const ParameterVisualize &params)
+
+   Visualize()
    {
-     params_ = params;
+
      // _________________
      // TOPICS TO PUBLISH
      pubNode3D = n.advertise<geometry_msgs::PoseStamped>("/visualizeNodes3DPose", 100);
@@ -49,9 +48,6 @@ class Visualize {
    void publishNode3DPose(const Node3D &node);
    /// Publishes all expanded nodes to RViz
    void publishNode3DPoses(const Node3D &node);
-   // PUBLISH THE COST FOR A 3D NODE TO RViz
-   /// Publishes the minimum of the cost of all nodes in a 2D grid cell
-   void publishNode3DCosts(Node3D *nodes, int width, int height, int depth);
 
    // PUBLISH A SINGEL/ARRAY 2D NODE TO RViz
    /// Publishes a single node to RViz, usually the one currently being expanded
@@ -62,8 +58,7 @@ class Visualize {
    /// Publishes all expanded nodes to RViz
    void publishNode2DPoses(const Node3D &node);
    // PUBLISH THE COST FOR A 2D NODE TO RViz
-   /// Publishes the minimum of the cost of all nodes in a 2D grid cell
-   void publishNode2DCosts(Node2D *nodes, int width, int height);
+
    void publishSearchNodes(Node3D node, ros::Publisher &pub, visualization_msgs::MarkerArray &pathNodes, int i);
 
  private:
@@ -89,6 +84,5 @@ class Visualize {
   geometry_msgs::PoseArray poses3Dreverse;
   /// Array of poses describing 2D heuristic nodes
   visualization_msgs::MarkerArray poses2D;
-  ParameterVisualize params_;
 };
 }

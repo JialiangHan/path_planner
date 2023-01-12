@@ -120,7 +120,7 @@ namespace RRTPlanner
             }
 
             // DLOG(INFO) << "in for loop.";
-            if (Utility::IsCloseEnough(rrt[i], goal_, params_.goal_range, 2 * M_PI / params_.headings, consider_orientation))
+            if (Utility::IsCloseEnough(rrt[i], goal_, params_.goal_range, 2 * M_PI / params_.collision_detection_params.headings, consider_orientation))
             {
                 DLOG(INFO) << "Goal reached, index is: " << i;
                 index = i;
