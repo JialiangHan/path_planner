@@ -6,9 +6,10 @@ namespace HybridAStar
     void AStar::Initialize(nav_msgs::OccupancyGrid::Ptr map)
     {
         // update the configuration space with the current map
-        LOG(INFO) << "a star initializing";
+        // LOG(INFO) << "a star initializing";
         configuration_space_ptr_->UpdateGrid(map);
-        LOG(INFO) << " a star initialized done.   ";
+
+        // LOG(INFO) << " a star initialized done.   ";
     }
     struct CompareNodes
     {
@@ -31,7 +32,7 @@ namespace HybridAStar
     {
         start_ = start;
         goal_ = goal;
-        LOG(INFO) << "GetAStarCost in: start is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY();
+        // LOG(INFO) << "GetAStarCost in: start is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY();
         // PREDECESSOR AND SUCCESSOR INDEX
         int iPred, iSucc;
         float newG;
@@ -65,7 +66,7 @@ namespace HybridAStar
         {
             // pop node with lowest cost from priority queue
             nPred = openlist.top();
-            LOG(INFO) << "current node  is " << nPred->getX() << " " << nPred->getY();
+            // LOG(INFO) << "current node  is " << nPred->getX() << " " << nPred->getY();
             number_nodes_explored++;
             // set index
             iPred = nPred->setIdx(width, height, resolution_, origin_x_, origin_y_);
@@ -89,7 +90,7 @@ namespace HybridAStar
                 // RViz visualization_ptr_
                 if (visualization2D_ && !in_hybrid_a)
                 {
-                    // DLOG(INFO) << "in publishing";
+                    // LOG(INFO) << "in publishing";
                     visualization_ptr_->publishNode2DPoses((*nPred));
                     visualization_ptr_->publishNode2DPose((*nPred));
                     d.sleep();
@@ -98,7 +99,8 @@ namespace HybridAStar
                 openlist.pop();
                 // _________
                 // GOAL TEST
-                if (*nPred == goal_)
+
+                if (Utility::IsCloseEnough(*nPred, goal_, params_.goal_range))
                 {
                     // DLOG(INFO) << "goal reached, return cost so far.";
                     // DLOG(INFO) << "GetAStarCost out.";
@@ -108,19 +110,18 @@ namespace HybridAStar
                     }
 
                     TracePath(nPred);
-                    LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+                    // LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
                     return nPred->getCostSofar();
                 }
                 // ____________________
                 // CONTINUE WITH SEARCH
                 else
                 {
-                    // _______________________________
                     // CREATE POSSIBLE SUCCESSOR NODES
                     std::vector<std::shared_ptr<Node2D>> successor_vec = CreateSuccessor(*nPred, params_.possible_direction);
                     for (uint i = 0; i < successor_vec.size(); ++i)
                     {
-                        LOG(INFO) << "current successor is " << successor_vec[i]->getX() << " " << successor_vec[i]->getY();
+                        // LOG(INFO) << "current successor is " << successor_vec[i]->getX() << " " << successor_vec[i]->getY();
                         // create possible successor
                         nSucc = successor_vec[i];
                         // set index of the successor
@@ -130,26 +131,32 @@ namespace HybridAStar
                         // ensure successor is not on closed list
                         if (configuration_space_ptr_->IsTraversable(nSucc) && !nodes2D[iSucc].isClosedSet())
                         {
-                            LOG(INFO) << "not in collision.";
+                            // LOG(INFO) << "not in collision.";
                             // calculate new G value
                             UpdateCostSoFar(*nSucc);
+                            // LOG(INFO) << "update cost so far done.";
                             newG = nSucc->getCostSofar();
+                            // LOG(INFO) << "getCostSofar done.";
                             // if successor not on open list or g value lower than before put it on open list
                             if (!nodes2D[iSucc].isOpenSet() || newG < nodes2D[iSucc].getCostSofar())
                             {
                                 // calculate the H value
                                 UpdateHeuristic(*nSucc);
+                                // LOG(INFO) << "UpdateHeuristic done.";
                                 // put successor on open list
                                 nSucc->setOpenSet();
+                                // LOG(INFO) << "setOpenSet done.";
+                                // LOG(INFO) << "iSucc is " << iSucc;
                                 nodes2D[iSucc] = *nSucc;
+                                // LOG(INFO) << "iSucc is " << iSucc;
                                 std::shared_ptr<Node2D> nSucc_ptr = std::make_shared<Node2D>(nodes2D[iSucc]);
                                 openlist.push(nSucc_ptr);
-                                LOG(INFO) << "current successor not in open list and new cost so far is smaller than old one, put in into openlist.";
+                                // LOG(INFO) << "current successor not in open list and new cost so far is smaller than old one, put in into openlist.";
                             }
                         }
                         else
                         {
-                            LOG(INFO) << "current successor is in collision or is in close set.";
+                            // LOG(INFO) << "current successor is in collision or is in close set.";
                         }
                     }
                 }
@@ -157,7 +164,7 @@ namespace HybridAStar
         }
         // return large number to guide search away
         // DLOG(INFO) << "GetAStarCost out.";
-        LOG(INFO) << "GetAStarCost in: start is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY() << ". open list is empty, end a star. number of nodes explored is " << number_nodes_explored;
+        // LOG(INFO) << "GetAStarCost in: start is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY() << ". open list is empty, end a star. number of nodes explored is " << number_nodes_explored;
         return 1000;
     }
 
@@ -172,7 +179,7 @@ namespace HybridAStar
 
     std::vector<std::shared_ptr<Node2D>> AStar::CreateSuccessor(const Node2D &pred, const uint &possible_dir, const float &step_size)
     {
-        LOG(INFO) << "CreateSuccessor in:";
+        // LOG(INFO) << "CreateSuccessor in:";
         std::vector<std::shared_ptr<Node2D>> successor_vec;
         std::shared_ptr<Node2D> pred_ptr = std::make_shared<Node2D>(pred);
         float x_successor, y_successor;
@@ -215,7 +222,7 @@ namespace HybridAStar
                     y_successor = pred.getY() + delta[j];
                     if (!configuration_space_ptr_->IsOnGrid(x_successor, y_successor))
                     {
-                        LOG(INFO) << "successor is not on grid!!!";
+                        // LOG(INFO) << "successor is not on grid!!!";
                         continue;
                     }
                     std::shared_ptr<Node2D> temp = std::make_shared<Node2D>(Node2D(x_successor, y_successor, pred.getCostSofar(), 0, nullptr, pred_ptr));
@@ -227,11 +234,11 @@ namespace HybridAStar
         {
             DLOG(WARNING) << "WARNING: Wrong possible_dir!!!";
         }
-        for (const auto &element : successor_vec)
-        {
-            LOG(INFO) << "successor created is " << element->getX() << " " << element->getY();
-        }
-        LOG(INFO) << "CreateSuccessor out.";
+        // for (const auto &element : successor_vec)
+        // {
+        //     LOG(INFO) << "successor created is " << element->getX() << " " << element->getY();
+        // }
+        // LOG(INFO) << "CreateSuccessor out.";
         return successor_vec;
     }
     //###################################################
@@ -242,13 +249,14 @@ namespace HybridAStar
         float cost_so_far = node.getCostSofar() + Utility::GetDistance(node, *node.getSmartPtrPred());
         node.setCostSofar(cost_so_far);
     }
-    //###################################################
-    //                                    update cost so far
-    //###################################################
+    // ###################################################
+    //                                     update cost so far
+    // ###################################################
+    //  checked
     void AStar::UpdateHeuristic(Node2D &current)
     {
         float distance_to_goal = Utility::GetDistance(current, goal_);
-        // DLOG(INFO) << "current node is " << current.getX() << " " << current.getY() << " distance to goal is " << distance_to_goal;
+        // LOG(INFO) << "current node is " << current.getX() << " " << current.getY() << " goal is " << goal_.getX() << " " << goal_.getY() << " distance to goal is " << distance_to_goal;
 
         current.setCostToGo(distance_to_goal);
     }

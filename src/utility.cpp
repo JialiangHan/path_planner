@@ -8,7 +8,7 @@ namespace Utility
     {
         node3d.setX(start.pose.position.x);
         node3d.setY(start.pose.position.y);
-        node3d.setT(tf::getYaw(start.pose.orientation));
+        node3d.setT(RadToZeroTo2P(tf::getYaw(start.pose.orientation)));
         return;
     }
 
@@ -123,7 +123,7 @@ namespace Utility
     {
         node_3d.setX(vector3d.x());
         node_3d.setY(vector3d.y());
-        node_3d.setT(vector3d.z());
+        node_3d.setT(RadToZeroTo2P(vector3d.z()));
     }
 
     void TypeConversion(const Eigen::Vector2f &vector2d, HybridAStar::Node3D &node3d)
@@ -1153,6 +1153,22 @@ namespace Utility
             return false;
         }
     }
+
+    bool IsCloseEnough(const HybridAStar::Node2D &start,
+                       const HybridAStar::Node2D &goal, const float &distance_range)
+    {
+        float distance = GetDistance(start, goal);
+        if (distance < distance_range)
+        {
+            return true;
+        }
+        else
+        {
+            // DLOG(INFO) << "too far, distance is " << distance;
+            return false;
+        }
+    }
+
     float ConvertDegToRad(const float &deg)
     {
         float rad;

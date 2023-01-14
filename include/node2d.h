@@ -63,6 +63,8 @@ class Node2D {
    int setIdx(int width, int height, const float &resolution, float origin_x, float origin_y)
    {
      this->idx = (int)((y - origin_y) / resolution) * width + (int)((x - origin_y) / resolution);
+     LOG_IF(FATAL, idx >= width * height) << "idx larger than width*height!!! idx is " << idx << " width is " << width << " height is " << height << " resolution is " << resolution << " origin x is " << origin_x << " origin y is " << origin_y;
+     LOG_IF(FATAL, idx < 0) << "idx smaller than zero!!! idx is " << idx << " width is " << width << " height is " << height << " resolution is " << resolution << " origin x is " << origin_x << " origin y is " << origin_y;
      return idx;
    }
    /// open the node

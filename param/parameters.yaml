@@ -1,11 +1,9 @@
 HybridAStar:
   # **********************Algorithm parameters*****************
-  #  A flag for the mode (true = manual; false = dynamic). Manual for static map or dynamic for dynamic map.
-  manual : true
+
   #  A flag for the visualization of 3D nodes (true = on; false = off)
   visualization : true
-  #  A flag for the visualization of 2D nodes (true = on; false = off)
-  visualization2D : true 
+
   # whether to use fixed start and goal
   fix_start_goal: true
 
@@ -16,7 +14,6 @@ HybridAStar:
 
   enable_collision_lookup: false
   # number of successors for hybrid a star
-  # TODO make this parameter determine itself, 5 is best for map slalom
   number_of_successors: 3
   # for heuristic in hybrid a, use dubins or reedshepp or cubic bezier
   # 0: dubins curve, 1: reedsshepp curve 2: cubic bezier

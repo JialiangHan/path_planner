@@ -605,7 +605,8 @@ namespace Utility
     bool IsCloseEnough(const HybridAStar::Node3D &start,
                        const HybridAStar::Node3D &goal, const float &distance_range,
                        const float &angle_range, bool consider_orientation);
-
+    bool IsCloseEnough(const HybridAStar::Node2D &start,
+                       const HybridAStar::Node2D &goal, const float &distance_range);
     float GetDistance(const HybridAStar::Node3D &start,
                       const HybridAStar::Node3D &goal);
     float GetDistance(const HybridAStar::Node2D &start,

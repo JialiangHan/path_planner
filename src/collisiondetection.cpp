@@ -4,7 +4,7 @@ using namespace HybridAStar;
 //**********************constructor*******************
 CollisionDetection::CollisionDetection(const ParameterCollisionDetection &params, costmap_2d::Costmap2D *_costmap)
 {
-  LOG(INFO) << "in CollisionDetection";
+  // LOG(INFO) << "in CollisionDetection";
   params_ = params;
   this->grid_ptr_ = nullptr;
   // Lookup::collisionLookup(collisionLookup);
@@ -23,23 +23,26 @@ CollisionDetection::CollisionDetection(const ParameterCollisionDetection &params
 
 void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map)
 {
-  LOG(INFO) << "UpdateGrid.";
+  // LOG(INFO) << "UpdateGrid.";
   ros::Time t0 = ros::Time::now();
   grid_ptr_ = map;
   SetObstacleVec();
-  // CombineInNeighborObstacles();
-  // TODO need to change this obstacle detection range a resolution related number
+
   obstacle_detection_range_ = params_.obstacle_detection_range;
   // DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range_;
-  SetInRangeObstacle(obstacle_detection_range_);
+  // std::thread th2(SetInRangeObstacle, ref(obstacle_detection_range_));
+  // std::thread th3(std::bind(&CollisionDetection::SetDistanceAngleRangeMap, this));
+
+  SetInRangeObstacle();
   SetDistanceAngleRangeMap();
-  BuildObstacleDensityMap(1.3 * obstacle_detection_range_);
+  BuildObstacleDensityMap();
   BuildNormalizedObstacleDensityMap();
   // BuildCollisionLookupTable();
+  // th3.join(); // 此时主线程被阻塞直至子线程执行结束。
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
   LOG(INFO) << "UpdateGrid in ms: " << d * 1000;
-  LOG(INFO) << "UpdateGrid done.";
+  // LOG(INFO) << "UpdateGrid done.";
 }
 
 bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr)
@@ -167,14 +170,16 @@ bool CollisionDetection::IsOnGrid(const std::shared_ptr<Node3D> &node3d_ptr) con
 bool CollisionDetection::IsOnGrid(const float &x, const float &y) const
 {
   // unit of x and y is meter, but width and height are in cells.
-  if (x >= origin_x_ && x < grid_ptr_->info.width * resolution_ &&
-      y >= origin_y_ && y < grid_ptr_->info.height * resolution_)
+  float x_limit = origin_x_ + grid_ptr_->info.width * resolution_;
+  float y_limit = origin_y_ + grid_ptr_->info.height * resolution_;
+  if (x >= origin_x_ && x < x_limit &&
+      y >= origin_y_ && y < y_limit)
   {
     return true;
   }
   else
   {
-    LOG(WARNING) << "WARNING: current node " << x << " " << y << " is not on grid!!!";
+    // LOG(WARNING) << "WARNING: current node " << x << " " << y << " is not on grid!!!";
     return false;
   }
 }
@@ -267,12 +272,15 @@ void CollisionDetection::getConfiguration(const std::shared_ptr<Node3D> &node3d_
 // checked
 void CollisionDetection::SetObstacleVec()
 {
-  LOG(INFO) << "SetObstacleVec in:";
+  // LOG(INFO) << "SetObstacleVec in:";
   ros::Time t0 = ros::Time::now();
   Utility::Polygon current_polygon;
-  for (float x = origin_x_; x < grid_ptr_->info.width * resolution_;)
+  // unit for x_limit,y_limit,x,y are meter
+  float x_limit = origin_x_ + grid_ptr_->info.width * resolution_;
+  float y_limit = origin_y_ + grid_ptr_->info.height * resolution_;
+  for (float x = origin_x_; x < x_limit;)
   {
-    for (float y = origin_y_; y < grid_ptr_->info.height * resolution_;)
+    for (float y = origin_y_; y < y_limit;)
     {
       if (grid_ptr_->data[GetNode3DIndexOnGridMap(x, y)])
       {
@@ -316,25 +324,29 @@ void CollisionDetection::SetObstacleVec()
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
   LOG(INFO) << "SetObstacleVec in ms: " << d * 1000;
-  LOG(INFO) << "SetObstacleVec out.";
+  // LOG(INFO) << "SetObstacleVec out.";
 }
 // checked
-void CollisionDetection::SetInRangeObstacle(const float &range)
+void CollisionDetection::SetInRangeObstacle()
 {
-  LOG(INFO) << "SetInRangeObstacle in:";
+  // LOG(INFO) << "SetInRangeObstacle in:";
   ros::Time t0 = ros::Time::now();
   std::vector<Utility::Polygon> obstacle_vec;
-  for (float x = origin_x_; x < grid_ptr_->info.width * resolution_;)
+  float x_limit = origin_x_ + grid_ptr_->info.width * resolution_;
+  float y_limit = origin_y_ + grid_ptr_->info.height * resolution_;
+  float distance = 0;
+  for (float x = origin_x_; x < x_limit;)
   {
-    for (float y = origin_y_; y < grid_ptr_->info.height * resolution_;)
+    for (float y = origin_y_; y < y_limit;)
     {
+      // LOG(INFO) << "current node is " << x << " " << y;
       uint current_point_index = GetNode3DIndexOnGridMap(x, y);
       Eigen::Vector2f current_point(x, y);
       obstacle_vec.clear();
       for (const auto &polygon : obstacle_vec_)
       {
-        float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
-        if (distance < range)
+        distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
+        if (distance < obstacle_detection_range_)
         {
           obstacle_vec.emplace_back(polygon);
           // DLOG_IF(INFO, distance < 0) << "obstacle first point is " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y() << "  and its in the range. current point is " << x << " " << y << " distance is " << distance;
@@ -348,7 +360,7 @@ void CollisionDetection::SetInRangeObstacle(const float &range)
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
   LOG(INFO) << "SetInRangeObstacle in ms: " << d * 1000;
-  LOG(INFO) << "SetInRangeObstacle out.";
+  // LOG(INFO) << "SetInRangeObstacle out.";
 }
 // checked,it`s correct.
 uint CollisionDetection::GetNode3DIndexOnGridMap(const Node3D &node3d)
@@ -382,16 +394,19 @@ Utility::AngleRange CollisionDetection::GetNode3DAvailableSteeringAngleRange(con
 // checked, it`s correct
 void CollisionDetection::SetDistanceAngleRangeMap()
 {
-  LOG(INFO) << "SetDistanceAngleRangeMap in:";
+  // LOG(INFO) << "SetDistanceAngleRangeMap in:";
   ros::Time t0 = ros::Time::now();
   std::vector<std::pair<float, Utility::AngleRange>> distance_angle_range_vec;
   Node3D node_3d;
-  for (float x = origin_x_; x < grid_ptr_->info.width * resolution_;)
+  float x_limit = origin_x_ + grid_ptr_->info.width * resolution_;
+  float y_limit = origin_y_ + grid_ptr_->info.height * resolution_;
+  for (float x = origin_x_; x < x_limit;)
   {
-    for (float y = origin_y_; y < grid_ptr_->info.height * resolution_;)
+    for (float y = origin_y_; y < y_limit;)
     {
       // LOG(INFO) << "current node is " << x << " " << y;
       distance_angle_range_vec.clear();
+
       uint current_point_index = GetNode3DIndexOnGridMap(x, y);
       Eigen::Vector2f current_point(x, y);
       Utility::TypeConversion(current_point, node_3d);
@@ -505,7 +520,7 @@ void CollisionDetection::SetDistanceAngleRangeMap()
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
   LOG(INFO) << "SetDistanceAngleRangeMap in ms: " << d * 1000;
-  LOG(INFO) << "SetDistanceAngleRangeMap out.";
+  // LOG(INFO) << "SetDistanceAngleRangeMap out.";
 }
 // Not used
 //  where to put this collision table in lookup_table.cpp or collisiondetection..cpp?
@@ -1014,9 +1029,9 @@ float CollisionDetection::FindNoCollisionDistance(const Node3D &node3d, const fl
   return out;
 }
 
-void CollisionDetection::BuildObstacleDensityMap(const float &range)
+void CollisionDetection::BuildObstacleDensityMap()
 {
-  LOG(INFO) << "BuildObstacleDensityMap in:";
+  // LOG(INFO) << "BuildObstacleDensityMap in:";
   ros::Time t0 = ros::Time::now();
   // build obstacle density map according to in range obstacle map, seems not correct, need to consider obstacle in a wider range.
   // so use the same way to build this map as in range obstacle map
@@ -1028,9 +1043,11 @@ void CollisionDetection::BuildObstacleDensityMap(const float &range)
   std::vector<Utility::Polygon> obstacle_vec;
   // this angle is the max steering angle for vehicle, unit is deg.
   float max_steering_angle = 30;
-  for (float x = origin_x_; x < grid_ptr_->info.width * resolution_;)
+  float x_limit = origin_x_ + grid_ptr_->info.width * resolution_;
+  float y_limit = origin_y_ + grid_ptr_->info.height * resolution_;
+  for (float x = origin_x_; x < x_limit;)
   {
-    for (float y = origin_y_; y < grid_ptr_->info.height * resolution_;)
+    for (float y = origin_y_; y < y_limit;)
     {
       // definition of obstacle density:currently obstacle density is the number of obstacle in radius(parameter range), do not consider current orientation, note: index is not fine index for this case
       if (!params_.consider_steering_angle_range_for_obstacle_density)
@@ -1038,25 +1055,16 @@ void CollisionDetection::BuildObstacleDensityMap(const float &range)
         uint current_point_index = GetNode3DIndexOnGridMap(x, y);
         Eigen::Vector2f current_point(x, y);
         obstacle_vec.clear();
-        for (const auto &polygon : obstacle_vec_)
+        if (in_range_obstacle_map_.find(current_point_index) != in_range_obstacle_map_.end())
         {
-          if (params_.map_boundary_obstacle)
-          {
-            // check if this obstacle is map boundary obstacle,if yes, then skip this obstacle
-            if (IsBoundaryObstacle(polygon))
-            {
-              continue;
-            }
-          }
-          float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
-          if (distance < range)
-          {
-            number_of_obstacles++;
-          }
+          in_range_obstacle_density_map_.emplace(current_point_index, in_range_obstacle_map_[current_point_index].size());
         }
-        in_range_obstacle_density_map_.emplace(current_point_index, number_of_obstacles);
+        else
+        {
+          LOG(WARNING) << "current index can not be find in in_range_obstacle_density_map_!!";
+        }
+
         // DLOG(INFO) << "current node is " << x << " " << y << " " << theta << " fine index is " << current_point_index << " number of obstacles is " << number_of_obstacles;
-        number_of_obstacles = 0;
       }
       else
       {
@@ -1090,7 +1098,7 @@ void CollisionDetection::BuildObstacleDensityMap(const float &range)
               // 2. find its distance from current node to obstacle
               float distance = Utility::GetDistanceFromPolygonToPoint(polygon, current_point);
               // 3. if distance is smaller than range, number of obstacle++
-              if (distance < range)
+              if (distance < obstacle_detection_range_)
               {
                 number_of_obstacles++;
                 // DLOG(INFO) << "obstacle origin is " << polygon[0].x() << " " << polygon[0].y() << " . current point is " << x << " " << y << " distance is " << distance;
@@ -1110,7 +1118,7 @@ void CollisionDetection::BuildObstacleDensityMap(const float &range)
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
   LOG(INFO) << "BuildObstacleDensityMap in ms: " << d * 1000;
-  LOG(INFO) << "BuildObstacleDensityMap out.";
+  // LOG(INFO) << "BuildObstacleDensityMap out.";
 }
 
 uint CollisionDetection::GetNode3DFineIndex(const Node3D &node3d)
@@ -1120,7 +1128,7 @@ uint CollisionDetection::GetNode3DFineIndex(const Node3D &node3d)
 
 void CollisionDetection::BuildNormalizedObstacleDensityMap()
 {
-  LOG(INFO) << "BuildNormalizedObstacleDensityMap in:";
+  // LOG(INFO) << "BuildNormalizedObstacleDensityMap in:";
   ros::Time t0 = ros::Time::now();
   // delta here is a small number to ensure denominator is not zero
   float normalized_obstacle_density, delta = 0.01;
@@ -1158,7 +1166,7 @@ void CollisionDetection::BuildNormalizedObstacleDensityMap()
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
   LOG(INFO) << "BuildNormalizedObstacleDensityMap in ms: " << d * 1000;
-  LOG(INFO) << "BuildNormalizedObstacleDensityMap out.";
+  // LOG(INFO) << "BuildNormalizedObstacleDensityMap out.";
 }
 
 float CollisionDetection::GetNormalizedObstacleDensity(const Node3D &node3d)

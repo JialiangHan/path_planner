@@ -21,13 +21,14 @@ namespace HybridAStar
   {
     // update the configuration space with the current map
     LOG(INFO) << "hybrid a star initializing";
-    // configuration_space_ptr_->UpdateGrid(map);
+    configuration_space_ptr_->UpdateGrid(map);
     map_width_ = configuration_space_ptr_->GetMap()->info.width;
     map_height_ = configuration_space_ptr_->GetMap()->info.height;
+
     lookup_table_ptr_->Initialize(map_width_, map_height_);
 
-    // nav_msgs::OccupancyGrid::Ptr a_star_map = TreatAstarMap(map);
-    // a_star_ptr_->Initialize(a_star_map);
+    nav_msgs::OccupancyGrid::Ptr a_star_map = TreatAstarMap(map);
+    a_star_ptr_->Initialize(a_star_map);
 
     // LOG_IF(INFO, params_.adaptive_steering_angle_and_step_size) << "adaptive_steering_angle_and_step_size";
     // LOG_IF(INFO, !params_.adaptive_steering_angle_and_step_size) << "use fixed step size";
@@ -40,7 +41,7 @@ namespace HybridAStar
   Utility::Path3D HybridAStar::GetPath(Node3D &start, Node3D &goal, Node3D *nodes3D, Node2D *nodes2D)
   {
     path_.clear();
-    DLOG(INFO) << "Hybrid A star start!!";
+    LOG(INFO) << "Hybrid A star start!!";
     start_ = start;
     goal_ = goal;
     // number of nodes explored
@@ -67,6 +68,7 @@ namespace HybridAStar
     openlist.push(start_ptr);
 
     iPred = start.setIdx(map_width_, map_height_, (float)2 * M_PI / params_.collision_detection_params.headings, resolution_, origin_x_, origin_y_);
+    LOG(INFO) << "index for start is " << iPred;
     nodes3D[iPred] = start;
     // NODE POINTER
     std::shared_ptr<Node3D> nPred;
@@ -77,6 +79,7 @@ namespace HybridAStar
     {
       // pop node with lowest cost from priority queue
       nPred = openlist.top();
+      LOG(INFO) << "current node  is " << nPred->getX() << " " << nPred->getY() << " " << Utility::ConvertRadToDeg(nPred->getT());
       number_nodes_explored++;
       // set index
       iPred = nPred->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.collision_detection_params.headings, resolution_, origin_x_, origin_y_);
@@ -194,7 +197,7 @@ namespace HybridAStar
             }
           }
           std::vector<std::shared_ptr<Node3D>> successor_vec = CreateSuccessor(*nPred);
-          // DLOG(INFO) << "successor vec length is " << successor_vec.size();
+          LOG(INFO) << "successor vec length is " << successor_vec.size();
 
           // ______________________________
           // SEARCH WITH FORWARD SIMULATION
@@ -207,12 +210,13 @@ namespace HybridAStar
 
             // create possible successor
             nSucc = node;
+            LOG(INFO) << "current successor is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT());
             // set index of the successor
             iSucc = nSucc->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.collision_detection_params.headings, resolution_, origin_x_, origin_y_);
             // ensure successor is on grid and traversable
             if (configuration_space_ptr_->IsTraversable(*nSucc))
             {
-              // DLOG(INFO) << "index is " << iSucc;
+              LOG(INFO) << "index is " << iSucc;
               // ensure successor is not on closed list or it has the same index as the predecessor
               if (!nodes3D[iSucc].isClosedSet())
               {
@@ -228,7 +232,7 @@ namespace HybridAStar
                   // same cell expansion
                   if (iPred == iSucc)
                   {
-                    DLOG(INFO) << "successor total cost is " << nSucc->getTotalCost() << " pred total cost is " << nPred->getTotalCost();
+                    LOG(INFO) << "successor total cost is " << nSucc->getTotalCost() << " pred total cost is " << nPred->getTotalCost();
                     // no need to reset tie-breaker
                     //  if the successor is in the same cell but the C value is larger
                     if (nSucc->getTotalCost() > nPred->getTotalCost() + params_.tie_breaker)
@@ -238,7 +242,7 @@ namespace HybridAStar
                     // if successor is in the same cell and the C value is lower, set predecessor to predecessor of predecessor
                     else if (nSucc->getTotalCost() <= nPred->getTotalCost() + params_.tie_breaker)
                     {
-                      DLOG(INFO) << "same cell expansion, but successor has lower cost.";
+                      LOG(INFO) << "same cell expansion, but successor has lower cost.";
                       nSucc->setSmartPtrPred(nPred->getSmartPtrPred());
                     }
                   }

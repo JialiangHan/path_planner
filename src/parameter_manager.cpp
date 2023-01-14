@@ -275,6 +275,9 @@ namespace HybridAStar
     ros_param_name = "use_adaptive_step_size_in_a_star";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->a_star_planner_params.use_adaptive_step_size_in_a_star);
 
+    ros_param_name = "goal_range";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->a_star_planner_params.goal_range);
+
     LoadCollisionDetectionParams();
   }
 

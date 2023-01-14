@@ -8,6 +8,8 @@
 #include "utility.h"
 #include <algorithm>
 #include "computational_geometry.h"
+#include <thread>
+#include <functional>
 namespace HybridAStar
 {
 
@@ -119,7 +121,7 @@ namespace HybridAStar
      *
      * @param range
      */
-    void SetInRangeObstacle(const float &range);
+    void SetInRangeObstacle();
     /**
      * @brief Get the Node3D Index On Grid Map, index=y*map width+x;
      *
@@ -249,7 +251,7 @@ namespace HybridAStar
      *
      * @param range
      */
-    void BuildObstacleDensityMap(const float &range);
+    void BuildObstacleDensityMap();
     /**
      * @brief this function is building a normalized obstacle density map from in_range_obstacle_density_map_
      *

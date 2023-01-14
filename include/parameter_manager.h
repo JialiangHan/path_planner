@@ -114,6 +114,9 @@ namespace HybridAStar
 
     bool use_adaptive_step_size_in_a_star = false;
 
+    // the small number which will terminate loop if path difference smaller than this number.
+    float goal_range = 1e-3;
+
     ParameterCollisionDetection collision_detection_params;
   };
 

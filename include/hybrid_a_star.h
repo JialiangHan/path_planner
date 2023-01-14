@@ -75,7 +75,10 @@ namespace HybridAStar
          nav_msgs::OccupancyGrid::Ptr map;
          map.reset(new nav_msgs::OccupancyGrid());
          Utility::TypeConversion(_costmap, frame_id, map);
-         Initialize(map);
+
+         map_width_ = configuration_space_ptr_->GetMap()->info.width;
+         map_height_ = configuration_space_ptr_->GetMap()->info.height;
+         lookup_table_ptr_->Initialize(map_width_, map_height_);
       }
       /**
        * @brief Default deconstructor for the HybridAStarPlanner object
