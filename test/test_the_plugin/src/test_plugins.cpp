@@ -74,7 +74,7 @@ void TestPlanner::setgoal(const geometry_msgs::PoseStamped::ConstPtr &_goal)
     goal_pose.header = _goal->header;
     transformStartPose();
     costmap->start();
-    if (false)
+    if (true)
     {
         tf::Quaternion pose_quat = tf::createQuaternionFromYaw(0);
         // note: unit for pose is meter

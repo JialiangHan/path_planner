@@ -68,7 +68,7 @@ namespace HybridAStar
     openlist.push(start_ptr);
 
     iPred = start.setIdx(map_width_, map_height_, (float)2 * M_PI / params_.collision_detection_params.headings, resolution_, origin_x_, origin_y_);
-    LOG(INFO) << "index for start is " << iPred;
+    // LOG(INFO) << "index for start is " << iPred;
     nodes3D[iPred] = start;
     // NODE POINTER
     std::shared_ptr<Node3D> nPred;
@@ -197,7 +197,7 @@ namespace HybridAStar
             }
           }
           std::vector<std::shared_ptr<Node3D>> successor_vec = CreateSuccessor(*nPred);
-          LOG(INFO) << "successor vec length is " << successor_vec.size();
+          // LOG(INFO) << "successor vec length is " << successor_vec.size();
 
           // ______________________________
           // SEARCH WITH FORWARD SIMULATION
@@ -216,7 +216,7 @@ namespace HybridAStar
             // ensure successor is on grid and traversable
             if (configuration_space_ptr_->IsTraversable(*nSucc))
             {
-              LOG(INFO) << "index is " << iSucc;
+              // LOG(INFO) << "index is " << iSucc;
               // ensure successor is not on closed list or it has the same index as the predecessor
               if (!nodes3D[iSucc].isClosedSet())
               {
@@ -923,9 +923,9 @@ namespace HybridAStar
   {
     for (const auto &element : open_list)
     {
-      if (abs(element->getX() - node_3d_ptr->getX()) < 0.2 && abs(element->getY() - node_3d_ptr->getY()) < 0.2 && abs(element->getT() - node_3d_ptr->getT()) < Utility::ConvertDegToRad(3))
+      if (abs(element->getX() - node_3d_ptr->getX()) < 0.2 && abs(element->getY() - node_3d_ptr->getY()) < 0.2 && abs(element->getT() - node_3d_ptr->getT()) < Utility::ConvertDegToRad(5))
       {
-        // LOG(INFO) << "node already in open list.";
+        LOG(INFO) << "node already in open list.";
         return true;
       }
     }
