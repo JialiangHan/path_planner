@@ -16,6 +16,7 @@ else()
 endif()
 
 set(CMAKE_BUILD_TYPE Release)
+# set(CMAKE_CXX_FLAGS "-fPIC")
 find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
@@ -124,7 +125,7 @@ target_link_libraries(hybrid_a_star_planner_lib
     ${PYTHON_LIBRARIES}                    
     ${catkin_LIBRARIES} 
     ${OMPL_LIBRARIES} 
-    # glog::glog 
+    glog::glog 
     ${GFLAGS_LIBRARY} 
 )
 

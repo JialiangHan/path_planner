@@ -12,7 +12,7 @@ void Visualize::clear() {
   visualization_msgs::Marker costCube3D;
   // CLEAR THE COST HEATMAP
   costCube3D.header.frame_id = "path";
-  costCube3D.header.stamp = ros::Time::now();
+  costCube3D.header.stamp = ros::Time();
   costCube3D.id = 0;
   costCube3D.action = 3;
   costCubes3D.markers.emplace_back(costCube3D);
@@ -23,7 +23,7 @@ void Visualize::clear() {
   visualization_msgs::Marker costCube2D;
   // CLEAR THE COST HEATMAP
   costCube2D.header.frame_id = "path";
-  costCube2D.header.stamp = ros::Time::now();
+  costCube2D.header.stamp = ros::Time();
   costCube2D.id = 0;
   costCube2D.action = 3;
   costCubes2D.markers.emplace_back(costCube2D);
@@ -33,7 +33,7 @@ void Visualize::clear() {
   visualization_msgs::Marker pose2d;
   // CLEAR THE COST HEATMAP
   pose2d.header.frame_id = "path";
-  pose2d.header.stamp = ros::Time::now();
+  pose2d.header.stamp = ros::Time();
   pose2d.id = 0;
   pose2d.action = 3;
   poses2D.markers.emplace_back(pose2d);
@@ -47,7 +47,7 @@ void Visualize::publishNode3DPose(const Node3D &node)
 {
   geometry_msgs::PoseStamped pose;
   pose.header.frame_id = "path";
-  pose.header.stamp = ros::Time::now();
+  pose.header.stamp = ros::Time();
   pose.header.seq = 0;
   pose.pose.position.x = node.getX();
   pose.pose.position.y = node.getY();
@@ -80,7 +80,7 @@ void Visualize::publishNode3DPoses(const Node3D &node)
   {
     pose.orientation = tf::createQuaternionMsgFromYaw(node.getT());
     poses3D.poses.emplace_back(pose);
-    poses3D.header.stamp = ros::Time::now();
+    poses3D.header.stamp = ros::Time();
     // PUBLISH THE POSEARRAY
     pubNodes3D.publish(poses3D);
   }
@@ -88,7 +88,7 @@ void Visualize::publishNode3DPoses(const Node3D &node)
   else {
     pose.orientation = tf::createQuaternionMsgFromYaw(node.getT() + M_PI);
     poses3Dreverse.poses.emplace_back(pose);
-    poses3Dreverse.header.stamp = ros::Time::now();
+    poses3Dreverse.header.stamp = ros::Time();
     // PUBLISH THE POSEARRAY
     pubNodes3Dreverse.publish(poses3Dreverse);
   }
@@ -102,7 +102,7 @@ void Visualize::publishNode2DPose(const Node2D &node)
   geometry_msgs::PoseStamped pose;
   // DLOG(INFO) << "publishing";
   pose.header.frame_id = "path";
-  pose.header.stamp = ros::Time::now();
+  pose.header.stamp = ros::Time();
   pose.header.seq = 0;
   pose.pose.position.x = (node.getX() + 0.5);
   pose.pose.position.y = (node.getY() + 0.5);
@@ -125,7 +125,7 @@ void Visualize::publishNode2DPoses(const Node2D &node)
   pose2d.action = visualization_msgs::Marker::ADD;
 
   pose2d.header.frame_id = "path";
-  pose2d.header.stamp = ros::Time::now();
+  pose2d.header.stamp = ros::Time();
   pose2d.id = poses2D.markers.size();
   pose2d.type = visualization_msgs::Marker::CUBE;
   pose2d.scale.x = 0.2;
@@ -156,7 +156,7 @@ void Visualize::publishNode2DPose(const Node3D &node)
   geometry_msgs::PoseStamped pose;
   // DLOG(INFO) << "publishing";
   pose.header.frame_id = "path";
-  pose.header.stamp = ros::Time::now();
+  pose.header.stamp = ros::Time();
   pose.header.seq = 0;
   pose.pose.position.x = (node.getX());
   pose.pose.position.y = (node.getY());
@@ -179,7 +179,7 @@ void Visualize::publishNode2DPoses(const Node3D &node)
   pose2d.action = visualization_msgs::Marker::ADD;
 
   pose2d.header.frame_id = "path";
-  pose2d.header.stamp = ros::Time::now();
+  pose2d.header.stamp = ros::Time();
   pose2d.id = poses2D.markers.size();
   pose2d.type = visualization_msgs::Marker::CUBE;
   pose2d.scale.x = 0.2;

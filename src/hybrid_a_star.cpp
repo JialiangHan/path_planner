@@ -21,7 +21,7 @@ namespace HybridAStar
   {
     // update the configuration space with the current map
     LOG(INFO) << "hybrid a star initializing";
-    configuration_space_ptr_->UpdateGrid(map);
+    configuration_space_ptr_->UpdateGrid(map, true);
     map_width_ = configuration_space_ptr_->GetMap()->info.width;
     map_height_ = configuration_space_ptr_->GetMap()->info.height;
 
@@ -251,12 +251,13 @@ namespace HybridAStar
                   nodes3D[iSucc] = *nSucc;
                   std::shared_ptr<Node3D> nSucc_ptr = std::make_shared<Node3D>(nodes3D[iSucc]);
                   openlist.push(nSucc_ptr);
+                  LOG(INFO) << "put current node is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT()) << " into openlist!!";
                 }
               }
             }
             else
             {
-              // DLOG(INFO) << "current node is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT()) << " is in collision!!";
+              LOG(INFO) << "current node is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT()) << " is in collision!!";
             }
           }
         }
@@ -923,7 +924,9 @@ namespace HybridAStar
   {
     for (const auto &element : open_list)
     {
-      if (abs(element->getX() - node_3d_ptr->getX()) < 0.2 && abs(element->getY() - node_3d_ptr->getY()) < 0.2 && abs(element->getT() - node_3d_ptr->getT()) < Utility::ConvertDegToRad(5))
+      // this 0.2 should be a resolution related value
+
+      if (abs(element->getX() - node_3d_ptr->getX()) < resolution_ * 0.2 && abs(element->getY() - node_3d_ptr->getY()) < resolution_ * 0.2 && abs(element->getT() - node_3d_ptr->getT()) < Utility::ConvertDegToRad(params_.steering_angle))
       {
         LOG(INFO) << "node already in open list.";
         return true;

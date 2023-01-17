@@ -15,7 +15,7 @@ namespace RRTPlanner
     {
         // update the configuration space with the current map
         //  DLOG(INFO) << "hybrid a star initializing";
-        configuration_space_ptr_->UpdateGrid(map);
+        configuration_space_ptr_->UpdateGrid(map, false);
         map_width_ = configuration_space_ptr_->GetMap()->info.width;
         map_height_ = configuration_space_ptr_->GetMap()->info.height;
         resolution_ = configuration_space_ptr_->GetMap()->info.resolution;

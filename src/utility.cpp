@@ -21,7 +21,8 @@ namespace Utility
     void TypeConversion(const HybridAStar::Node3D &node3d, geometry_msgs::PoseStamped &pose)
     {
         tf::Quaternion pose_quat = tf::createQuaternionFromYaw(node3d.getT());
-
+        pose.header.stamp = ros::Time();
+        pose.header.frame_id = "map";
         pose.pose.position.x = node3d.getX();
         pose.pose.position.y = node3d.getY();
 
@@ -80,11 +81,13 @@ namespace Utility
     void TypeConversion(
         const std::vector<Eigen::Vector3f> &vector_3d_vec, nav_msgs::Path &path)
     {
-
-        path.header.stamp = ros::Time::now();
+        path.header.frame_id = "map";
+        path.header.stamp = ros::Time();
         for (const auto &vector3d : vector_3d_vec)
         {
             geometry_msgs::PoseStamped vertex;
+            vertex.header.stamp = ros::Time();
+            vertex.header.frame_id = "map";
             vertex.pose.position.x = vector3d.x();
             vertex.pose.position.y = vector3d.y();
             vertex.pose.position.z = vector3d.z();
@@ -162,7 +165,7 @@ namespace Utility
         double resolution = _costmap->getResolution();
 
         map->header.frame_id = frame_id;
-        map->header.stamp = ros::Time::now();
+        map->header.stamp = ros::Time();
         map->info.resolution = resolution;
 
         map->info.width = _costmap->getSizeInCellsX();

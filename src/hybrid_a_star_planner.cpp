@@ -16,6 +16,19 @@ namespace HybridAStar
 
     HybridAStarPlanner::HybridAStarPlanner() : initialized_(false), costmap(NULL), resolution(1.0), hybrid_a_star_ptr_(NULL)
     {
+
+        std::string log_dir = "/home/jialiang/Code/thesis_ws/src/hybrid_astar/log/hybrid_astar_";
+        for (int severity = 0; severity < google::NUM_SEVERITIES; ++severity)
+        {
+            google::SetLogDestination(severity, log_dir.c_str());
+            google::SetLogSymlink(severity, log_dir.c_str());
+        }
+        google::InitGoogleLogging("hybrid_a_star");
+
+        google::InstallFailureSignalHandler();
+
+        google::EnableLogCleaner(5);
+        FLAGS_alsologtostderr = 1;
         LOG(INFO) << "creating the hybrid Astar planner";
     }
 
@@ -29,7 +42,7 @@ namespace HybridAStar
         {
 
             initialize(name, costmap_ros->getCostmap(), costmap_ros->getGlobalFrameID());
-
+            LOG(INFO) << "frame id is " << costmap_ros->getGlobalFrameID();
             initialized_ = true;
         }
         else
@@ -47,11 +60,10 @@ namespace HybridAStar
         nav_msgs::OccupancyGrid::Ptr map;
         map.reset(new nav_msgs::OccupancyGrid());
         Utility::TypeConversion(_costmap, frame_id, map);
-        configuration_space_ptr_->UpdateGrid(map);
+
         LOG(INFO) << "initializing the hybrid Astar planner";
         costmap = _costmap;
         frame_id_ = frame_id;
-        // DLOG(INFO) << frame_id;
         //  初始化发布路径的主题
         plan_pub_ = nh.advertise<nav_msgs::Path>("plan", 1);
         path_vehicles_pub_ = nh.advertise<visualization_msgs::MarkerArray>("pathVehicle", 1);
@@ -60,11 +72,13 @@ namespace HybridAStar
         if (!params_.param_container_ptr_->planner_params.use_a_star)
         {
             LOG(INFO) << "Using hybrid_astar mode!";
+            configuration_space_ptr_->UpdateGrid(map, true);
             _planner = new HybridAStar(frame_id_, costmap, params_.GetHybridAStarParams(), visualization_ptr_, configuration_space_ptr_);
         }
         else
         {
             LOG(INFO) << "Using Astar mode!";
+            configuration_space_ptr_->UpdateGrid(map, false);
             _planner = new AStar(frame_id_, costmap, params_.GetAStarPlannerParams(), visualization_ptr_, configuration_space_ptr_);
         }
 
@@ -74,8 +88,9 @@ namespace HybridAStar
                                              nav_msgs::GetPlan::Response &resp)
     {
         makePlan(req.start, req.goal, resp.plan.poses);
-        resp.plan.header.stamp = ros::Time::now();
+        resp.plan.header.stamp = ros::Time();
         resp.plan.header.frame_id = frame_id_;
+        // LOG(INFO) << "frame id is " << frame_id_;
         return true;
     }
 

@@ -6,6 +6,7 @@
 #include <vector>
 #include "glog/logging.h"
 #include "gflags/gflags.h"
+#include <iomanip>
 namespace HybridAStar {
 
 /*!
@@ -62,9 +63,10 @@ class Node2D {
    /// set and get the index of the node in the 2D array
    int setIdx(int width, int height, const float &resolution, float origin_x, float origin_y)
    {
-     this->idx = (int)((y - origin_y) / resolution) * width + (int)((x - origin_y) / resolution);
+     this->idx = std::floor(std::round(((y - origin_y) / resolution) * 10000) / 10000) * width + std::floor(std::round(((x - origin_x) / resolution) * 10000) / 10000);
      LOG_IF(FATAL, idx >= width * height) << "idx larger than width*height!!! idx is " << idx << " width is " << width << " height is " << height << " resolution is " << resolution << " origin x is " << origin_x << " origin y is " << origin_y;
      LOG_IF(FATAL, idx < 0) << "idx smaller than zero!!! idx is " << idx << " width is " << width << " height is " << height << " resolution is " << resolution << " origin x is " << origin_x << " origin y is " << origin_y;
+     //  LOG(INFO) << "idx is " << idx << " width is " << width << " height is " << height << " resolution is " << resolution << " origin x is " << origin_x << " origin y is " << origin_y << " x is " << x << " y is " << y << " std::floor(std::round(((y - origin_y) / resolution) * 10000) / 10000)   is " << std::floor(std::round(((y - origin_y) / resolution) * 10000) / 10000) << " std::floor(std::round(((x - origin_x) / resolution) * 10000) / 10000) is " << std::floor(std::round(((x - origin_x) / resolution) * 10000) / 10000) << " ((y - origin_y) / resolution)  is " << std::fixed << std::setprecision(7) << ((y - origin_y) / resolution) << " ((x - origin_x) / resolution) is " << std::fixed << std::setprecision(7) << ((x - origin_x) / resolution);
      return idx;
    }
    /// open the node

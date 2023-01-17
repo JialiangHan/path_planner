@@ -10,7 +10,7 @@ observation_sources: scan
 #    scan: {data_type: LaserScan, topic: /scan, marking: true, clearing: true, expected_update_rate: 0}
 map: 
   data_type: LaserScan 
-  topic: /map 
+  topic: map 
   marking: true 
   clearing: true
 scan: 

@@ -26,7 +26,7 @@ void PathPublisher::Clear()
 // TRACE PATH
 void PathPublisher::UpdatePath(const std::vector<Node3D> &nodePath)
 {
-  path_.header.stamp = ros::Time::now();
+  path_.header.stamp = ros::Time();
   int k = 0;
 
   for (size_t i = 0; i < nodePath.size(); ++i)

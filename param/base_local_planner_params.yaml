@@ -2,7 +2,7 @@
 TebLocalPlannerROS:
 
   odom_topic: odom
-  map_frame: /odom
+  map_frame: odom
       
   # Trajecto
 

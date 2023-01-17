@@ -112,7 +112,7 @@ void Planner::SetStart(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr 
   startN.pose.position = initial->pose.pose.position;
   startN.pose.orientation = initial->pose.pose.orientation;
   startN.header.frame_id = "map";
-  startN.header.stamp = ros::Time::now();
+  startN.header.stamp = ros::Time();
 
   DLOG(INFO) << "I am seeing a new start x:" << x << " y:" << y << " t:" << Utility::ConvertRadToDeg(t) << " deg";
 

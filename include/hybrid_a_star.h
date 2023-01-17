@@ -15,6 +15,8 @@
 #include <ros/publisher.h>
 #include "dubins.h"
 #include "ReedsShepp.h"
+#include "glog/logging.h"
+#include "gflags/gflags.h"
 typedef ompl::base::SE2StateSpace::StateType State;
 #define point_accuracy 0.5
 #define theta_accuracy 2
@@ -60,6 +62,7 @@ namespace HybridAStar
           : Expander(frame_id, _costmap)
       {
          LOG(INFO) << "constructing HybridAStar.";
+
          params_ = params;
          lookup_table_ptr_.reset(new LookupTable(params_.collision_detection_params));
          configuration_space_ptr_ = _configuration_space_ptr;

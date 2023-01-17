@@ -21,7 +21,7 @@ CollisionDetection::CollisionDetection(const ParameterCollisionDetection &params
   // Lookup::collisionLookup(collisionLookup);
 }
 
-void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map)
+void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map, bool hybrid_astar)
 {
   // LOG(INFO) << "UpdateGrid.";
   ros::Time t0 = ros::Time::now();
@@ -34,9 +34,14 @@ void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map)
   // std::thread th3(std::bind(&CollisionDetection::SetDistanceAngleRangeMap, this));
 
   SetInRangeObstacle();
-  SetDistanceAngleRangeMap();
-  BuildObstacleDensityMap();
-  BuildNormalizedObstacleDensityMap();
+  if (hybrid_astar)
+  {
+    // use only  hybrid a
+    SetDistanceAngleRangeMap();
+    BuildObstacleDensityMap();
+    BuildNormalizedObstacleDensityMap();
+  }
+
   // BuildCollisionLookupTable();
   // th3.join(); // 此时主线程被阻塞直至子线程执行结束。
   ros::Time t1 = ros::Time::now();
@@ -50,24 +55,13 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr
   // DLOG(INFO) << "IsTraversable in:";
   if (!IsOnGrid(node2d_ptr))
   {
-    // DLOG(INFO) << "IsTraversable out.";
+    LOG(INFO) << "IsTraversable out.";
     return false;
   }
-  /* Depending on the used collision checking mechanism this needs to be adjusted
-       standard: collision checking using the spatial occupancy enumeration
-       other: collision checking using the 2d costmap and the navigation stack
-    */
-  float x;
-  float y;
-  float t;
+  float x, y, t;
   // assign values to the configuration
   getConfiguration(node2d_ptr, x, y, t);
-  // 2D collision test
-  // if (t == 99)
-  // {
-  //   DLOG(INFO) << "IsTraversable out. !grid ptr value is " << !grid_ptr_->data[node2d_ptr->getIdx()];
-  //   return !grid_ptr_->data[node2d_ptr->getIdx()];
-  // }
+
   if (node2d_ptr->getSmartPtrPred() != nullptr)
   {
     // if (configurationTest(x, y, t))
@@ -98,7 +92,7 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
   // DLOG_IF(INFO, (node3d.getX() > 35) && (node3d.getX() < 37) && (node3d.getY() > 12) && (node3d.getY() < 14)) << "IsTraversable in: current node is x " << node3d.getX() << " y " << node3d.getY() << " angle is " << Utility::ConvertRadToDeg(node3d.getT());
   if (!IsOnGrid(node3d))
   {
-    // DLOG(INFO) << "current node not on grid!";
+    LOG(INFO) << "current node not on grid!";
     return false;
   }
 
@@ -113,14 +107,17 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
       // DLOG_IF(INFO, (node3d.getX() > 35) && (node3d.getX() < 37) && (node3d.getY() > 12) && (node3d.getY() < 14)) << "IsTraversable in: current node is x " << node3d.getX() << " y " << node3d.getY() << " angle is " << Utility::ConvertRadToDeg(node3d.getT());
       return true;
     }
+    LOG(INFO) << "configurationTest fail!";
   }
   else
   {
+    LOG(INFO) << "current node has not pred!";
     if (configurationTest(x, y, t))
     {
       DLOG_IF(INFO, (node3d.getX() > 35) && (node3d.getX() < 37) && (node3d.getY() > 12) && (node3d.getY() < 14)) << "IsTraversable in: current node is x " << node3d.getX() << " y " << node3d.getY() << " angle is " << Utility::ConvertRadToDeg(node3d.getT());
       return true;
     }
+    LOG(INFO) << "configurationTest fail!";
   }
   // DLOG(INFO) << "IsTraversable out.";
   return false;
@@ -194,7 +191,7 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
     {
       uint fine_index = CalculateFineIndex(x, y, t);
       // DLOG(INFO) << "index is " << index << " fine index is " << fine_index;
-      Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length, params_.vehicle_width, t);
+      Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length * resolution_, params_.vehicle_width * resolution_, t);
       bool collision_result;
       collision_result = CollisionCheck(polygon);
       return collision_result;
@@ -212,7 +209,8 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
   }
   else
   {
-    Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length, params_.vehicle_width, t);
+    // polygon size and resolution should be considered together
+    Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length * resolution_, params_.vehicle_width * resolution_, t);
     bool collision_result;
     collision_result = CollisionCheck(polygon);
     if (!collision_result)
@@ -229,7 +227,7 @@ bool CollisionDetection::configurationTest(const Eigen::Vector2f &start, const E
   collision_result = CollisionCheck(start, end);
   if (!collision_result)
   {
-    // DLOG(INFO) << "in collision, segment start at " << start.x() << " " << start.y() << " end at " << end.x() << " " << end.y();
+    LOG(INFO) << "in collision, segment start at " << start.x() << " " << start.y() << " end at " << end.x() << " " << end.y();
   }
   return collision_result;
 }
@@ -565,7 +563,7 @@ void CollisionDetection::BuildCollisionLookupTable()
             }
             else
             {
-              Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length, params_.vehicle_width, theta);
+              Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length * resolution_, params_.vehicle_width * resolution_, theta);
               // for (const auto &point : polygon)
               // {
               //   DLOG(INFO) << "point is " << point.x() << " " << point.y();
@@ -601,21 +599,13 @@ bool CollisionDetection::CollisionCheck(const Utility::Polygon &polygon)
   {
     if (!IsOnGrid(point))
     {
-      // DLOG(INFO) << "polygon is not on grid: point is " << point.x() << " " << point.y();
+      LOG(INFO) << "polygon is not on grid: point is " << point.x() << " " << point.y() << " Polygon: " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y();
       return false;
     }
   }
   // should be convert to int for x and y;
   uint current_point_index = GetNode3DIndexOnGridMap(polygon[0].x(), polygon[0].y());
-  // check if this polygon inside map or outside map
-  Utility::Polygon map_boundary = Utility::CreatePolygon(grid_ptr_->info.width, grid_ptr_->info.height);
-  // DLOG(INFO) << "current polygon start is " << polygon[0].x() << " " << polygon[0].y() << " index is " << current_point_index;
 
-  if (Utility::IsPolygonIntersectWithPolygon(polygon, map_boundary))
-  {
-    // DLOG(INFO) << "intersect with map boundary.";
-    return false;
-  }
   // check with in range obstacle
   if (in_range_obstacle_map_.find(current_point_index) != in_range_obstacle_map_.end())
   {
@@ -623,7 +613,7 @@ bool CollisionDetection::CollisionCheck(const Utility::Polygon &polygon)
     {
       if (Utility::IsPolygonIntersectWithPolygon(polygon, in_range_polygon))
       {
-        // DLOG(INFO) << "intersect with obstacle.";
+        LOG(INFO) << "intersect with obstacle. Polygon: " << polygon[0].x() << " " << polygon[0].y() << " second point is " << polygon[1].x() << " " << polygon[1].y() << " third point is " << polygon[2].x() << " " << polygon[2].y() << " fourth point is " << polygon[3].x() << " " << polygon[3].y() << " in range polygon is " << in_range_polygon[0].x() << " " << in_range_polygon[0].y() << " second point is " << in_range_polygon[1].x() << " " << in_range_polygon[1].y() << " third point is " << in_range_polygon[2].x() << " " << in_range_polygon[2].y() << " fourth point is " << in_range_polygon[3].x() << " " << in_range_polygon[3].y();
         return false;
       }
     }
@@ -631,7 +621,7 @@ bool CollisionDetection::CollisionCheck(const Utility::Polygon &polygon)
   }
   else
   {
-    // DLOG(INFO) << "current polygon can`t be found in in_range_obstacle_map.";
+    LOG(INFO) << "current polygon can`t be found in in_range_obstacle_map.";
   }
   return true;
   // 2. find obstacle in a certain range, this range is determined be vehicle parameter
@@ -642,7 +632,7 @@ bool CollisionDetection::CollisionCheck(const Eigen::Vector2f &start, const Eige
   // DLOG(INFO) << "CollisionCheck in.";
   if (!IsOnGrid(start) || !IsOnGrid(end))
   {
-    // DLOG(INFO) << "start or end is not on grid";
+    LOG(INFO) << "start or end is not on grid";
     return false;
   }
 
@@ -655,7 +645,7 @@ bool CollisionDetection::CollisionCheck(const Eigen::Vector2f &start, const Eige
     for (const auto &in_range_polygon : in_range_obstacle_map_[current_start_index])
     {
       // distance from this edge starting from start to end to obstacle should smaller than 0.5* vehicle length, then we can conclude that intersect!!!!
-      if (Utility::GetDistanceFromPolygonToSegment(in_range_polygon, start, end) <= 0.5 * params_.vehicle_width)
+      if (Utility::GetDistanceFromPolygonToSegment(in_range_polygon, start, end) <= 0.5 * params_.vehicle_width * resolution_)
       {
         // DLOG(INFO) << "intersect with obstacle.";
         return false;
@@ -665,14 +655,14 @@ bool CollisionDetection::CollisionCheck(const Eigen::Vector2f &start, const Eige
   }
   else
   {
-    DLOG(INFO) << "current start can`t be found in in_range_obstacle_map.";
+    LOG(INFO) << "current start can`t be found in in_range_obstacle_map.";
   }
   // check with in range obstacle
   if (in_range_obstacle_map_.find(current_end_index) != in_range_obstacle_map_.end())
   {
     for (const auto &in_range_polygon : in_range_obstacle_map_[current_end_index])
     {
-      if (Utility::GetDistanceFromPolygonToSegment(in_range_polygon, start, end) <= 0.5 * params_.vehicle_width)
+      if (Utility::GetDistanceFromPolygonToSegment(in_range_polygon, start, end) <= 0.5 * params_.vehicle_width * resolution_)
       {
         // DLOG(INFO) << "intersect with obstacle.";
         return false;
@@ -682,7 +672,7 @@ bool CollisionDetection::CollisionCheck(const Eigen::Vector2f &start, const Eige
   }
   else
   {
-    DLOG(INFO) << "current end can`t be found in in_range_obstacle_map.";
+    LOG(INFO) << "current end can`t be found in in_range_obstacle_map.";
   }
   return true;
 }

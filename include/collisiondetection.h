@@ -37,7 +37,7 @@ namespace HybridAStar
     /*!
      \brief updates the grid with the world map
   */
-    void UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map);
+    void UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map, bool hybrid_astar);
 
     nav_msgs::OccupancyGrid::Ptr GetMap() const { return grid_ptr_; };
     /**
