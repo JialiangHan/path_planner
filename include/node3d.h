@@ -64,7 +64,7 @@ class Node3D {
    /// set and get the index of the node in the 3D grid
    int setIdx(int width, int height, const float &delta_heading_in_rad, const float &resolution, int origin_x, int origin_y)
    {
-     this->idx = (int)(t / delta_heading_in_rad) * width * height + (int)((y - origin_y) / resolution * width) + (int)((x - origin_x) / resolution);
+     this->idx = std::floor(std::round(t / delta_heading_in_rad * 10000) / 10000) * width * height + std::floor(std::round(((y - origin_y) / resolution) * 10000) / 10000) * width + std::floor(std::round(((x - origin_x) / resolution) * 10000) / 10000);
      //  LOG_IF(FATAL, idx >= width * height) << "idx larger than width*height!!! idx is " << idx << " width is " << width << " height is " << height << " resolution is " << resolution << " origin x is " << origin_x << " origin y is " << origin_y;
      LOG_IF(FATAL, idx < 0) << "idx smaller than zero!!! idx is " << idx << " width is " << width << " height is " << height << " delta_heading_in_rad is " << delta_heading_in_rad << " resolution is " << resolution << " origin x is " << origin_x << " origin y is " << origin_y << " x is " << x << " y is " << y << " t is " << t;
      // 292080 this number is the length in planner.cpp row 260

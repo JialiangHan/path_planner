@@ -146,11 +146,14 @@ namespace HybridAStar
               Utility::Path3D analytical_path = AnalyticExpansions(*nPred, goal);
               if (analytical_path.size() != 0)
               {
-                DLOG(INFO) << "Found path through analytical expansion";
-                LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+                LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored;
                 TracePath(nPred);
                 analytical_expansion_index_ = path_.size();
                 path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
+                // for (const Gggauto &element : path_)
+                // {
+                //   LOG(INFO) << "path node is " << element.getX() << " " << element.getY();
+                // }
                 if (params_.piecewise_cubic_bezier_interpolation)
                 {
 
@@ -174,11 +177,15 @@ namespace HybridAStar
                 Utility::Path3D analytical_path = AnalyticExpansions(*nPred, goal);
                 if (analytical_path.size() != 0)
                 {
-                  DLOG(INFO) << "Found path through analytical expansion";
-                  LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+                  DLOG(INFO) << "Found path through analytical expansion, number of nodes explored is " << number_nodes_explored;
                   TracePath(nPred);
                   analytical_expansion_index_ = path_.size();
                   path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
+                  for (const auto &element : path_)
+                  {
+                    LOG(INFO) << "path node is " << element.getX() << " " << element.getY();
+                  }
+
                   if (params_.piecewise_cubic_bezier_interpolation)
                   {
                     ConvertToPiecewiseCubicBezierPath();
@@ -203,14 +210,13 @@ namespace HybridAStar
           // SEARCH WITH FORWARD SIMULATION
           for (const auto &node : successor_vec)
           {
+            // create possible successor
+            nSucc = node;
+            LOG(INFO) << "current successor is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT());
             if (DuplicateCheck(openlist, node))
             {
               continue;
             }
-
-            // create possible successor
-            nSucc = node;
-            LOG(INFO) << "current successor is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT());
             // set index of the successor
             iSucc = nSucc->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.collision_detection_params.headings, resolution_, origin_x_, origin_y_);
             // ensure successor is on grid and traversable
@@ -373,7 +379,7 @@ namespace HybridAStar
         {
 
           path_vec.emplace_back(node3d);
-          x += params_.curve_step_size;
+          x += params_.curve_step_size * resolution_;
           i++;
           pred_shared_ptr = std::make_shared<Node3D>(node3d);
         }
@@ -416,7 +422,7 @@ namespace HybridAStar
           if (curvature <= 1 / params_.min_turning_radius)
           {
             path_vec.emplace_back(node3d);
-            x += params_.curve_step_size;
+            x += params_.curve_step_size * resolution_;
             i++;
             pred_shared_ptr = std::make_shared<Node3D>(node3d);
             // DLOG(INFO) << "current node is " << node3d.getX() << " " << node3d.getY();
@@ -447,7 +453,7 @@ namespace HybridAStar
       // LOG(INFO) << "start point before conversion is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " after conversion is " << vector3d_start.x() << " " << vector3d_start.y() << " " << Utility::ConvertRadToDeg(vector3d_start.z());
 
       // LOG(INFO) << "goal point before conversion is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT()) << " after conversion is " << vector3d_goal.x() << " " << vector3d_goal.y() << " " << Utility::ConvertRadToDeg(vector3d_goal.z());
-      DLOG(INFO) << "Analytical expansion connected, returning path";
+      LOG(INFO) << "Analytical expansion connected, returning path";
       // LOG(INFO) << "analytical expansion start at " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT());
     }
     return path_vec;
@@ -734,7 +740,7 @@ namespace HybridAStar
       {
         break;
       }
-      // DLOG(INFO) << "current node is " << node->getX() << " " << node->getY() << " and its pred is " << node->getPred()->getX() << " " << node->getPred()->getY();
+      // LOG(INFO) << "current node is " << node3d_ptr->getX() << " " << node3d_ptr->getY() << " and its pred is " << node3d_ptr->getSmartPtrPred()->getX() << " " << node3d_ptr->getSmartPtrPred()->getY();
       node3d_ptr = node3d_ptr->getSmartPtrPred();
     }
     std::reverse(path_.begin(), path_.end());
@@ -862,7 +868,6 @@ namespace HybridAStar
     }
     // DLOG(INFO) << "step size is " << step_size;
     // 3. find angle to goal
-    // TODO how to select this steering angle, is difference between current orientation and goal orientation a good choice or we should choose the angle from current location to goal?
     float angle_to_goal = -Utility::RadNormalization(pred.getT() - goal_.getT());
     bool flag = true;
     if (flag)
@@ -925,8 +930,7 @@ namespace HybridAStar
     for (const auto &element : open_list)
     {
       // this 0.2 should be a resolution related value
-
-      if (abs(element->getX() - node_3d_ptr->getX()) < resolution_ * 0.2 && abs(element->getY() - node_3d_ptr->getY()) < resolution_ * 0.2 && abs(element->getT() - node_3d_ptr->getT()) < Utility::ConvertDegToRad(params_.steering_angle))
+      if (abs(element->getX() - node_3d_ptr->getX()) < resolution_ * 0.1 && abs(element->getY() - node_3d_ptr->getY()) < resolution_ * 0.1 && abs(element->getT() - node_3d_ptr->getT()) < Utility::ConvertDegToRad(params_.steering_angle) * 0.1)
       {
         LOG(INFO) << "node already in open list.";
         return true;

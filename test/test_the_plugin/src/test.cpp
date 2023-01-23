@@ -44,13 +44,6 @@
 
 int main(int argc, char **argv)
 {
-    google::InitGoogleLogging(argv[0]);
-
-    google::ParseCommandLineFlags(&argc, &argv, true);
-
-    google::InstallFailureSignalHandler();
-
-    google::EnableLogCleaner(5);
 
     ros::init(argc, argv, "plugin_test_node");
     // ros::Duration(10)代表10秒的时间，在这里表示'tf2_ros::Buffer'实例化的对象保留10秒内的转换数据

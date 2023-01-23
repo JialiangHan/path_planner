@@ -11,7 +11,7 @@ void Visualize::clear() {
   visualization_msgs::MarkerArray costCubes3D;
   visualization_msgs::Marker costCube3D;
   // CLEAR THE COST HEATMAP
-  costCube3D.header.frame_id = "path";
+  costCube3D.header.frame_id = "map";
   costCube3D.header.stamp = ros::Time();
   costCube3D.id = 0;
   costCube3D.action = 3;
@@ -22,7 +22,7 @@ void Visualize::clear() {
   visualization_msgs::MarkerArray costCubes2D;
   visualization_msgs::Marker costCube2D;
   // CLEAR THE COST HEATMAP
-  costCube2D.header.frame_id = "path";
+  costCube2D.header.frame_id = "map";
   costCube2D.header.stamp = ros::Time();
   costCube2D.id = 0;
   costCube2D.action = 3;
@@ -32,7 +32,7 @@ void Visualize::clear() {
   // 2D poses
   visualization_msgs::Marker pose2d;
   // CLEAR THE COST HEATMAP
-  pose2d.header.frame_id = "path";
+  pose2d.header.frame_id = "map";
   pose2d.header.stamp = ros::Time();
   pose2d.id = 0;
   pose2d.action = 3;
@@ -46,7 +46,7 @@ void Visualize::clear() {
 void Visualize::publishNode3DPose(const Node3D &node)
 {
   geometry_msgs::PoseStamped pose;
-  pose.header.frame_id = "path";
+  pose.header.frame_id = "map";
   pose.header.stamp = ros::Time();
   pose.header.seq = 0;
   pose.pose.position.x = node.getX();
@@ -101,7 +101,7 @@ void Visualize::publishNode2DPose(const Node2D &node)
 {
   geometry_msgs::PoseStamped pose;
   // DLOG(INFO) << "publishing";
-  pose.header.frame_id = "path";
+  pose.header.frame_id = "map";
   pose.header.stamp = ros::Time();
   pose.header.seq = 0;
   pose.pose.position.x = (node.getX() + 0.5);
@@ -124,7 +124,7 @@ void Visualize::publishNode2DPoses(const Node2D &node)
   visualization_msgs::Marker pose2d;
   pose2d.action = visualization_msgs::Marker::ADD;
 
-  pose2d.header.frame_id = "path";
+  pose2d.header.frame_id = "map";
   pose2d.header.stamp = ros::Time();
   pose2d.id = poses2D.markers.size();
   pose2d.type = visualization_msgs::Marker::CUBE;
@@ -155,7 +155,7 @@ void Visualize::publishNode2DPose(const Node3D &node)
 {
   geometry_msgs::PoseStamped pose;
   // DLOG(INFO) << "publishing";
-  pose.header.frame_id = "path";
+  pose.header.frame_id = "map";
   pose.header.stamp = ros::Time();
   pose.header.seq = 0;
   pose.pose.position.x = (node.getX());
@@ -178,7 +178,7 @@ void Visualize::publishNode2DPoses(const Node3D &node)
   visualization_msgs::Marker pose2d;
   pose2d.action = visualization_msgs::Marker::ADD;
 
-  pose2d.header.frame_id = "path";
+  pose2d.header.frame_id = "map";
   pose2d.header.stamp = ros::Time();
   pose2d.id = poses2D.markers.size();
   pose2d.type = visualization_msgs::Marker::CUBE;

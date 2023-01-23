@@ -40,7 +40,7 @@ namespace HybridAStar
          pub_path_vehicles_ = nh_.advertise<visualization_msgs::MarkerArray>(pathVehicleTopic, 1);
 
          // CONFIGURE THE CONTAINER
-         path_.header.frame_id = "path";
+         path_.header.frame_id = "map";
       }
 
       //  /*!
