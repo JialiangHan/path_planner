@@ -291,6 +291,8 @@ namespace HybridAStar
     /// The occupancy grid
     nav_msgs::OccupancyGrid::Ptr grid_ptr_;
 
+    costmap_2d::Costmap2D *costmap_;
+
     /// The collision lookup table
     Constants::config collisionLookup[Constants::headings * Constants::positions];
     // collision lookup table, use array instead of vector, temporally use vector
