@@ -30,6 +30,7 @@ namespace HybridAStar
     //###################################################
     float AStar::GetAStarCost(Node2D *nodes2D, const Node2D &start, const Node2D &goal, const bool &in_hybrid_a)
     {
+        ros::Time t0 = ros::Time::now();
         start_ = start;
         goal_ = goal;
         LOG(INFO) << "GetAStarCost in: start is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY();
@@ -91,26 +92,27 @@ namespace HybridAStar
                 if (visualization2D_ && !in_hybrid_a)
                 {
                     // LOG(INFO) << "in publishing";
-                    // visualization_ptr_->publishNode2DPoses((*nPred));
-                    // visualization_ptr_->publishNode2DPose((*nPred));
+                    visualization_ptr_->publishNode2DPoses((*nPred));
+                    visualization_ptr_->publishNode2DPose((*nPred));
                     d.sleep();
                 }
                 // remove node from open list
                 openlist.pop();
                 // _________
                 // GOAL TEST
-
+                // LOG(INFO) << "goal range is " << params_.goal_range;
                 if (Utility::IsCloseEnough(*nPred, goal_, params_.goal_range * resolution_))
                 {
-                    LOG(INFO) << "goal reached, current node is " << nPred->getX() << " " << nPred->getY();
+                    // LOG(INFO) << "goal reached, current node is " << nPred->getX() << " " << nPred->getY();
                     // DLOG(INFO) << "GetAStarCost out.";
-                    if (in_hybrid_a)
+                    UpdateCostSoFar(*nPred);
+                    if (!in_hybrid_a)
                     {
-                        return nPred->getCostSofar();
+                        TracePath(nPred);
                     }
-
-                    TracePath(nPred);
-                    LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+                    ros::Time t1 = ros::Time::now();
+                    ros::Duration d(t1 - t0);
+                    LOG(INFO) << "number of nodes explored is " << number_nodes_explored << " TIME in second: " << d << " cost so far is " << nPred->getCostSofar();
                     return nPred->getCostSofar();
                 }
                 // ____________________
@@ -126,7 +128,7 @@ namespace HybridAStar
                         nSucc = successor_vec[i];
                         // set index of the successor
                         iSucc = nSucc->setIdx(width, height, resolution_, origin_x_, origin_y_);
-                        LOG(INFO) << "iSucc is " << iSucc;
+                        // LOG(INFO) << "iSucc is " << iSucc;
                         // ensure successor is on grid ROW MAJOR
                         // ensure successor is not blocked by obstacle
                         // ensure successor is not on closed list
@@ -171,24 +173,24 @@ namespace HybridAStar
                                         nodes2D[iSucc] = *nSucc;
                                         // LOG(INFO) << "iSucc is " << iSucc;
                                         std::shared_ptr<Node2D> nSucc_ptr = std::make_shared<Node2D>(nodes2D[iSucc]);
+                                        UpdateCostSoFar(*nSucc_ptr);
                                         openlist.push(nSucc_ptr);
-                                        LOG(INFO) << "new cost so far is smaller than old one, put in into openlist.";
+                                        // LOG(INFO) << "new cost so far: " << newG << " is smaller than old one: " << nodes2D[iSucc].getCostSofar() << ", put in into openlist.";
                                     }
                                     else
                                     {
-                                        LOG(INFO) << "new cost so far is larger than old one, do nothing.";
+                                        // LOG(INFO) << "new cost so far: " << newG << " is larger than old one " << nodes2D[iSucc].getCostSofar() << " , do nothing.";
                                     }
-                                    LOG(INFO) << "current successor is already in open list, do nothing";
                                 }
                             }
                             else
                             {
-                                LOG(INFO) << "current successor " << successor_vec[i]->getX() << " " << successor_vec[i]->getY() << " is in close set.";
+                                // LOG(INFO) << "current successor " << successor_vec[i]->getX() << " " << successor_vec[i]->getY() << " is in close set.";
                             }
                         }
                         else
                         {
-                            LOG(INFO) << "current successor " << successor_vec[i]->getX() << " " << successor_vec[i]->getY() << " is in collision .";
+                            // LOG(INFO) << "current successor " << successor_vec[i]->getX() << " " << successor_vec[i]->getY() << " is in collision .";
                         }
                     }
                 }

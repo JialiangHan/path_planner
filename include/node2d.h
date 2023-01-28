@@ -17,9 +17,9 @@ namespace HybridAStar {
 class Node2D {
  public:
   /// The default constructor for 2D array initialization.
-   Node2D() : Node2D(0, 0, 999, 0, nullptr) {}
+   Node2D() : Node2D(0, 0, 0, 0, nullptr) {}
    /// Constructor for a node with the given arguments
-   Node2D(float _x, float _y, float _g = 999, float _h = 0, Node2D *_pred_ptr = nullptr, std::shared_ptr<Node2D> _pred_shared_ptr = nullptr) : x(_x), y(_y), g(_g), h(_h), idx(-1), o(false), c(false), d(false), pred_ptr_(_pred_ptr), pred_shared_ptr_(_pred_shared_ptr)
+   Node2D(float _x, float _y, float _g = 0, float _h = 0, Node2D *_pred_ptr = nullptr, std::shared_ptr<Node2D> _pred_shared_ptr = nullptr) : x(_x), y(_y), g(_g), h(_h), idx(-1), o(false), c(false), d(false), pred_ptr_(_pred_ptr), pred_shared_ptr_(_pred_shared_ptr)
    {
      this->map_cost_ = -1;
    }
@@ -34,9 +34,7 @@ class Node2D {
    float getCostToGo() const { return h; }
    /// get the total estimated cost
    float getTotalCost() const { return g + h; }
-   /* this cost is the cost from costmap
-    */
-   float getMapCost() { return map_cost_; }
+
    /// get the index of the node in the 2D array
    int getIdx() const { return idx; }
    /// determine whether the node is open
@@ -57,9 +55,7 @@ class Node2D {
    void setCostSofar(const float &g) { this->g = g; }
    /// set the cost-to-come (heuristic value)
    void setCostToGo(const float &h) { this->h = h; }
-   /* this cost is the cost from costmap
-    */
-   void setMapCost(unsigned int C) { map_cost_ = C; }
+
    /// set and get the index of the node in the 2D array
    int setIdx(int width, int height, const float &resolution, float origin_x, float origin_y)
    {

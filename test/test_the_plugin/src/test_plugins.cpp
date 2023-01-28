@@ -69,12 +69,13 @@ TestPlanner::TestPlanner(tf2_ros::Buffer &_tf) : tf(_tf)
 }
 void TestPlanner::setgoal(const geometry_msgs::PoseStamped::ConstPtr &_goal)
 {
+    // LOG(INFO) << "in setgoal";
     goal_pose.pose = _goal->pose;
     goal_pose.pose.orientation = _goal->pose.orientation;
     goal_pose.header = _goal->header;
     transformStartPose();
     costmap->start();
-    if (true)
+    if (false)
     {
         tf::Quaternion pose_quat = tf::createQuaternionFromYaw(0);
         // note: unit for pose is meter

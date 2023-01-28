@@ -40,8 +40,9 @@ namespace HybridAStar
   //###################################################
   Utility::Path3D HybridAStar::GetPath(Node3D &start, Node3D &goal, Node3D *nodes3D, Node2D *nodes2D)
   {
+    ros::Time t0 = ros::Time::now();
     path_.clear();
-    LOG(INFO) << "Hybrid A star start!!";
+    // LOG(INFO) << "Hybrid A star start!!";
     start_ = start;
     goal_ = goal;
     // number of nodes explored
@@ -79,7 +80,7 @@ namespace HybridAStar
     {
       // pop node with lowest cost from priority queue
       nPred = openlist.top();
-      LOG(INFO) << "current node  is " << nPred->getX() << " " << nPred->getY() << " " << Utility::ConvertRadToDeg(nPred->getT());
+      // LOG(INFO) << "current node  is " << nPred->getX() << " " << nPred->getY() << " " << Utility::ConvertRadToDeg(nPred->getT());
       number_nodes_explored++;
       // set index
       iPred = nPred->setIdx(map_width_, map_height_, (float)2 * M_PI / params_.collision_detection_params.headings, resolution_, origin_x_, origin_y_);
@@ -115,20 +116,22 @@ namespace HybridAStar
         // GOAL TEST
         if (iterations > params_.max_iterations)
         {
-          DLOG(INFO) << "max iterations reached!!!, current iterations is :" << iterations;
-          LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
-          // return nPred;
+
+          ros::Time t1 = ros::Time::now();
+          ros::Duration d(t1 - t0);
+          LOG(INFO) << "max iterations reached!!!, current iterations is : " << iterations << " number of nodes explored is " << number_nodes_explored << " TIME in second: " << d;
           TracePath(nPred);
           return path_;
         }
-        else if (Utility::IsCloseEnough(*nPred, goal, params_.goal_range, 2 * M_PI / params_.collision_detection_params.headings, true))
+        else if (Utility::IsCloseEnough(*nPred, goal, params_.goal_range * resolution_, 2 * M_PI / params_.collision_detection_params.headings, true))
         {
           // DLOG(INFO) << "current node is " << nPred->getX() << " " << nPred->getY() << " " << Utility::ConvertRadToDeg(nPred->getT());
           // DLOG(INFO) << "goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT());
           // DLOG(INFO) << "Goal reached!!!";
-          // return nPred;
           TracePath(nPred);
-          LOG(INFO) << "number of nodes explored is " << number_nodes_explored;
+          ros::Time t1 = ros::Time::now();
+          ros::Duration d(t1 - t0);
+          LOG(INFO) << "number of nodes explored is " << number_nodes_explored << " TIME in second: " << d;
           return path_;
         }
         // ____________________
@@ -161,9 +164,16 @@ namespace HybridAStar
                   piecewise_cubic_bezier_path_.insert(piecewise_cubic_bezier_path_.end(), analytical_path.begin(), analytical_path.end());
                   // DLOG(INFO) << "piecewise cubic bezier interpolation.";
                   // DLOG(INFO) << "piecewise_cubic_bezier_path_ size is " << piecewise_cubic_bezier_path_.size();
-
+                  ros::Time t1 = ros::Time::now();
+                  ros::Duration d(t1 - t0);
+                  // LOG(INFO) << "TIME in ms: " << d * 1000;
+                  LOG(INFO) << "TIME in second: " << d;
                   return piecewise_cubic_bezier_path_;
                 }
+                ros::Time t1 = ros::Time::now();
+                ros::Duration d(t1 - t0);
+                // LOG(INFO) << "TIME in ms: " << d * 1000;
+                LOG(INFO) << "TIME in second: " << d;
                 return path_;
               }
             }
@@ -171,20 +181,20 @@ namespace HybridAStar
             {
               if (analytical_expansion_counter == N)
               {
-                // DLOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
+                // LOG(INFO) << "Start Analytic Expansion, every " << N << "th iterations";
                 N = nPred->getCostToGo();
                 analytical_expansion_counter = 0;
                 Utility::Path3D analytical_path = AnalyticExpansions(*nPred, goal);
                 if (analytical_path.size() != 0)
                 {
-                  DLOG(INFO) << "Found path through analytical expansion, number of nodes explored is " << number_nodes_explored;
+                  LOG(INFO) << "Found path through analytical expansion, number of nodes explored is " << number_nodes_explored;
                   TracePath(nPred);
                   analytical_expansion_index_ = path_.size();
                   path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
-                  for (const auto &element : path_)
-                  {
-                    LOG(INFO) << "path node is " << element.getX() << " " << element.getY();
-                  }
+                  // for (const auto &element : path_)
+                  // {
+                  //   LOG(INFO) << "path node is " << element.getX() << " " << element.getY();
+                  // }
 
                   if (params_.piecewise_cubic_bezier_interpolation)
                   {
@@ -192,8 +202,14 @@ namespace HybridAStar
                     piecewise_cubic_bezier_path_.insert(piecewise_cubic_bezier_path_.end(), analytical_path.begin(), analytical_path.end());
                     DLOG(INFO) << "piecewise cubic bezier interpolation.";
                     // DLOG(INFO) << "piecewise_cubic_bezier_path_ size is " << piecewise_cubic_bezier_path_.size();
+                    ros::Time t1 = ros::Time::now();
+                    ros::Duration d(t1 - t0);
+                    LOG(INFO) << "TIME in second: " << d;
                     return piecewise_cubic_bezier_path_;
                   }
+                  ros::Time t1 = ros::Time::now();
+                  ros::Duration d(t1 - t0);
+                  LOG(INFO) << "TIME in second: " << d;
                   return path_;
                 }
               }
@@ -212,7 +228,7 @@ namespace HybridAStar
           {
             // create possible successor
             nSucc = node;
-            LOG(INFO) << "current successor is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT());
+            // LOG(INFO) << "current successor is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT());
             if (DuplicateCheck(openlist, node))
             {
               continue;
@@ -238,7 +254,7 @@ namespace HybridAStar
                   // same cell expansion
                   if (iPred == iSucc)
                   {
-                    LOG(INFO) << "successor total cost is " << nSucc->getTotalCost() << " pred total cost is " << nPred->getTotalCost();
+                    // LOG(INFO) << "successor total cost is " << nSucc->getTotalCost() << " pred total cost is " << nPred->getTotalCost();
                     // no need to reset tie-breaker
                     //  if the successor is in the same cell but the C value is larger
                     if (nSucc->getTotalCost() > nPred->getTotalCost() + params_.tie_breaker)
@@ -248,7 +264,7 @@ namespace HybridAStar
                     // if successor is in the same cell and the C value is lower, set predecessor to predecessor of predecessor
                     else if (nSucc->getTotalCost() <= nPred->getTotalCost() + params_.tie_breaker)
                     {
-                      LOG(INFO) << "same cell expansion, but successor has lower cost.";
+                      // LOG(INFO) << "same cell expansion, but successor has lower cost.";
                       nSucc->setSmartPtrPred(nPred->getSmartPtrPred());
                     }
                   }
@@ -257,13 +273,13 @@ namespace HybridAStar
                   nodes3D[iSucc] = *nSucc;
                   std::shared_ptr<Node3D> nSucc_ptr = std::make_shared<Node3D>(nodes3D[iSucc]);
                   openlist.push(nSucc_ptr);
-                  LOG(INFO) << "put current node is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT()) << " into openlist!!";
+                  // LOG(INFO) << "put current node is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT()) << " into openlist!!";
                 }
               }
             }
             else
             {
-              LOG(INFO) << "current node is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT()) << " is in collision!!";
+              // LOG(INFO) << "current node is " << nSucc->getX() << " " << nSucc->getY() << " " << Utility::ConvertRadToDeg(nSucc->getT()) << " is in collision!!";
             }
           }
         }
@@ -279,7 +295,7 @@ namespace HybridAStar
   void HybridAStar::UpdateHeuristic(Node3D &start, const Node3D &goal, Node2D *nodes2D)
   {
     // DLOG(INFO) << "UpdateHeuristic in:";
-    float curve_cost = 0, twoDCost = 0, twoDoffset = 0;
+    float curve_cost = 0, twoDCost = 0;
     // create a 2d start node
     Node2D start2d, goal2d;
     Utility::TypeConversion(start, start2d);
@@ -297,37 +313,31 @@ namespace HybridAStar
     if (params_.collision_detection_params.curve_type == 0)
     {
       curve_cost = lookup_table_ptr_->GetDubinsCost(goal_rotated_translated);
-      // DLOG(INFO) << "dubins cost is " << curve_cost;
+      // LOG(INFO) << "dubins cost is " << curve_cost;
     }
 
     // if reversing is active use a
     else if (params_.collision_detection_params.curve_type == 1)
     {
       curve_cost = lookup_table_ptr_->GetReedsSheppCost(goal_rotated_translated);
-      // DLOG(INFO) << "rs cost is " << curve_cost;
+      // LOG(INFO) << "rs cost is " << curve_cost;
     }
     else
     {
       curve_cost = lookup_table_ptr_->GetCubicBezierCost(goal_rotated_translated);
-      // DLOG(INFO) << "cubic bezier cost is " << curve_cost;
+      // LOG(INFO) << "cubic bezier cost is " << curve_cost;
     }
     //  unconstrained with obstacles
-    if (!nodes2D[start2d.setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_)].isDiscovered())
-    {
-      // DLOG(INFO) << "A star start node is " << start2d.getX() << " " << start2d.getY() << " goal is " << goal2d.getX() << " " << goal2d.getY() << " start is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT())
-      //  << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT());
-      // run 2d AStar and return the cost of the cheapest path for that node
-      nodes2D[start2d.getIdx()].setCostSofar(a_star_ptr_->GetAStarCost(nodes2D, start2d, goal2d, true));
-    }
 
-    // offset for same node in cell
-    twoDoffset = sqrt(((start.getX() - (long)start.getX()) - (goal.getX() - (long)goal.getX())) * ((start.getX() - (long)start.getX()) - (goal.getX() - (long)goal.getX())) +
-                      ((start.getY() - (long)start.getY()) - (goal.getY() - (long)goal.getY())) * ((start.getY() - (long)start.getY()) - (goal.getY() - (long)goal.getY())));
-    // DLOG(INFO) << "twoD cost before offset is " << nodes2D[(int)start.getY() * map_width_ + (int)start.getX()].getCostSofar() << " two d offset is " << twoDoffset;
-    twoDCost = nodes2D[start2d.getIdx()].getCostSofar() - twoDoffset;
+    // LOG(INFO) << "A star start node is " << start2d.getX() << " " << start2d.getY() << " goal is " << goal2d.getX() << " " << goal2d.getY() << " start is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT());
+    // run 2d AStar and return the cost of the cheapest path for that node
+    nodes2D[start2d.getIdx()]
+        .setCostSofar(a_star_ptr_->GetAStarCost(nodes2D, start2d, goal2d, true));
+    // TODO : a star cost is not right
 
-    // DLOG(INFO) << "current node is " << start.getX() << " " << start.getY() << " " << start.getT() << " a star cost is " << twoDCost << " curve cost is " << curve_cost << " heuristic is " << std::max(curve_cost, twoDCost);
-    // DLOG(INFO) << "rs cost is " << curve_cost;
+    twoDCost = nodes2D[start2d.getIdx()].getCostSofar();
+
+    LOG(INFO) << "current node is " << start.getX() << " " << start.getY() << " " << start.getT() << " a star cost is " << twoDCost << " curve cost is " << curve_cost << " heuristic is " << std::max(curve_cost, twoDCost);
     // return the maximum of the heuristics, making the heuristic admissable
     start.setCostToGo(std::max(curve_cost, twoDCost));
     // DLOG(INFO) << "UpdateHeuristic out.";
@@ -339,6 +349,7 @@ namespace HybridAStar
   Utility::Path3D HybridAStar::AnalyticExpansions(const Node3D &start, Node3D &goal)
   {
     Utility::Path3D path_vec;
+    Node3D node3d;
     int i = 0;
     float x = 0.f;
     Eigen::Vector3f vector3d_start, vector3d_goal;
@@ -346,8 +357,8 @@ namespace HybridAStar
     // DLOG(INFO) << "start point is " << vector3d_start.x() << " " << vector3d_start.y();
     Utility::TypeConversion(goal, vector3d_goal);
     std::shared_ptr<Node3D> pred_shared_ptr;
-    // Dubins/RS curve
-    if (params_.curve_type_analytical_expansion == 0)
+    // Dubins
+    if (params_.collision_detection_params.curve_type == 0)
     {
       // start
       float q0[] = {start.getX(), start.getY(), start.getT()};
@@ -355,6 +366,7 @@ namespace HybridAStar
       float q1[] = {goal.getX(), goal.getY(), goal.getT()};
       // initialize the path
       DubinsPath path;
+      i = 0;
       // calculate the path
       dubins_init(q0, q1, params_.min_turning_radius, &path);
       float length = dubins_path_length(&path);
@@ -362,7 +374,6 @@ namespace HybridAStar
       {
         float q[3];
         dubins_path_sample(&path, x, q);
-        Node3D node3d;
         node3d.setX(q[0]);
         node3d.setY(q[1]);
         node3d.setT(Utility::RadToZeroTo2P(q[2]));
@@ -392,8 +403,49 @@ namespace HybridAStar
         }
       }
     }
+    // RS curve
+    if (params_.collision_detection_params.curve_type == 1)
+    {
+      ReedsSheppStateSpace rs_planner(params_.min_turning_radius);
+      double length = -1;
+      // start
+      double q0[] = {start.getX(), start.getY(), start.getT()};
+      // goal
+      double q1[] = {goal.getX(), goal.getY(), goal.getT()};
+      i = 0;
+      std::vector<std::vector<double>> rs_path;
+      rs_planner.sample(q0, q1, params_.curve_step_size * resolution_, length, rs_path);
+      for (auto &point_itr : rs_path)
+      {
+        node3d.setX(point_itr[0]);
+        node3d.setY(point_itr[1]);
+        node3d.setT(Utility::RadToZeroTo2P(point_itr[2]));
+        if (i > 0)
+        {
+          node3d.setSmartPtrPred(pred_shared_ptr);
+        }
+        else
+        {
+          node3d.setSmartPtrPred(std::make_shared<Node3D>(start));
+        }
+        // collision check
+        if (configuration_space_ptr_->IsTraversable(node3d))
+        {
+
+          path_vec.emplace_back(node3d);
+          i++;
+          pred_shared_ptr = std::make_shared<Node3D>(node3d);
+        }
+        else
+        {
+          DLOG(INFO) << "RS shot collided, discarding the path";
+          path_vec.clear();
+          break;
+        }
+      }
+    }
     // bezier curve
-    if (params_.curve_type_analytical_expansion == 1)
+    if (params_.collision_detection_params.curve_type == 2)
     {
       CubicBezier::CubicBezier cubic_bezier(vector3d_start, vector3d_goal, map_width_, map_height_);
       float length = cubic_bezier.GetLength();
@@ -403,7 +455,7 @@ namespace HybridAStar
       while (x < length)
       {
         // DLOG(INFO) << i << "th iteration";
-        Node3D node3d;
+
         Utility::TypeConversion(cubic_bezier.GetValueAt(x / length), node3d);
         float curvature = cubic_bezier.GetCurvatureAt(x / length);
         node3d.setT(Utility::RadToZeroTo2P(cubic_bezier.GetAngleAt(x / length)));
@@ -453,7 +505,7 @@ namespace HybridAStar
       // LOG(INFO) << "start point before conversion is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " after conversion is " << vector3d_start.x() << " " << vector3d_start.y() << " " << Utility::ConvertRadToDeg(vector3d_start.z());
 
       // LOG(INFO) << "goal point before conversion is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT()) << " after conversion is " << vector3d_goal.x() << " " << vector3d_goal.y() << " " << Utility::ConvertRadToDeg(vector3d_goal.z());
-      LOG(INFO) << "Analytical expansion connected, returning path";
+      // LOG(INFO) << "Analytical expansion connected, returning path";
       // LOG(INFO) << "analytical expansion start at " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT());
     }
     return path_vec;
@@ -465,7 +517,7 @@ namespace HybridAStar
 
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred)
   {
-    // DLOG(INFO) << "CreateSuccessor in:";
+    // LOG(INFO) << "CreateSuccessor in:";
     std::vector<std::shared_ptr<Node3D>> out;
     std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec;
     float distance_to_goal = Utility::GetDistance(pred, goal_);
@@ -526,18 +578,17 @@ namespace HybridAStar
     else
     {
       // LOG(INFO) << "fixed steering angle and step size";
-      // assume constant speed.
-
       std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, params_.number_of_successors);
       std::pair<float, float> pair;
-
-      if (resolution_ > distance_to_goal)
+      // float step_size = resolution_;
+      float step_size = 0.2;
+      if (step_size > distance_to_goal)
       {
         pair.first = distance_to_goal;
       }
       else
       {
-        pair.first = resolution_;
+        pair.first = step_size;
       }
 
       for (const auto &element : available_steering_angle_vec)
@@ -559,8 +610,7 @@ namespace HybridAStar
 
   std::vector<std::shared_ptr<Node3D>> HybridAStar::CreateSuccessor(const Node3D &pred, const std::vector<std::pair<float, float>> &step_size_steering_angle_vec)
   {
-    // DLOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
-    unsigned int startX, startY;
+    // LOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
     std::vector<std::shared_ptr<Node3D>> out;
     float dx, dy, xSucc, ySucc, tSucc, turning_radius, steering_angle;
     int prem;
@@ -570,7 +620,7 @@ namespace HybridAStar
       // DLOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
       if (pair.first <= 1e-3)
       {
-        DLOG(INFO) << "current step size is zero, no need to create successor!!";
+        LOG(INFO) << "current step size is zero, no need to create successor!!";
         continue;
       }
       steering_angle = pair.second;
@@ -606,26 +656,16 @@ namespace HybridAStar
       tSucc = Utility::RadToZeroTo2P(pred.getT() + steering_angle);
       // DLOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT()) << " pred_ptr " << pred_ptr->getX() << " " << pred_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_ptr->getT()) << " pred_smart_ptr " << pred_smart_ptr->getX() << " " << pred_smart_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_smart_ptr->getT());
       std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.getCostSofar(), 0, params_.reverse, pred_smart_ptr, prem));
-      // DLOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT()) << " pred_ptr " << pred_ptr->getX() << " " << pred_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_ptr->getT()) << " pred_smart_ptr " << pred_smart_ptr->getX() << " " << pred_smart_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_smart_ptr->getT()) << " temp " << temp->getX() << " " << temp->getY() << " " << Utility::ConvertRadToDeg(temp->getT()) << " temp pred is " << temp->getPred()->getX() << " " << temp->getPred()->getY() << " " << Utility::ConvertRadToDeg(temp->getPred()->getT()) << " temp smart ptr " << temp->getSmartPtrPred()->getX() << " " << temp->getSmartPtrPred()->getY() << " " << Utility::ConvertRadToDeg(temp->getSmartPtrPred()->getT());
-      // this is just to correct pred change issue.
-      // DLOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT()) << " pred_ptr " << pred_ptr->getX() << " " << pred_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_ptr->getT()) << " pred_smart_ptr " << pred_smart_ptr->getX() << " " << pred_smart_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_smart_ptr->getT()) << " temp " << temp->getX() << " " << temp->getY() << " " << Utility::ConvertRadToDeg(temp->getT()) << " temp pred is " << temp->getPred()->getX() << " " << temp->getPred()->getY() << " " << Utility::ConvertRadToDeg(temp->getPred()->getT()) << " temp smart ptr " << temp->getSmartPtrPred()->getX() << " " << temp->getSmartPtrPred()->getY() << " " << Utility::ConvertRadToDeg(temp->getSmartPtrPred()->getT());
-      if (costmap->worldToMap(temp->getX(), temp->getY(), startX, startY))
+      if (configuration_space_ptr_->IsTraversable(temp))
       {
-        // DLOG(INFO) << "map cost for successor is " << (int)charMap[startX + startY * cells_x];
-        // TODO why 250??
-        if (costmap->getCharMap()[startX + startY * costmap->getSizeInCellsX()] < 250)
-        {
-          temp->setMapCost(costmap->getCharMap()[startX + startY * costmap->getSizeInCellsX()]);
-        }
         out.emplace_back(temp);
         // DLOG(INFO) << "in CreateSuccessor, successor is " << temp->getX() << " " << temp->getY() << " " << Utility::ConvertRadToDeg(temp->getT()) << " temp pred is " << temp->getPred()->getX() << " " << temp->getPred()->getY() << " " << Utility::ConvertRadToDeg(temp->getPred()->getT()) << " temp smart ptr " << temp->getSmartPtrPred()->getX() << " " << temp->getSmartPtrPred()->getY() << " " << Utility::ConvertRadToDeg(temp->getSmartPtrPred()->getT()) << " step size is " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
-        DLOG_IF(FATAL, (*temp == *temp->getSmartPtrPred())) << "successor and current are the same node!!! step size is " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle) << " successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc) << " current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
+        // DLOG_IF(FATAL, (*temp == *temp->getSmartPtrPred())) << "successor and current are the same node!!! step size is " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle) << " successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc) << " current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
       }
       else
       {
-        // DLOG(INFO) << "convert successor " << temp->getX() << " " << temp->getY() << " to map failed.";
+        // LOG(INFO) << "in CreateSuccessor, successor: " << temp->getX() << " " << temp->getY() << " " << Utility::ConvertRadToDeg(temp->getT()) << " is in collision, step size is " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
       }
-
       if (params_.reverse)
       {
         // backward,checked
@@ -653,14 +693,8 @@ namespace HybridAStar
         // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
         std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.getCostSofar(), 0, params_.reverse, pred_smart_ptr, prem));
         // DLOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT()) << " pred_ptr " << pred_ptr->getX() << " " << pred_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_ptr->getT()) << " pred_smart_ptr " << pred_smart_ptr->getX() << " " << pred_smart_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_smart_ptr->getT()) << " temp " << temp->getX() << " " << temp->getY() << " " << Utility::ConvertRadToDeg(temp->getT()) << " temp pred is " << temp->getPred()->getX() << " " << temp->getPred()->getY() << " " << Utility::ConvertRadToDeg(temp->getPred()->getT()) << " temp smart ptr " << temp->getSmartPtrPred()->getX() << " " << temp->getSmartPtrPred()->getY() << " " << Utility::ConvertRadToDeg(temp->getSmartPtrPred()->getT());
-        if (costmap->worldToMap(temp->getX(), temp->getY(), startX, startY))
+        if (configuration_space_ptr_->IsTraversable(temp))
         {
-          // DLOG(INFO) << "map cost for successor is " << (int)charMap[startX + startY * cells_x];
-          // TODO why 250??
-          if (costmap->getCharMap()[startX + startY * costmap->getSizeInCellsX()] < 250)
-          {
-            temp->setMapCost(costmap->getCharMap()[startX + startY * costmap->getSizeInCellsX()]);
-          }
           out.emplace_back(temp);
           DLOG_IF(FATAL, (*temp == *temp->getSmartPtrPred())) << "successor and current are the same node!!! step size is " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle) << " successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc) << " current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
         }
@@ -670,7 +704,7 @@ namespace HybridAStar
         }
       }
     }
-    LOG_IF(WARNING, out.size() == 0) << "WARNING: Number of successor is zero!!!!";
+    // LOG_IF(WARNING, out.size() == 0) << "WARNING: Number of successor is zero!!!!";
     return out;
   }
 
@@ -929,10 +963,10 @@ namespace HybridAStar
   {
     for (const auto &element : open_list)
     {
-      // this 0.2 should be a resolution related value
-      if (abs(element->getX() - node_3d_ptr->getX()) < resolution_ * 0.1 && abs(element->getY() - node_3d_ptr->getY()) < resolution_ * 0.1 && abs(element->getT() - node_3d_ptr->getT()) < Utility::ConvertDegToRad(params_.steering_angle) * 0.1)
+      // this 0.2 should be a resolution related value, no, unit here are meters, so consider vehicle control p
+      if (abs(element->getX() - node_3d_ptr->getX()) < 0.05 && abs(element->getY() - node_3d_ptr->getY()) < 0.05 && abs(element->getT() - node_3d_ptr->getT()) < Utility::ConvertDegToRad(3))
       {
-        LOG(INFO) << "node already in open list.";
+        // LOG(INFO) << "node " << node_3d_ptr->getX() << " " << node_3d_ptr->getY() << " " << Utility::ConvertRadToDeg(node_3d_ptr->getT()) << " is already in open list. closest node is " << element->getX() << " " << element->getY() << " " << Utility::ConvertRadToDeg(element->getT());
         return true;
       }
     }
@@ -946,7 +980,6 @@ namespace HybridAStar
       ros::Publisher &pub, visualization_msgs::MarkerArray &pathNodes)
   {
     DLOG(INFO) << "in HybridAStar::calculatePath.";
-    // directly call getpath()
     Utility::TypeConversion(start, start_);
     Utility::TypeConversion(goal, goal_);
     Node2D *nodes2D = new Node2D[cellsX * cellsY]();

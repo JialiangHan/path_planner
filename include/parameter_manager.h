@@ -25,8 +25,6 @@ namespace HybridAStar
     /// [m] --- The length of the vehicle
     float vehicle_length = 2;
 
-    bool enable_collision_lookup = false;
-
     bool consider_steering_angle_range_for_obstacle_density = false;
 
     bool add_one_more_successor_only_in_free_angle_range = false;
@@ -168,8 +166,6 @@ namespace HybridAStar
     ParameterAStar a_star_params;
 
     float constant_density = 0.5;
-    // curve type in analytical expansion: 0 Dubins/RS curve, 1: cubic bezier
-    int curve_type_analytical_expansion = 0;
   };
 
   struct ParameterSmoother
@@ -204,7 +200,6 @@ namespace HybridAStar
     ParameterPathPublisher path_publisher_params;
     ParameterSmoother smoother_params;
     ParameterPlanner planner_params;
-    ParameterCollisionDetection collision_detection_params;
     ParameterRRTPlanner rrt_planner_params;
     ParameterAStar a_star_planner_params;
   };

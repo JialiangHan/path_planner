@@ -514,9 +514,11 @@ namespace Utility
         return GetDistanceFromPointToPoint(vector2d_1,
                                            vector_2d);
     }
+    // checked, no issue
     float GetDistanceFromPointToPoint(const Eigen::Vector2f &p1,
                                       const Eigen::Vector2f &p2)
     {
+        // LOG(INFO) << "first point is " << p1.x() << " " << p1.y() << " second_point is " << p2.x() << " " << p2.y() << " distance is " << (p1 - p2).norm();
         return (p1 - p2).norm();
     }
 
@@ -537,6 +539,7 @@ namespace Utility
                                         const Eigen::Vector2f &end,
                                         const Eigen::Vector2f &point)
     {
+        float distance;
         if (OnSegment(start, end, point))
         {
             return 0;
@@ -558,23 +561,31 @@ namespace Utility
         if (projection_length > (end - start).norm())
         {
             // this means point is outside segment
-            return std::min(distance_to_start, distance_to_goal);
+            // LOG(INFO) << "point " << point.x() << " " << point.y() << " is outside segment " << start.x() << " " << start.y() << " " << end.x() << " " << end.y();
+            distance = std::min(distance_to_start, distance_to_goal);
         }
-        return GetDistanceFromPointToLine(point, start, unit_vector);
+        else
+        {
+            distance = GetDistanceFromPointToLine(point, start, unit_vector);
+        }
+        // LOG(INFO) << "distance from point " << point.x() << " " << point.y() << " to segment " << start.x() << " " << start.y() << " " << end.x() << " " << end.y() << " is " << distance;
+        return distance;
     }
     // checked, correct.
     float GetDistanceFromPointToLine(const Eigen::Vector2f &point,
                                      const Eigen::Vector2f &start,
                                      const Eigen::Vector2f &unit_vector)
     {
+        float distance;
         if (IsPointOnLine(point, start, unit_vector))
         {
             return 0;
         }
 
         float projection_length = abs((point - start).dot(unit_vector));
+        distance = sqrt((point - start).norm() * (point - start).norm() - projection_length * projection_length);
 
-        return sqrt((point - start).norm() * (point - start).norm() - projection_length * projection_length);
+        return distance;
     }
 
     float GetDistanceFromPolygonToPoint(const Polygon &polygon,
@@ -1132,16 +1143,14 @@ namespace Utility
                 float angle_diff = RadNormalization(start.getT() - goal.getT());
                 if (abs(angle_diff) <= angle_range)
                 {
-                    DLOG(INFO)
-                        << "two node distance and orientation are close enough, return true";
-                    DLOG(INFO) << "current node is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT());
-                    DLOG(INFO) << "goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT());
-                    DLOG(INFO) << "angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
+                    LOG(INFO)
+                        << "two node distance and orientation are close enough, return true. current node is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT()) << " angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
                     return true;
                 }
                 else
                 {
-                    DLOG(INFO) << "two node distance is close enough but orientation is too far is " << Utility::ConvertRadToDeg(angle_diff);
+                    LOG(INFO)
+                        << "two node distance is close enough but angle diff is far, return false. current node is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT()) << " angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
                     return false;
                 }
             }

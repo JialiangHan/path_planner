@@ -180,7 +180,7 @@ bool CollisionDetection::IsOnGrid(const float &x, const float &y) const
 bool CollisionDetection::configurationTest(const float &x, const float &y, const float &t)
 {
   // LOG(INFO) << "current node is " << x << " " << y << " " << Utility::ConvertRadToDeg(t);
-  // check current point is in collision and if vehicle move to this point, if vehicle in this point is in collision?
+  // check current point is in collision and if vehicle move to this point, if vehicle in this point is in collision?, startX,startY unit are in cell not in meter
   unsigned int startX, startY;
   if (!costmap_->worldToMap(x, y, startX, startY))
   {
@@ -190,7 +190,7 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
   // simple collision check
   if (costmap_->getCharMap()[startX + startY * costmap_->getSizeInCellsX()] >= 250)
   {
-    LOG(INFO) << "current node " << x << " " << y << " " << t << " charmap value is " << costmap_->getCharMap()[startX + startY * costmap_->getSizeInCellsX()];
+    // LOG(INFO) << "current node " << x << " " << y << " " << t << " charmap value is " << (int)costmap_->getCharMap()[startX + startY * costmap_->getSizeInCellsX()];
     return false;
   }
   Utility::Polygon polygon = Utility::CreatePolygon(Eigen::Vector2f(x, y), params_.vehicle_length, params_.vehicle_width, t);

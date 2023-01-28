@@ -42,7 +42,7 @@ namespace HybridAStar
         {
 
             initialize(name, costmap_ros->getCostmap(), costmap_ros->getGlobalFrameID());
-            LOG(INFO) << "frame id is " << costmap_ros->getGlobalFrameID();
+            // LOG(INFO) << "frame id is " << costmap_ros->getGlobalFrameID();
             initialized_ = true;
         }
         else
@@ -90,7 +90,7 @@ namespace HybridAStar
         makePlan(req.start, req.goal, resp.plan.poses);
         resp.plan.header.stamp = ros::Time();
         resp.plan.header.frame_id = frame_id_;
-        // LOG(INFO) << "frame id is " << frame_id_;
+        // LOG(INFO) << "in makePlanService";
         return true;
     }
 
@@ -174,12 +174,13 @@ namespace HybridAStar
         }
 
         plan_pub_.publish(gui_path);
-        // LOG(INFO)<<("Publish the path to Rviz");
-
+        // LOG(INFO) << ("Publish the path to Rviz");
     } // end of publishPlan
     void HybridAStarPlanner::Clear(std::vector<geometry_msgs::PoseStamped> &plan)
     {
         plan.clear();
+        ros::Duration d(1);
+        d.sleep();
         // CLEAR THE VISUALIZATION
         visualization_ptr_->clear();
         publishPlan(plan);

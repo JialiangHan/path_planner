@@ -122,9 +122,6 @@ namespace HybridAStar
     ros_param_name = "obstacle_detection_range";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.obstacle_detection_range);
 
-    ros_param_name = "enable_collision_lookup";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.enable_collision_lookup);
-
     ros_param_name = "map_boundary_obstacle";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.map_boundary_obstacle);
 
@@ -192,9 +189,6 @@ namespace HybridAStar
     ros_param_name = "number_of_successors";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.number_of_successors);
 
-    ros_param_name = "curve_type_analytical_expansion";
-    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.curve_type_analytical_expansion);
-
     ros_param_name = "adaptive_step_size";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.adaptive_step_size);
 
@@ -238,7 +232,14 @@ namespace HybridAStar
 
     LoadCollisionDetectionParams();
 
-    LoadAStarPlannerParams();
+    ros_param_name = "possible_direction";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.a_star_params.possible_direction);
+
+    ros_param_name = "use_adaptive_step_size_in_a_star";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.a_star_params.use_adaptive_step_size_in_a_star);
+
+    ros_param_name = "goal_range";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.a_star_params.goal_range);
 
     ros_param_name = "constant_density";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.constant_density);
@@ -285,7 +286,7 @@ namespace HybridAStar
   void ParameterManager::GetSingleParam(const std::string &param_name, T &param_data)
   {
     nh_.getParam(param_name, param_data);
-    // DLOG(INFO) << "Load param: " << param_name << " value is :" << param_data;
+    // LOG(INFO) << "Load param: " << param_name << " value is :" << param_data;
   }
 
   // std::shared_ptr<ParameterContainer> ParameterManager::GetAllParams()
@@ -315,7 +316,8 @@ namespace HybridAStar
 
   ParameterCollisionDetection ParameterManager::GetCollisionDetectionParams()
   {
-    return param_container_ptr_->collision_detection_params;
+    // LOG(INFO) << "vehicle length is " << param_container_ptr_->hybrid_a_star_params.collision_detection_params.vehicle_length << " width is " << param_container_ptr_->hybrid_a_star_params.collision_detection_params.vehicle_width;
+    return param_container_ptr_->hybrid_a_star_params.collision_detection_params;
   }
 
   ParameterRRTPlanner ParameterManager::GetRRTPlannerParams()
