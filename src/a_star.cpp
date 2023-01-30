@@ -33,7 +33,7 @@ namespace HybridAStar
         ros::Time t0 = ros::Time::now();
         start_ = start;
         goal_ = goal;
-        LOG(INFO) << "GetAStarCost in: start is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY();
+        // LOG(INFO) << "GetAStarCost in: start is " << start.getX() << " " << start.getY() << " goal is " << goal.getX() << " " << goal.getY();
         // PREDECESSOR AND SUCCESSOR INDEX
         int iPred, iSucc;
         float newG;
@@ -67,7 +67,7 @@ namespace HybridAStar
         {
             // pop node with lowest cost from priority queue
             nPred = openlist.top();
-            LOG(INFO) << "current node  is " << nPred->getX() << " " << nPred->getY();
+            // LOG(INFO) << "current node  is " << nPred->getX() << " " << nPred->getY();
             number_nodes_explored++;
             // set index
             iPred = nPred->setIdx(width, height, resolution_, origin_x_, origin_y_);
@@ -112,7 +112,7 @@ namespace HybridAStar
                     }
                     ros::Time t1 = ros::Time::now();
                     ros::Duration d(t1 - t0);
-                    LOG(INFO) << "number of nodes explored is " << number_nodes_explored << " TIME in second: " << d << " cost so far is " << nPred->getCostSofar();
+                    // LOG(INFO) << "number of nodes explored is " << number_nodes_explored << " TIME in second: " << d << " cost so far is " << nPred->getCostSofar();
                     return nPred->getCostSofar();
                 }
                 // ____________________
@@ -123,7 +123,7 @@ namespace HybridAStar
                     std::vector<std::shared_ptr<Node2D>> successor_vec = CreateSuccessor(*nPred, params_.possible_direction);
                     for (uint i = 0; i < successor_vec.size(); ++i)
                     {
-                        LOG(INFO) << "current successor is " << successor_vec[i]->getX() << " " << successor_vec[i]->getY();
+                        // LOG(INFO) << "current successor is " << successor_vec[i]->getX() << " " << successor_vec[i]->getY();
                         // create possible successor
                         nSucc = successor_vec[i];
                         // set index of the successor
@@ -157,7 +157,7 @@ namespace HybridAStar
                                     // LOG(INFO) << "iSucc is " << iSucc;
                                     std::shared_ptr<Node2D> nSucc_ptr = std::make_shared<Node2D>(nodes2D[iSucc]);
                                     openlist.push(nSucc_ptr);
-                                    LOG(INFO) << "current successor not in open list. put in into openlist.";
+                                    // LOG(INFO) << "current successor not in open list. put in into openlist.";
                                 }
                                 else
                                 {
@@ -280,8 +280,11 @@ namespace HybridAStar
     //###################################################
     void AStar::UpdateCostSoFar(Node2D &node)
     {
-        float cost_so_far = node.getCostSofar() + Utility::GetDistance(node, *node.getSmartPtrPred());
-        node.setCostSofar(cost_so_far);
+        if (node.getSmartPtrPred() != nullptr)
+        {
+            float cost_so_far = node.getCostSofar() + Utility::GetDistance(node, *node.getSmartPtrPred());
+            node.setCostSofar(cost_so_far);
+        }
     }
     // ###################################################
     //                                     update cost so far

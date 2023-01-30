@@ -30,7 +30,7 @@ void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map, boo
   grid_ptr_ = map;
   SetObstacleVec();
 
-  obstacle_detection_range_ = params_.obstacle_detection_range * resolution_;
+  obstacle_detection_range_ = params_.obstacle_detection_range;
   // DLOG(INFO) << "obstacle_detection_range is " << obstacle_detection_range_;
   // std::thread th2(SetInRangeObstacle, ref(obstacle_detection_range_));
   // std::thread th3(std::bind(&CollisionDetection::SetDistanceAngleRangeMap, this));

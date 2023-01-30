@@ -55,8 +55,9 @@ namespace HybridAStar
     int analytical_expansion_counter = 0;
     // VISUALIZATION DELAY
     ros::Duration d(0.003);
-    // OPEN LIST AS BOOST IMPLEMENTATION
 
+    astar_cost_map_ = BuildAStarCostMap(goal);
+    // OPEN LIST AS BOOST IMPLEMENTATION
     priorityQueue openlist;
     // update h value
     UpdateHeuristic(start, goal, nodes2D);
@@ -328,16 +329,17 @@ namespace HybridAStar
       // LOG(INFO) << "cubic bezier cost is " << curve_cost;
     }
     //  unconstrained with obstacles
+    start2d.setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_);
+    if (astar_cost_map_.find(start2d.getIdx()) != astar_cost_map_.end())
+    {
+      twoDCost = astar_cost_map_[start2d.getIdx()];
+    }
+    else
+    {
+      LOG(INFO) << "current start node is " << start2d.getX() << " " << start2d.getY() << " index is " << start2d.getIdx() << " can not be found in astar_cost_map_!!!";
+    }
 
-    // LOG(INFO) << "A star start node is " << start2d.getX() << " " << start2d.getY() << " goal is " << goal2d.getX() << " " << goal2d.getY() << " start is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT());
-    // run 2d AStar and return the cost of the cheapest path for that node
-    nodes2D[start2d.getIdx()]
-        .setCostSofar(a_star_ptr_->GetAStarCost(nodes2D, start2d, goal2d, true));
-    // TODO : a star cost is not right
-
-    twoDCost = nodes2D[start2d.getIdx()].getCostSofar();
-
-    LOG(INFO) << "current node is " << start.getX() << " " << start.getY() << " " << start.getT() << " a star cost is " << twoDCost << " curve cost is " << curve_cost << " heuristic is " << std::max(curve_cost, twoDCost);
+    // LOG(INFO) << "current node is " << start.getX() << " " << start.getY() << " " << start.getT() << " a star cost is " << twoDCost << " curve cost is " << curve_cost << " heuristic is " << std::max(curve_cost, twoDCost);
     // return the maximum of the heuristics, making the heuristic admissable
     start.setCostToGo(std::max(curve_cost, twoDCost));
     // DLOG(INFO) << "UpdateHeuristic out.";
@@ -998,5 +1000,61 @@ namespace HybridAStar
       delete[] nodes3D;
       return false;
     }
+  }
+
+  std::unordered_map<int, float> HybridAStar::BuildAStarCostMap(const Node3D &start)
+  {
+    LOG(INFO) << "in BuildAStarCostMap.";
+    std::unordered_map<int, float> astar_cost_map_;
+    Node2D start2d;
+    Utility::TypeConversion(start, start2d);
+
+    std::priority_queue<std::pair<int, double>,
+                        std::vector<std::pair<int, double>>, cmp>
+        open_pq;
+    std::unordered_map<int, std::shared_ptr<Node2D>> open_set;
+    std::shared_ptr<Node2D> goal_node = std::make_shared<Node2D>(start2d);
+
+    open_set.emplace(goal_node->setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_), goal_node);
+    open_pq.emplace(goal_node->setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_), goal_node->getCostSofar());
+    while (!open_pq.empty())
+    {
+      int id = open_pq.top().first;
+      open_pq.pop();
+      std::shared_ptr<Node2D> current_node = open_set[id];
+
+      a_star_ptr_->UpdateCostSoFar(*current_node);
+
+      astar_cost_map_.emplace(current_node->setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_), current_node->getCostSofar());
+      // LOG(INFO) << "put current node " << current_node->getX() << " " << current_node->getY() << " index is " << current_node->getIdx() << " cost is " << current_node->getCostSofar();
+      std::vector<std::shared_ptr<Node2D>> adjacent_nodes =
+          a_star_ptr_->CreateSuccessor(*current_node, 8);
+      for (std::vector<std::shared_ptr<Node2D>>::iterator
+               it = adjacent_nodes.begin();
+           it != adjacent_nodes.end(); ++it)
+      {
+        std::shared_ptr<Node2D> next_node = *it;
+        if (astar_cost_map_.find(next_node->setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_)) != astar_cost_map_.end())
+        {
+          continue;
+        }
+        if (open_set.find(next_node->setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_)) != open_set.end())
+        {
+          if (open_set[next_node->setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_)]->getCostSofar() > next_node->getCostSofar())
+          {
+            open_set[next_node->setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_)]->setCostSofar(next_node->getCostSofar());
+            open_set[next_node->setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_)]->setSmartPtrPred(current_node);
+          }
+        }
+        else
+        {
+          next_node->setSmartPtrPred(current_node);
+          open_set.emplace(next_node->setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_), next_node);
+          open_pq.emplace(next_node->setIdx(map_width_, map_height_, resolution_, origin_x_, origin_y_), next_node->getCostSofar());
+        }
+      }
+    }
+
+    return astar_cost_map_;
   }
 }

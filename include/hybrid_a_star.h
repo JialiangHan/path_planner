@@ -42,6 +42,16 @@ namespace HybridAStar
       }
    };
 
+   struct cmp
+   {
+      // Sorting 3D nodes by increasing C value - the total estimated cost
+      bool operator()(const std::pair<int, double> &left,
+                      const std::pair<int, double> &right) const
+      {
+         return left.second >= right.second;
+      }
+   };
+
    typedef boost::heap::binomial_heap<std::shared_ptr<Node3D>, boost::heap::compare<CompareNodes>> priorityQueue;
    /*!
     * \brief A class that encompasses the functions central to the search.
@@ -61,7 +71,7 @@ namespace HybridAStar
                   const std::shared_ptr<Visualize> &visualization_ptr, const std::shared_ptr<CollisionDetection> &_configuration_space_ptr)
           : Expander(frame_id, _costmap)
       {
-         LOG(INFO) << "constructing HybridAStar.";
+         // LOG(INFO) << "constructing HybridAStar.";
 
          params_ = params;
          lookup_table_ptr_.reset(new LookupTable(params_.collision_detection_params));
@@ -186,6 +196,13 @@ namespace HybridAStar
        * @return false
        */
       bool DuplicateCheck(priorityQueue &open_list, std::shared_ptr<Node3D> node_3d_ptr);
+      /**
+       * @brief build astar cost map for current goal node.
+       *
+       * @param start
+       * @return std::unordered_map<int, float> first is node index, second is cost so far
+       */
+      std::unordered_map<int, float> BuildAStarCostMap(const Node3D &start);
 
    private:
       ParameterHybridAStar params_;
@@ -208,5 +225,7 @@ namespace HybridAStar
        *
        */
       uint analytical_expansion_index_;
+
+      std::unordered_map<int, float> astar_cost_map_;
    };
 }

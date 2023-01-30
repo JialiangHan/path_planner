@@ -78,8 +78,6 @@ namespace HybridAStar
 
         Utility::Path3D GetPath(Node2D &start, Node2D &goal,
                                 Node2D *nodes2D);
-
-    private:
         /**
          * @brief Create possible successors of current node according its possible direction
          *
@@ -88,7 +86,14 @@ namespace HybridAStar
          * @return std::vector<std::shared_ptr<Node2D>>
          */
         std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir);
+        /**
+         * @brief update cost so far for a star
+         *
+         * @param node
+         */
+        void UpdateCostSoFar(Node2D &node);
 
+    private:
         std::vector<std::shared_ptr<Node2D>> CreateSuccessor(const Node2D &pred, const uint &possible_dir, const float &step_size);
         /**
          * @brief update heuristic for a star
@@ -96,12 +101,6 @@ namespace HybridAStar
          * @param goal 
          */
         void UpdateHeuristic(Node2D &current);
-        /**
-         * @brief update cost so far for a star
-         * 
-         * @param node 
-         */
-        void UpdateCostSoFar(Node2D &node);
 
         void TracePath(std::shared_ptr<Node2D> node2d_ptr);
 

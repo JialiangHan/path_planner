@@ -21,8 +21,7 @@ class Node2D {
    /// Constructor for a node with the given arguments
    Node2D(float _x, float _y, float _g = 0, float _h = 0, Node2D *_pred_ptr = nullptr, std::shared_ptr<Node2D> _pred_shared_ptr = nullptr) : x(_x), y(_y), g(_g), h(_h), idx(-1), o(false), c(false), d(false), pred_ptr_(_pred_ptr), pred_shared_ptr_(_pred_shared_ptr)
    {
-     this->map_cost_ = -1;
-   }
+      }
    // GETTER METHODS
    /// get the x position
    float getX() const { return x; }
