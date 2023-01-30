@@ -981,7 +981,7 @@ namespace HybridAStar
       int cellsX, int cellsY, std::vector<geometry_msgs::PoseStamped> &plan,
       ros::Publisher &pub, visualization_msgs::MarkerArray &pathNodes)
   {
-    DLOG(INFO) << "in HybridAStar::calculatePath.";
+    // DLOG(INFO) << "in HybridAStar::calculatePath.";
     Utility::TypeConversion(start, start_);
     Utility::TypeConversion(goal, goal_);
     Node2D *nodes2D = new Node2D[cellsX * cellsY]();
@@ -1004,7 +1004,7 @@ namespace HybridAStar
 
   std::unordered_map<int, float> HybridAStar::BuildAStarCostMap(const Node3D &start)
   {
-    LOG(INFO) << "in BuildAStarCostMap.";
+    // LOG(INFO) << "in BuildAStarCostMap.";
     std::unordered_map<int, float> astar_cost_map_;
     Node2D start2d;
     Utility::TypeConversion(start, start2d);

@@ -27,7 +27,7 @@ namespace HybridAStar
               const std::shared_ptr<Visualize> &visualization_ptr, const std::shared_ptr<CollisionDetection> &_configuration_space_ptr)
             : Expander(frame_id, _costmap)
         {
-            LOG(INFO) << "in Astar.";
+            // LOG(INFO) << "in Astar.";
             params_ = params;
             configuration_space_ptr_ = _configuration_space_ptr;
             visualization_ptr_ = visualization_ptr;
