@@ -1143,14 +1143,12 @@ namespace Utility
                 float angle_diff = RadNormalization(start.getT() - goal.getT());
                 if (abs(angle_diff) <= angle_range)
                 {
-                    LOG(INFO)
-                        << "two node distance and orientation are close enough, return true. current node is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT()) << " angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
+                    // LOG(INFO)                        << "two node distance and orientation are close enough, return true. current node is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT()) << " angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
                     return true;
                 }
                 else
                 {
-                    LOG(INFO)
-                        << "two node distance is close enough but angle diff is far, return false. current node is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT()) << " angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
+                    // LOG(INFO)                        << "two node distance is close enough but angle diff is far, return false. current node is " << start.getX() << " " << start.getY() << " " << Utility::ConvertRadToDeg(start.getT()) << " goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT()) << " angle diff is " << Utility::ConvertRadToDeg(angle_diff) << " angle range is " << Utility::ConvertRadToDeg(angle_range);
                     return false;
                 }
             }

@@ -409,8 +409,7 @@ namespace RRTPlanner
     {
         float step_size = 0, distance_to_goal = Utility::GetDistance(closest_node, target), step_size_obstacle = 10000;
 
-        bool consider_steering_angle_range = false;
-        std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(closest_node, consider_steering_angle_range);
+        std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(closest_node);
         float final_orientation = Utility::RadNormalization(steering_angle + Utility::RadNormalization(closest_node.getT()));
         // find distance to obstacle in steering angle direction
         DLOG_IF(WARNING, available_angle_range_vec.size() == 0) << "available_angle_range_vec size is " << available_angle_range_vec.size();

@@ -124,8 +124,7 @@ namespace HybridAStar
 
     bool HybridAStarPlanner::checkStartPose(const geometry_msgs::PoseStamped &start)
     {
-        unsigned int startx, starty;
-        if (costmap->worldToMap(start.pose.position.x, start.pose.position.y, startx, starty))
+        if (configuration_space_ptr_->IsTraversable(start))
         {
             return true;
         }
@@ -138,13 +137,17 @@ namespace HybridAStar
         unsigned int goalx, goaly;
         if (costmap->worldToMap(goal.pose.position.x, goal.pose.position.y, goalx, goaly))
         {
-            if (costmap->getCost(goalx, goaly) > 252)
+            if (configuration_space_ptr_->IsTraversable(goal))
             {
+                if (costmap->getCost(goalx, goaly) > 252)
+                {
 
-                LOG(WARNING) << "The Goal pose is out of the map! %d", costmap->getCost(goalx, goaly);
-                LOG(WARNING) << "The Goal pose is occupied , please reset the goal!";
-                return false;
+                    LOG(WARNING) << "The Goal pose is out of the map! %d", costmap->getCost(goalx, goaly);
+                    LOG(WARNING) << "The Goal pose is occupied , please reset the goal!";
+                    return false;
+                }
             }
+
             return true;
         }
         return false;

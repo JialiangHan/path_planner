@@ -71,6 +71,7 @@ void Visualize::publishNode3DPose(const Node3D &node)
 //###################################################
 void Visualize::publishNode3DPoses(const Node3D &node)
 {
+
   geometry_msgs::Pose pose;
   pose.position.x = node.getX();
   pose.position.y = node.getY();
@@ -78,6 +79,7 @@ void Visualize::publishNode3DPoses(const Node3D &node)
   //FORWARD
   if (node.getPrim() < 3)
   {
+    // LOG(INFO) << "publishing forward nodes";
     pose.orientation = tf::createQuaternionMsgFromYaw(node.getT());
     poses3D.poses.emplace_back(pose);
     poses3D.header.stamp = ros::Time();
@@ -85,7 +87,9 @@ void Visualize::publishNode3DPoses(const Node3D &node)
     pubNodes3D.publish(poses3D);
   }
   //REVERSE
-  else {
+  else
+  {
+    // LOG(INFO) << "publishing reverse nodes";
     pose.orientation = tf::createQuaternionMsgFromYaw(node.getT() + M_PI);
     poses3Dreverse.poses.emplace_back(pose);
     poses3Dreverse.header.stamp = ros::Time();

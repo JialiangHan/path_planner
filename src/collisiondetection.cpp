@@ -94,7 +94,7 @@ bool CollisionDetection::IsTraversable(const Node3D &node3d)
   // DLOG_IF(INFO, (node3d.getX() > 35) && (node3d.getX() < 37) && (node3d.getY() > 12) && (node3d.getY() < 14)) << "IsTraversable in: current node is x " << node3d.getX() << " y " << node3d.getY() << " angle is " << Utility::ConvertRadToDeg(node3d.getT());
   if (!IsOnGrid(node3d))
   {
-    LOG(INFO) << "current node not on grid!";
+    // LOG(INFO) << "current node not on grid!";
     return false;
   }
 
@@ -142,6 +142,14 @@ bool CollisionDetection::IsTraversable(const Node3D &current_node, const Node3D 
   // DLOG(INFO) << "IsTraversable out.";
   return false;
 }
+
+bool CollisionDetection::IsTraversable(const geometry_msgs::PoseStamped &pose)
+{
+  Node3D node3d;
+  Utility::TypeConversion(pose, node3d);
+  return IsTraversable(node3d);
+}
+
 bool CollisionDetection::IsOnGrid(const Eigen::Vector2f &point) const
 {
   return IsOnGrid(point.x(), point.y());
@@ -692,15 +700,12 @@ uint CollisionDetection::CalculateFineIndex(const float &x, const float &y, cons
   return out;
 }
 
-std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeAngleRangeAndObstacleAngleRange(const Node3D &node3d, bool consider_steering_angle_range)
+std::vector<std::pair<float, Utility::AngleRange>> CollisionDetection::FindFreeAngleRangeAndObstacleAngleRange(const Node3D &node3d)
 {
   std::vector<std::pair<float, Utility::AngleRange>> out;
   // 1. get steering angle range
   Utility::AngleRange steering_angle_range(0, Utility::ConvertDegToRad(359.9999));
-  if (consider_steering_angle_range)
-  {
-    steering_angle_range = GetNode3DAvailableSteeringAngleRange(node3d);
-  }
+
   // LOG(INFO) << "current node is " << node3d.getX() << " " << node3d.getY() << " " << Utility::ConvertRadToDeg(node3d.getT()) << " . steering angle range: start from " << Utility::ConvertRadToDeg(steering_angle_range.first) << " end is " << Utility::ConvertRadToDeg(Utility::GetAngleRangeEnd(steering_angle_range));
   uint current_point_index = GetNode3DIndexOnGridMap(node3d);
   // 2. find common range of free/obstacle angle range and steering angle range
@@ -1397,8 +1402,7 @@ std::vector<std::pair<float, float>> CollisionDetection::FindStepSizeAndSteering
   // 1. find steering angle range for current node according to vehicle structure, this step has been done in function at step 2.
   // 2. in steering angle range, find its corresponding distance to obstacle and its angle range
   float distance_start_to_goal = Utility::GetDistance(start, goal);
-  bool consider_steering_angle_range = false;
-  std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = FindFreeAngleRangeAndObstacleAngleRange(pred, consider_steering_angle_range);
+  std::vector<std::pair<float, Utility::AngleRange>> available_angle_range_vec = FindFreeAngleRangeAndObstacleAngleRange(pred);
   // 3. determine step size and steering angle from previous output
   out = SelectStepSizeAndSteeringAngle(available_angle_range_vec, pred, goal, number_of_successor, step_size, distance_start_to_goal);
 
@@ -1416,7 +1420,7 @@ float CollisionDetection::FindStepSize(const Node3D &pred, const float &steering
   // float step_size = 0, available_step_size = 0, min_distance_to_obstacle;
   float step_size = 0, min_distance_to_obstacle = obstacle_detection_range_;
   float distance_to_goal = Utility::GetDistance(pred, goal);
-  std::vector<std::pair<float, Utility::AngleRange>> step_size_angle_range_vec = FindFreeAngleRangeAndObstacleAngleRange(pred, false);
+  std::vector<std::pair<float, Utility::AngleRange>> step_size_angle_range_vec = FindFreeAngleRangeAndObstacleAngleRange(pred);
   float final_orientation = Utility::RadNormalization(pred.getT() + steering_angle);
   for (const auto &element : step_size_angle_range_vec)
   {

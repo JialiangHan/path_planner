@@ -349,7 +349,7 @@ namespace HybridAStar
         HybridAStar::Node3D node_3d;
         Utility::TypeConversion(current_node, node_3d);
         std::vector<std::pair<float, Utility::AngleRange>> step_size_angle_range =
-            configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(node_3d, false);
+            configuration_space_ptr_->FindFreeAngleRangeAndObstacleAngleRange(node_3d);
         for (const auto &element : step_size_angle_range)
         {
             if (min_distance > element.first)

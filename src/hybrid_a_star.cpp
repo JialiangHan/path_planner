@@ -606,6 +606,32 @@ namespace HybridAStar
     // }
 
     out = CreateSuccessor(pred, available_steering_angle_and_step_size_vec);
+    if (params_.reverse)
+    {
+      std::vector<std::pair<float, float>> available_steering_angle_and_step_size_vec_reverse;
+      std::vector<float> available_steering_angle_vec = Utility::FormSteeringAngleVec(params_.steering_angle, 1);
+      std::pair<float, float> pair;
+      float step_size = -0.2;
+      if (abs(step_size) > distance_to_goal)
+      {
+        pair.first = -distance_to_goal;
+      }
+      else
+      {
+        pair.first = step_size;
+      }
+
+      for (const auto &element : available_steering_angle_vec)
+      {
+        pair.second = element;
+        available_steering_angle_and_step_size_vec_reverse.emplace_back(pair);
+      }
+      std::vector<std::shared_ptr<Node3D>> reverse_successor_vec = CreateSuccessor(pred, available_steering_angle_and_step_size_vec_reverse);
+      for (const auto &element : reverse_successor_vec)
+      {
+        out.emplace_back(element);
+      }
+    }
     // DLOG(INFO) << "CreateSuccessor out.";
     return out;
   }
@@ -616,11 +642,23 @@ namespace HybridAStar
     std::vector<std::shared_ptr<Node3D>> out;
     float dx, dy, xSucc, ySucc, tSucc, turning_radius, steering_angle;
     int prem;
+    bool reverse_flag;
     std::shared_ptr<Node3D> pred_smart_ptr = std::make_shared<Node3D>(pred);
     for (const auto &pair : step_size_steering_angle_vec)
     {
       // DLOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
-      if (pair.first <= 1e-3)
+      if (pair.first < 0)
+      {
+        reverse_flag = true;
+        // LOG(INFO) << "reverse";
+      }
+      else
+      {
+        reverse_flag = false;
+        // LOG(INFO) << "forward";
+      }
+
+      if (abs(pair.first) <= 1e-3)
       {
         LOG(INFO) << "current step size is zero, no need to create successor!!";
         continue;
@@ -633,31 +671,55 @@ namespace HybridAStar
       {
         dx = turning_radius * sin(abs(steering_angle));
         dy = -(turning_radius * (1 - cos(steering_angle)));
-        prem = 1;
-        // DLOG(INFO) << "forward right, dx " << dx << " dy " << dy;
+        if (reverse_flag)
+        {
+          prem = 4;
+          // DLOG(INFO) << "backward right";
+        }
+        else
+        {
+          prem = 1;
+          // DLOG(INFO) << "forward right, dx " << dx << " dy " << dy;
+        }
       }
       // left
       else if (steering_angle > 1e-3)
       {
         dx = turning_radius * sin(abs(steering_angle));
         dy = (turning_radius * (1 - cos(steering_angle)));
-        prem = 2;
-        // DLOG(INFO) << "forward left, dx " << dx << " dy " << dy;
+        if (reverse_flag)
+        {
+          prem = 5;
+          // DLOG(INFO) << "backward left";
+        }
+        else
+        {
+          prem = 2;
+          // DLOG(INFO) << "forward left, dx " << dx << " dy " << dy;}
+        }
       }
       // straight forward,checked
       else
       {
         dx = pair.first;
         dy = 0;
-        prem = 0;
-        // DLOG(INFO) << "forward straight";
+        if (reverse_flag)
+        {
+          prem = 3;
+          // DLOG(INFO) << "backward straight";
+        }
+        else
+        {
+          prem = 0;
+          // DLOG(INFO) << "forward straight";}
+        }
       }
       // DLOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
       xSucc = pred.getX() + dx * cos(pred.getT()) - dy * sin(pred.getT());
       ySucc = pred.getY() + dx * sin(pred.getT()) + dy * cos(pred.getT());
       tSucc = Utility::RadToZeroTo2P(pred.getT() + steering_angle);
       // DLOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT()) << " pred_ptr " << pred_ptr->getX() << " " << pred_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_ptr->getT()) << " pred_smart_ptr " << pred_smart_ptr->getX() << " " << pred_smart_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_smart_ptr->getT());
-      std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.getCostSofar(), 0, params_.reverse, pred_smart_ptr, prem));
+      std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.getCostSofar(), 0, reverse_flag, pred_smart_ptr, prem));
       if (configuration_space_ptr_->IsTraversable(temp))
       {
         out.emplace_back(temp);
@@ -667,43 +729,6 @@ namespace HybridAStar
       else
       {
         // LOG(INFO) << "in CreateSuccessor, successor: " << temp->getX() << " " << temp->getY() << " " << Utility::ConvertRadToDeg(temp->getT()) << " is in collision, step size is " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle);
-      }
-      if (params_.reverse)
-      {
-        // backward,checked
-        // right
-        if (steering_angle > 1e-3)
-        {
-          prem = 5;
-          // DLOG(INFO) << "backward left";
-        }
-        // left
-        else if (steering_angle < 0)
-        {
-          prem = 4;
-          // DLOG(INFO) << "backward right";
-        }
-        // straight backward
-        else
-        {
-          prem = 3;
-          // DLOG(INFO) << "backward straight";
-        }
-        xSucc = pred.getX() - dx * cos(pred.getT()) - dy * sin(pred.getT());
-        ySucc = pred.getY() - dx * sin(pred.getT()) + dy * cos(pred.getT());
-        tSucc = Utility::RadToZeroTo2P(pred.getT() - steering_angle);
-        // DLOG(INFO) << "successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc);
-        std::shared_ptr<Node3D> temp = std::make_shared<Node3D>(Node3D(xSucc, ySucc, tSucc, pred.getCostSofar(), 0, params_.reverse, pred_smart_ptr, prem));
-        // DLOG(INFO) << "in CreateSuccessor, current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT()) << " pred_ptr " << pred_ptr->getX() << " " << pred_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_ptr->getT()) << " pred_smart_ptr " << pred_smart_ptr->getX() << " " << pred_smart_ptr->getY() << " " << Utility::ConvertRadToDeg(pred_smart_ptr->getT()) << " temp " << temp->getX() << " " << temp->getY() << " " << Utility::ConvertRadToDeg(temp->getT()) << " temp pred is " << temp->getPred()->getX() << " " << temp->getPred()->getY() << " " << Utility::ConvertRadToDeg(temp->getPred()->getT()) << " temp smart ptr " << temp->getSmartPtrPred()->getX() << " " << temp->getSmartPtrPred()->getY() << " " << Utility::ConvertRadToDeg(temp->getSmartPtrPred()->getT());
-        if (configuration_space_ptr_->IsTraversable(temp))
-        {
-          out.emplace_back(temp);
-          DLOG_IF(FATAL, (*temp == *temp->getSmartPtrPred())) << "successor and current are the same node!!! step size is " << pair.first << " steering angle is " << Utility::ConvertRadToDeg(steering_angle) << " successor is " << xSucc << " " << ySucc << " " << Utility::ConvertRadToDeg(tSucc) << " current node is " << pred.getX() << " " << pred.getY() << " " << Utility::ConvertRadToDeg(pred.getT());
-        }
-        else
-        {
-          DLOG(INFO) << "convert successor " << temp->getX() << " " << temp->getY() << " to map failed.";
-        }
       }
     }
     // LOG_IF(WARNING, out.size() == 0) << "WARNING: Number of successor is zero!!!!";

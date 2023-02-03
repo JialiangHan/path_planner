@@ -62,7 +62,7 @@ class Node3D {
    void setCostToGo(const float &h) { this->h = h; }
 
    /// set and get the index of the node in the 3D grid
-   int setIdx(int width, int height, const float &delta_heading_in_rad, const float &resolution, int origin_x, int origin_y)
+   int setIdx(int width, int height, const float &delta_heading_in_rad, const float &resolution, float origin_x, float origin_y)
    {
      this->idx = std::floor(std::round(t / delta_heading_in_rad * 1000) / 1000) * width * height + std::floor(std::round(((y - origin_y) / resolution) * 1000) / 1000) * width + std::floor(std::round(((x - origin_x) / resolution) * 1000) / 1000);
      //  LOG_IF(FATAL, idx >= width * height) << "idx larger than width*height!!! idx is " << idx << " width is " << width << " height is " << height << " resolution is " << resolution << " origin x is " << origin_x << " origin y is " << origin_y;
