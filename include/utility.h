@@ -50,8 +50,7 @@ namespace Utility
         const nav_msgs::Path::ConstPtr &path,
         std::vector<Eigen::Vector3f> &vector_3d_vec);
 
-    Eigen::Vector2f ConvertIndexToEigenVector2f(const int &index,
-                                                const int &map_width);
+    Eigen::Vector2f ConvertIndexToEigenVector2f(const int &index, const int &map_width, const float &map_resolution);
 
     void TypeConversion(
         const std::vector<Eigen::Vector3f> &vector_3d_vec, nav_msgs::Path &path);
@@ -180,14 +179,14 @@ namespace Utility
     Polygon CreatePolygon(const Eigen::Vector2f &origin, const float &width = 1,
                           const float &height = 1);
     /**
- * @brief Create a Polygon object according to its center cooridnate x,y, and rotate it according to its headings
- * 
- * @param center : polygon centter
- * @param width : polygon width in x direction
- * @param height :polygon height in y direction
- * @param heading :vehicle heading
- * @return Polygon 
- */
+     * @brief Create a Polygon object according to its center coordinate x,y, and rotate it according to its headings
+     *
+     * @param center : polygon center
+     * @param width : polygon width in x direction
+     * @param height :polygon height in y direction
+     * @param heading :vehicle heading
+     * @return Polygon
+     */
     Polygon CreatePolygon(const Eigen::Vector2f &center, const float &width,
                           const float &height, const float &heading);
 
@@ -703,4 +702,12 @@ namespace Utility
     };
 
     std::vector<float> FormSteeringAngleVec(const float &steering_angle, const int &number_of_successors);
+    /**
+     * @brief remove some duplicates points in the path
+     *
+     * @param path
+     */
+    void RemoveDuplicates(Path3D &path);
+
+    float FindSteeringAngle(const HybridAStar::Node3D &closest_node, const HybridAStar::Node3D &direction_node);
 }

@@ -117,11 +117,12 @@ namespace HybridAStar
         // GOAL TEST
         if (iterations > params_.max_iterations)
         {
-
+          TracePath(nPred);
+          Utility::RemoveDuplicates(path_);
+          path_ = ShortCut(path_, true);
           ros::Time t1 = ros::Time::now();
           ros::Duration d(t1 - t0);
           LOG(INFO) << "max iterations reached!!!, current iterations is : " << iterations << " number of nodes explored is " << number_nodes_explored << " TIME in second: " << d;
-          TracePath(nPred);
           return path_;
         }
         else if (Utility::IsCloseEnough(*nPred, goal, params_.goal_range * resolution_, 2 * M_PI / params_.collision_detection_params.headings, true))
@@ -130,6 +131,8 @@ namespace HybridAStar
           // DLOG(INFO) << "goal is " << goal.getX() << " " << goal.getY() << " " << Utility::ConvertRadToDeg(goal.getT());
           // DLOG(INFO) << "Goal reached!!!";
           TracePath(nPred);
+          Utility::RemoveDuplicates(path_);
+          path_ = ShortCut(path_, true);
           ros::Time t1 = ros::Time::now();
           ros::Duration d(t1 - t0);
           LOG(INFO) << "number of nodes explored is " << number_nodes_explored << " TIME in second: " << d;
@@ -152,25 +155,30 @@ namespace HybridAStar
               {
                 LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored;
                 TracePath(nPred);
+                path_ = ShortCut(path_, true);
                 analytical_expansion_index_ = path_.size();
+
                 path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
+                Utility::RemoveDuplicates(path_);
+
                 // for (const Gggauto &element : path_)
                 // {
                 //   LOG(INFO) << "path node is " << element.getX() << " " << element.getY();
                 // }
                 if (params_.piecewise_cubic_bezier_interpolation)
                 {
-
                   ConvertToPiecewiseCubicBezierPath();
                   piecewise_cubic_bezier_path_.insert(piecewise_cubic_bezier_path_.end(), analytical_path.begin(), analytical_path.end());
                   // DLOG(INFO) << "piecewise cubic bezier interpolation.";
                   // DLOG(INFO) << "piecewise_cubic_bezier_path_ size is " << piecewise_cubic_bezier_path_.size();
+                  Utility::RemoveDuplicates(piecewise_cubic_bezier_path_);
                   ros::Time t1 = ros::Time::now();
                   ros::Duration d(t1 - t0);
                   // LOG(INFO) << "TIME in ms: " << d * 1000;
                   LOG(INFO) << "TIME in second: " << d;
                   return piecewise_cubic_bezier_path_;
                 }
+
                 ros::Time t1 = ros::Time::now();
                 ros::Duration d(t1 - t0);
                 // LOG(INFO) << "TIME in ms: " << d * 1000;
@@ -190,24 +198,26 @@ namespace HybridAStar
                 {
                   LOG(INFO) << "Found path through analytical expansion, number of nodes explored is " << number_nodes_explored;
                   TracePath(nPred);
+                  path_ = ShortCut(path_, true);
                   analytical_expansion_index_ = path_.size();
                   path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
                   // for (const auto &element : path_)
                   // {
                   //   LOG(INFO) << "path node is " << element.getX() << " " << element.getY();
                   // }
-
                   if (params_.piecewise_cubic_bezier_interpolation)
                   {
                     ConvertToPiecewiseCubicBezierPath();
                     piecewise_cubic_bezier_path_.insert(piecewise_cubic_bezier_path_.end(), analytical_path.begin(), analytical_path.end());
                     DLOG(INFO) << "piecewise cubic bezier interpolation.";
                     // DLOG(INFO) << "piecewise_cubic_bezier_path_ size is " << piecewise_cubic_bezier_path_.size();
+                    Utility::RemoveDuplicates(piecewise_cubic_bezier_path_);
                     ros::Time t1 = ros::Time::now();
                     ros::Duration d(t1 - t0);
                     LOG(INFO) << "TIME in second: " << d;
                     return piecewise_cubic_bezier_path_;
                   }
+                  Utility::RemoveDuplicates(path_);
                   ros::Time t1 = ros::Time::now();
                   ros::Duration d(t1 - t0);
                   LOG(INFO) << "TIME in second: " << d;
@@ -815,70 +825,30 @@ namespace HybridAStar
     Node3D end_point;
     Eigen::Vector3f start_vector, end_point_vec;
     Utility::TypeConversion(start_, start_vector);
-    Utility::TypeConversion(end_point, end_point_vec);
-    // for (uint jj = 1; jj < path_.size() - 1; ++jj)
-    // {
-    //   DLOG(INFO) << "path point is " << path_[jj].getX() << " " << path_[jj].getY() << " " << path_[jj].getT();
-    //   DLOG(INFO) << "distance to next point is " << Utility::GetDistance(path_[jj], path_[jj + 1]);
-    // }
-    float distance_to_prev, distance_to_succ;
     for (uint index = 1; index < path_.size() - 1; ++index)
     {
       // DLOG(INFO) << "path point is " << path_[index].getX() << " " << path_[index].getY() << " " << Utility::ConvertRadToDeg(path_[index].getT());
       // not necessary to do this check, greater than 1
-      bool flag = true;
-      if (flag)
+      if (index == analytical_expansion_index_)
       {
-        if (index == analytical_expansion_index_)
-        {
-          // DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
-          // DLOG(INFO) << "current path index is " << index;
-          end_point.setX(path_[index - 1].getX());
-          end_point.setY(path_[index - 1].getY());
-          end_point.setT(Utility::RadToZeroTo2P(path_[index - 1].getT()));
-          break;
-        }
-        if (Utility::GetDistance(path_[index], path_[index + 1]) < 0.1)
-        {
-          continue;
-          // DLOG(INFO) << "points are too close to each other!!!!";
-        }
+        // DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
+        // DLOG(INFO) << "current path index is " << index;
+        end_point.setX(path_[index - 1].getX());
+        end_point.setY(path_[index - 1].getY());
+        end_point.setT(Utility::RadToZeroTo2P(path_[index - 1].getT()));
+        break;
+      }
+      if (Utility::GetDistance(path_[index], path_[index + 1]) < resolution_)
+      {
+        continue;
+        // DLOG(INFO) << "points are too close to each other!!!!";
+      }
         Eigen::Vector3f vector_3d;
         Utility::TypeConversion(path_[index], vector_3d);
         anchor_points_vec.emplace_back(vector_3d);
         // DLOG(INFO) << "current path index is " << index;
-      }
-      else
-      {
-        distance_to_prev = Utility::GetDistance(path_[index], path_[index - 1]);
-        distance_to_succ = Utility::GetDistance(path_[index], path_[index + 1]);
-        Eigen::Vector3f vector_3d;
-        Utility::TypeConversion(path_[index], vector_3d);
-        if (distance_to_succ >= 1 && distance_to_prev >= 1)
-        {
-          anchor_points_vec.emplace_back(vector_3d);
-          // DLOG(INFO) << "anchor points is " << path_[index].getX() << " " << path_[index].getY() << " " << Utility::ConvertRadToDeg(path_[index].getT());
-        }
-        else if (distance_to_succ >= 1 && distance_to_prev < 1)
-        {
-          continue;
-        }
-        else if (distance_to_prev >= 1 && distance_to_succ < 1)
-        {
-          anchor_points_vec.emplace_back(vector_3d);
-          // DLOG(INFO) << "anchor points is " << path_[index].getX() << " " << path_[index].getY() << " " << Utility::ConvertRadToDeg(path_[index].getT());
-        }
-        if (index == analytical_expansion_index_)
-        {
-          DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
-          DLOG(INFO) << "current path index is " << index;
-          end_point.setX(path_[index].getX());
-          end_point.setY(path_[index].getY());
-          end_point.setT(Utility::RadToZeroTo2P(path_[index].getT()));
-          break;
-        }
-      }
     }
+    Utility::TypeConversion(end_point, end_point_vec);
     // DLOG(INFO) << "end point is " << end_point.getX() << " " << end_point.getY() << " " << Utility::ConvertRadToDeg(end_point.getT());
     PiecewiseCubicBezier pwcb(start_vector, end_point_vec);
     pwcb.SetAnchorPoints(anchor_points_vec);
@@ -894,11 +864,11 @@ namespace HybridAStar
     std::vector<Eigen::Vector3f> path_vec = pwcb.ConvertPiecewiseCubicBezierToVector3f(10);
     for (const auto &vector : path_vec)
     {
-      // DLOG(INFO) << "vector is " << vector.x() << " " << vector.y() << " " << Utility::ConvertRadToDeg(vector.z());
-      Node3D node3d;
-      Utility::TypeConversion(vector, node3d);
-      piecewise_cubic_bezier_path_.emplace_back(node3d);
-      // DLOG(INFO) << "point is " << node3d.getX() << " " << node3d.getY() << " " << Utility::ConvertRadToDeg(node3d.getT());
+        // DLOG(INFO) << "vector is " << vector.x() << " " << vector.y() << " " << Utility::ConvertRadToDeg(vector.z());
+        Node3D node3d;
+        Utility::TypeConversion(vector, node3d);
+        piecewise_cubic_bezier_path_.emplace_back(node3d);
+        // DLOG(INFO) << "point is " << node3d.getX() << " " << node3d.getY() << " " << Utility::ConvertRadToDeg(node3d.getT());
     }
     // DLOG(INFO) << "ConvertToPiecewiseCubicBezierPath out.";
   }
@@ -1081,5 +1051,110 @@ namespace HybridAStar
     }
 
     return astar_cost_map_;
+  }
+
+  Utility::Path3D HybridAStar::ShortCut(const Utility::Path3D &path, bool consider_steering_angle_limit)
+  {
+    Utility::Path3D out, input = path;
+    // start from last point of path, check if segment between end point and path[n-1] is in collision, if not, then check end point and path[n-2] is in collision
+    Node3D current_point, previous_point;
+    float steering_angle;
+    previous_point = input[input.size() - 2];
+    for (uint index1 = input.size() - 1; index1 >= 0;)
+    {
+      // LOG(INFO) << "index1 is " << index1;
+      current_point = input[index1];
+      out.emplace_back(current_point);
+      for (uint index2 = index1 - 1; index2 >= 0; index2--)
+      {
+        // LOG(INFO) << "index2 is " << index2;
+        if (configuration_space_ptr_->IsTraversable(current_point, input[index2]))
+        {
+          // LOG(INFO) << "pass collision check, index2 is " << index2;
+          previous_point = input[index2];
+          if (consider_steering_angle_limit)
+          {
+            steering_angle = Utility::FindSteeringAngle(previous_point, current_point);
+            if (abs(steering_angle) < params_.collision_detection_params.max_steering_angle)
+            {
+              if (index2 == 0)
+              {
+                // LOG(INFO) << "index2 is zero, break;";
+                index1 = 0;
+                out.emplace_back(previous_point);
+                break;
+              }
+              // LOG(INFO) << "steering angle is inside limit, continue.";
+              continue;
+            }
+            else
+            {
+              // LOG(INFO) << "steering angle is outside limit.";
+              out.emplace_back(previous_point);
+              if (index2 == 0)
+              {
+                // LOG(INFO) << "index2 is zero, break;";
+                index1 = 0;
+              }
+              else
+              {
+                // LOG(INFO) << "index2 is zero, break;";
+                index1 = index2 - 1;
+              }
+              break;
+            }
+          }
+
+          // end check
+          if (index2 == 0)
+          {
+            // LOG(INFO) << "index2 is zero, break;";
+            out.emplace_back(previous_point);
+          }
+        }
+        else
+        {
+          // LOG(INFO) << "in collision;";
+          out.emplace_back(previous_point);
+          if (index2 == 0)
+          {
+            // LOG(INFO) << "index2 is zero, break;";
+            index1 = 0;
+          }
+          else
+          {
+            // LOG(INFO) << "index2 is zero, break;";
+            index1 = index2 - 1;
+          }
+          break;
+        }
+        if (index2 == 0)
+        {
+          // LOG(INFO) << "index2 is zero, break;";
+          index1 = 0;
+          break;
+        }
+      }
+      if (index1 == 0)
+      {
+        // LOG(INFO) << "index2 is zero, break;";
+        break;
+      }
+    }
+    // if (input == out)
+    // {
+    //   LOG(INFO) << "index2 is zero, break;";
+    //   break;
+    // }
+    // else
+    // {
+    //   LOG(INFO) << "index2 is zero, break;";
+    //   input = out;
+    //   out.clear();
+    // }
+
+    // LOG(INFO) << "index2 is zero, break;";
+    std::reverse(out.begin(), out.end());
+    return out;
   }
 }

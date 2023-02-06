@@ -23,7 +23,7 @@ int main(int argc, char **argv)
     google::EnableLogCleaner(5);
 
     ros::init(argc, argv, "path_evaluator");
-    std::string path_topic = "/path";
+    std::string path_topic = "/move_base/HybridAStarPlanner/plan";
     std::string smooth_path_topic = "/sPath";
     PathEvaluator::PathEvaluator path_evaluator(path_topic, smooth_path_topic);
 

@@ -30,6 +30,8 @@ namespace Utility
         pose.pose.orientation.y = pose_quat.y();
         pose.pose.orientation.z = pose_quat.z();
         pose.pose.orientation.w = pose_quat.w();
+
+        // LOG(INFO) << "node orientation is " << Utility::ConvertRadToDeg(node3d.getT()) << " orientation after conversion is " << pose.pose.orientation.x << " " << pose.pose.orientation.y << " " << pose.pose.orientation.z << " " << pose.pose.orientation.w;
     }
 
     void TypeConversion(const Path3D &path3d, std::vector<geometry_msgs::PoseStamped> &plan)
@@ -65,16 +67,17 @@ namespace Utility
             point.x() = (path->poses[i].pose.position.x);
             point.y() = (path->poses[i].pose.position.y);
             // not sure this is correct;
-            point.z() = (path->poses[i].pose.position.z);
+            point.z() = Utility::RadNormalization(tf::getYaw(path->poses[i].pose.orientation));
+            // LOG(INFO) << "path orientation is " << path->poses[i].pose.orientation.x << " " << path->poses[i].pose.orientation.y << " " << path->poses[i].pose.orientation.z << " " << path->poses[i].pose.orientation.w << " angle after conversion is " << point.z();
             vector_3d_vec.emplace_back(point);
         }
     }
     Eigen::Vector2f ConvertIndexToEigenVector2f(const int &index,
-                                                const int &map_width)
+                                                const int &map_width, const float &resolution, const float &origin_x, const float &origin_y)
     {
         Eigen::Vector2f out;
-        out.x() = (index % map_width);
-        out.y() = (index / map_width);
+        out.x() = (index % map_width) * resolution + origin_x;
+        out.y() = (index / map_width) * resolution + origin_y;
         return out;
     }
 
@@ -929,7 +932,7 @@ namespace Utility
 
         if (pre == current || current == succ)
         {
-            DLOG(WARNING) << "WARNING: In CalculateCurvature: some points are equal, skip these points for curvature calculation!!";
+            LOG(WARNING) << "WARNING: In CalculateCurvature: some points are equal, skip these points for curvature calculation!!";
             return curvature;
         }
 
@@ -946,12 +949,7 @@ namespace Utility
         float delta_angle = std::acos(Clamp(pre_vector.dot(succ_vector) / (delta_distance * pre_vector_length), 1, -1));
 
         curvature = abs(delta_angle) / pre_vector_length;
-        // DLOG(INFO) << "succ x is :" << succ(0,0) << "y is: " << succ.y();
-        // DLOG(INFO) << "pre_vector x is :" << pre_vector(0,0) << "y is: " << pre_vector.y();
-        // DLOG(INFO) << "succ_vector x is :" << succ_vector(0,0) << "y is: " << succ_vector.y();
-        // DLOG(INFO) << "delta_distance is:" << delta_distance;
-        // DLOG(INFO) << "pre_vector_length is: " << pre_vector_length;
-        // DLOG(INFO) << "delta_angle is: " << delta_angle;
+        LOG_IF(INFO, curvature > 1000) << "current is: " << current(0, 0) << " y is: " << current.y() << " succ x is :" << succ(0, 0) << " y is: " << succ.y() << " pre x is :" << pre(0, 0) << " y is: " << pre.y() << " pre_vector x is :" << pre_vector(0, 0) << " y is: " << pre_vector.y() << " succ_vector x is :" << succ_vector(0, 0) << "y is: " << succ_vector.y() << " delta_distance is:" << delta_distance << " pre_vector_length is: " << pre_vector_length << " delta_angle is: " << delta_angle << " curvature is " << curvature;
         return curvature;
     }
 
@@ -2090,4 +2088,22 @@ namespace Utility
         return out;
     }
 
+    void RemoveDuplicates(Path3D &path)
+    {
+        for (uint index = 0; index < path.size() - 1; index++)
+        {
+            if (GetDistance(path[index], path[index + 1]) < 1e-4)
+            {
+                path.erase(path.begin() + index + 1);
+            }
+        }
+    }
+
+    float FindSteeringAngle(const HybridAStar::Node3D &closest_node, const HybridAStar::Node3D &direction_node)
+    {
+        float steering_angle, angle_between_two_nodes = RadNormalization(GetAngle(closest_node, direction_node));
+        steering_angle = -Utility::RadNormalization(Utility::RadNormalization(closest_node.getT()) - angle_between_two_nodes);
+        // LOG(INFO) << " steering angle is " << Utility::ConvertRadToDeg(steering_angle) << " current node is " << closest_node.getX() << " " << closest_node.getY() << " " << Utility::ConvertRadToDeg(closest_node.getT()) << " direction node is " << direction_node.getX() << " " << direction_node.getY() << " " << Utility::ConvertRadToDeg(direction_node.getT());
+        return steering_angle;
+    }
 } // namespace Utility

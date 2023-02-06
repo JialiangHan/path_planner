@@ -25,6 +25,8 @@ namespace HybridAStar
     /// [m] --- The length of the vehicle
     float vehicle_length = 2;
 
+    float max_steering_angle = 30;
+
     bool consider_steering_angle_range_for_obstacle_density = false;
 
     bool add_one_more_successor_only_in_free_angle_range = false;

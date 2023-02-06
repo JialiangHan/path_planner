@@ -37,25 +37,6 @@ namespace PathEvaluator
             curvature = Utility::CalculateCurvature(xp, xi, xs);
             curvature_vec.emplace_back(curvature);
             // DLOG(INFO) << "In CalculateCurvature:" << i << "th curvature is:" << curvature;
-            // if (std::isnan(curvature))
-            // {
-            //     DLOG(WARNING) << " curvature is NAN!!!";
-            //     if (std::isnan(delta_distance) || delta_distance == 0)
-            //     {
-            //         DLOG(INFO) << "delta_distance is:" << delta_distance;
-            //         DLOG(INFO) << "succ_vector x is :" << succ_vector(0, 0) << "y is: " << succ_vector(1, 0);
-            //         DLOG(INFO) << "xp x is :" << xp(0, 0) << "y is: " << xp(1, 0);
-            //         DLOG(INFO) << "xi x is :" << xi(0, 0) << "y is: " << xi(1, 0);
-            //     }
-            //     else if (std::isnan(delta_angle))
-            //     {
-            //         DLOG(INFO) << "inside std::Cos is: " << temp;
-            //         DLOG(INFO) << "pre_vector_length is: " << pre_vector_length;
-            //         DLOG(INFO) << "xs x is :" << xs(0, 0) << "y is: " << xs(1, 0);
-            //         DLOG(INFO) << "pre_vector x is :" << pre_vector(0, 0) << "y is: " << pre_vector(1, 0);
-            //     }
-            // }
-            // DLOG(INFO) << " in curvature_vec is:" << curvature_vec.back();
         }
         if (curvature_map_.count(topic_name) > 0)
         {
@@ -126,18 +107,12 @@ namespace PathEvaluator
         float steering_angle;
         for (uint i = 0; i < path.size() - 2; ++i)
         {
-            // get three points from path
-            Eigen::Vector2f xp(path[i].x(), path[i].y());
-            Eigen::Vector2f xi(path[i + 1].x(), path[i + 1].y());
-            Eigen::Vector2f xs(path[i + 2].x(), path[i + 2].y());
-            if (xp == xi || xi == xs)
-            {
-                DLOG(WARNING) << "In CalculateSteeringAngle: some points are equal, skip these points for curvature calculation!!";
-                continue;
-            }
+            HybridAStar::Node3D current, next;
+            Utility::TypeConversion(path[i], current);
+            Utility::TypeConversion(path[i + 1], next);
 
-            steering_angle = Utility::ConvertRadToDeg(Utility::GetAngleBetweenTwoVector(xp, xi, xi, xs));
-            DLOG(INFO) << i << "th steering angle is " << steering_angle;
+            steering_angle = Utility::ConvertRadToDeg(Utility::FindSteeringAngle(current, next));
+            // LOG(INFO) << i << "th steering angle is " << steering_angle << " current node is " << current.getX() << " " << current.getY() << " " << Utility::ConvertRadToDeg(current.getT()) << " next is " << next.getX() << " " << next.getY() << " " << Utility::ConvertRadToDeg(next.getT());
             steering_angle_vec.emplace_back(steering_angle);
         }
         if (steering_angle_map_.count(topic_name) > 0)
@@ -166,6 +141,7 @@ namespace PathEvaluator
         float clearance = INFINITY;
         int map_width = map_->info.width;
         int map_height = map_->info.height;
+        float map_resolution = map_->info.resolution;
         for (const auto &vector_3d : path)
         {
             //naive algorithm, time complexity is n^2.
@@ -173,8 +149,8 @@ namespace PathEvaluator
             {
                 if (map_->data[index])
                 {
-                    Eigen::Vector2f obstacle_2d = Utility::ConvertIndexToEigenVector2f(index, map_width);
-                    Utility::Polygon obstacle = Utility::CreatePolygon(obstacle_2d);
+                    Eigen::Vector2f obstacle_2d = Utility::ConvertIndexToEigenVector2f(index, map_width, map_resolution);
+                    Utility::Polygon obstacle = Utility::CreatePolygon(obstacle_2d, map_resolution, map_resolution);
                     Eigen::Vector2f vehicle_2d;
                     Utility::TypeConversion(vector_3d, vehicle_2d);
                     Utility::Polygon vehicle = Utility::CreatePolygon(vehicle_2d, vehicle_width_, vehicle_length_, vector_3d.z());
@@ -183,18 +159,12 @@ namespace PathEvaluator
                     {
                         clearance = distance;
                     }
-                    // DLOG(INFO) << "In CalculateClearance: current index: " << index << " converted x: " << obstacle_2d(0,0) << " converted y: " << obstacle_2d.y() << " current path location x is: " << vector_3d(0,0) << " y:" << vector_3d.y() << " distance is: " << distance << " clearance is: " << clearance;
+                    LOG(INFO) << "In CalculateClearance: current index: " << index << " converted x: " << obstacle_2d(0, 0) << " converted y: " << obstacle_2d.y() << " current path location x is: " << vector_3d(0, 0) << " y:" << vector_3d.y() << " distance is: " << distance << " clearance is: " << clearance;
                 }
             }
-            // //find its nearest obstacle
-
-            // node_2d.setIdx(map_width);
-            // //find its neighbor in a defined range;
-
             clearance_vec.emplace_back(clearance);
             clearance = INFINITY;
         }
-
         if (clearance_map_.count(topic_name) > 0)
         {
             clearance_map_.at(topic_name).clear();
@@ -217,8 +187,6 @@ namespace PathEvaluator
     {
         std::vector<Eigen::Vector3f> vector_3d_vec;
         Utility::TypeConversion(path, vector_3d_vec);
-        //reverse path since path is from goal to start.
-        // std::reverse(vector_3d_vec.begin(), vector_3d_vec.end());
         CalculateCurvature(vector_3d_vec, topic_name);
         CalculateSmoothness(vector_3d_vec, topic_name);
         CalculateClearance(vector_3d_vec, topic_name);
@@ -253,7 +221,7 @@ namespace PathEvaluator
 
             for (const auto &curvature_vec : map)
             {
-                if (curvature_vec.first == "/path")
+                if (curvature_vec.first == path_topic_)
                 {
                     matplotlibcpp::plot(curvature_vec.second, {{"label", "raw path"}});
                 }

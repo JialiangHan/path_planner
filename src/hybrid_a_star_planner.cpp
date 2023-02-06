@@ -117,7 +117,6 @@ namespace HybridAStar
             return false;
         }
 
-        // path只能发布2D的节点
         publishPlan(plan);
         return true;
     }
@@ -173,6 +172,7 @@ namespace HybridAStar
         for (int i = 0; i < size; i++)
         {
             transform_path.pose.position = path[i].pose.position;
+            transform_path.pose.orientation = path[i].pose.orientation;
             gui_path.poses[i] = transform_path; //
         }
 

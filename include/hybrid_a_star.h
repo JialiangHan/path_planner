@@ -18,8 +18,7 @@
 #include "glog/logging.h"
 #include "gflags/gflags.h"
 typedef ompl::base::SE2StateSpace::StateType State;
-#define point_accuracy 0.5
-#define theta_accuracy 2
+
 namespace HybridAStar
 {
    //###################################################
@@ -203,6 +202,14 @@ namespace HybridAStar
        * @return std::unordered_map<int, float> first is node index, second is cost so far
        */
       std::unordered_map<int, float> BuildAStarCostMap(const Node3D &start);
+
+      /**
+       * @brief short cut the path since path will have some unnecessary path point
+       *
+       * @param consider_steering_angle_limit, if true, consider vehicle steering angle limit.
+       * @return Utility::Path3D
+       */
+      Utility::Path3D ShortCut(const Utility::Path3D &path, bool consider_steering_angle_limit);
 
    private:
       ParameterHybridAStar params_;

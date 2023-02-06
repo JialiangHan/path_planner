@@ -159,6 +159,9 @@ namespace HybridAStar
 
     ros_param_name = "vehicle_length";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.vehicle_length);
+
+    ros_param_name = "max_steering_angle";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.collision_detection_params.max_steering_angle);
   }
   void ParameterManager::LoadPlannerParams()
   {

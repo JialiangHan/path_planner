@@ -27,8 +27,10 @@ namespace PathEvaluator
         PathEvaluator(const std::string &path_topic, const std::string &smoothed_path_topic)
         {
             sub_map_ = nh_.subscribe("/map", 1, &PathEvaluator::CallbackSetMap, this);
-            sub_path_ = nh_.subscribe<nav_msgs::Path>(path_topic, 1, boost::bind(&PathEvaluator::CallbackPath, this, _1, path_topic));
-            sub_smoothed_path_ = nh_.subscribe<nav_msgs::Path>(smoothed_path_topic, 1, boost::bind(&PathEvaluator::CallbackPath, this, _1, smoothed_path_topic));
+            path_topic_ = path_topic;
+            smoothed_path_topic_ = smoothed_path_topic;
+            sub_path_ = nh_.subscribe<nav_msgs::Path>(path_topic_, 1, boost::bind(&PathEvaluator::CallbackPath, this, _1, path_topic_));
+            sub_smoothed_path_ = nh_.subscribe<nav_msgs::Path>(smoothed_path_topic_, 1, boost::bind(&PathEvaluator::CallbackPath, this, _1, smoothed_path_topic_));
 
             nh_.getParam("/hybrid_astar/vehicle_width", vehicle_width_);
             nh_.getParam("/hybrid_astar/vehicle_length", vehicle_length_);
@@ -88,6 +90,9 @@ namespace PathEvaluator
         float vehicle_width_;
 
         float vehicle_length_;
+
+        std::string path_topic_;
+        std::string smoothed_path_topic_;
 
         // /some kind of map is need for the clearance
     };
