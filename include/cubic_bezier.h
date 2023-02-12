@@ -28,7 +28,7 @@ namespace CubicBezier
                 0, 0, 3, -3,
                 0, 0, 0, 1;
         };
-        CubicBezier(const Eigen::Vector3f &start, const Eigen::Vector3f &goal, uint width, uint height)
+        CubicBezier(const Eigen::Vector3f &start, const Eigen::Vector3f &goal, uint width = 0, uint height = 0)
         {
             basis_matrix_ << 1, -3, 3, -1,
                 0, 3, -6, 3,
@@ -51,7 +51,7 @@ namespace CubicBezier
                 0, 0, 0, 1;
             if (point_matrix.rows() != 3 || point_matrix.cols() != 4)
             {
-                // DLOG(WARNING) << "points_vec size is not correct!!!";
+                LOG(WARNING) << "points_vec size is not correct!!!";
             }
             else
             {

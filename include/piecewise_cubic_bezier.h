@@ -52,9 +52,9 @@ namespace HybridAStar
     {
       // DLOG(INFO) << "SetAnchorPoints in:";
       anchor_points3d_vec_ = anchor_points_vec;
-      GetAnchorPointDirection();
-      CalculateControlPoints();
-      CalculatePointsVec();
+      // GetAnchorPointDirection();
+      // CalculateControlPoints();
+      // CalculatePointsVec();
       CalculateCubicBezier();
       // DLOG(INFO) << "SetAnchorPoints out.";
     }

@@ -129,10 +129,10 @@ namespace CubicBezier
         geometrical_constraint_matrix_.block<3, 1>(0, 1) = first_control_point;
         geometrical_constraint_matrix_.block<3, 1>(0, 2) = second_control_point;
         geometrical_constraint_matrix_.block<3, 1>(0, 3) = goal_point_;
-        // LOG(INFO) << "start point is " << start_point_.x() << " " << start_point_.y();
-        // LOG(INFO) << "first control point is " << first_control_point.x() << " " << first_control_point.y();
-        // LOG(INFO) << "second control point is " << second_control_point.x() << " " << second_control_point.y();
-        // LOG(INFO) << "end point is " << goal_point_.x() << " " << goal_point_.y();
+        // LOG(INFO) << "start point is " << start_point_.x() << " " << start_point_.y() << " " << Utility::ConvertRadToDeg(start_point_.z());
+        // LOG(INFO) << "first control point is " << first_control_point.x() << " " << first_control_point.y() << " " << Utility::ConvertRadToDeg(first_control_point.z());
+        // LOG(INFO) << "second control point is " << second_control_point.x() << " " << second_control_point.y() << " " << Utility::ConvertRadToDeg(second_control_point.z());
+        // LOG(INFO) << "end point is " << goal_point_.x() << " " << goal_point_.y() << " " << Utility::ConvertRadToDeg(goal_point_.z());
     }
 
     void CubicBezier::CalculateAnchorPoints()
@@ -150,7 +150,7 @@ namespace CubicBezier
     {
         Eigen::Vector3f out;
         out = geometrical_constraint_matrix_ * basis_matrix_ * CalculateCoefficient(t);
-        // DLOG(INFO) << "out is " << out.x() << " " << out.y() << " " << out.z();
+        // LOG(INFO) << "out is " << out.x() << " " << out.y() << " " << Utility::ConvertRadToDeg(out.z());
         DLOG_IF(FATAL, std::isnan(out.x()) || std::isnan(out.y()) || std::isnan(out.z())) << "out is " << out.x() << " " << out.y() << " " << out.z();
         return out;
     }
@@ -160,6 +160,7 @@ namespace CubicBezier
         // DLOG(INFO) << "t " << t;
         Eigen::Vector3f derivative_value = GetFirstOrderDerivativeValueAt(t);
         float angle = std::atan2(derivative_value.y(), derivative_value.x());
+        // LOG(INFO) << " for t is " << t << " angle is " << Utility::DegToZeroTo2P(Utility::ConvertRadToDeg(angle));
         return angle;
     }
     void CubicBezier::CalculateLength()
@@ -167,7 +168,7 @@ namespace CubicBezier
         // DLOG(INFO) << "In calculateLength()";
         for (uint i = 0; i < 100; ++i)
         {
-            DLOG_IF(FATAL, std::isnan(GetValueAt(i / 100.0).x()) || std::isnan(GetValueAt(i / 100.0).y()) || std::isnan(GetValueAt((i + 1) / 100.0).x()) || std::isnan(GetValueAt((i + 1) / 100.0).y())) << "GetValueAt((i + 1) / 100.0) is " << GetValueAt((i + 1) / 100.0).x() << " " << GetValueAt((i + 1) / 100.0).y() << " GetValueAt(i / 100.0) is " << GetValueAt(i / 100.0).x() << " " << GetValueAt((i) / 100.0).y();
+            // DLOG_IF(FATAL, std::isnan(GetValueAt(i / 100.0).x()) || std::isnan(GetValueAt(i / 100.0).y()) || std::isnan(GetValueAt((i + 1) / 100.0).x()) || std::isnan(GetValueAt((i + 1) / 100.0).y())) << "GetValueAt((i + 1) / 100.0) is " << GetValueAt((i + 1) / 100.0).x() << " " << GetValueAt((i + 1) / 100.0).y() << " GetValueAt(i / 100.0) is " << GetValueAt(i / 100.0).x() << " " << GetValueAt((i) / 100.0).y();
             Eigen::Vector2f temp;
             Utility::TypeConversion(GetValueAt((i + 1) / 100.0) - GetValueAt(i / 100.0), temp);
             // DLOG(INFO) << "temp vector2f is " << temp.x() << " " << temp.y();
@@ -179,17 +180,14 @@ namespace CubicBezier
     {
         std::vector<Eigen::Vector3f> out;
 
-        CalculateLength();
-        // uint size = GetLength() / 2;
-        uint size = number_of_points;
-        DLOG_IF(WARNING, size == 0) << "WARNING: path size is zero!!!";
-        for (uint i = 0; i < size + 1; ++i)
+        // CalculateLength();
+        LOG_IF(WARNING, number_of_points == 0) << "WARNING: path size is zero!!!";
+        for (uint i = 0; i < number_of_points + 1; ++i)
         {
             Eigen::Vector3f point3d;
-            // DLOG(INFO) << " i/size = " << (float)i / size;
-            point3d = GetValueAt((float)i / size);
-            point3d.z() = GetAngleAt((float)i / size);
-            // DLOG(INFO) << "point3d is " << point3d.x() << " " << point3d.y() << " " << point3d.z();
+            point3d = GetValueAt((float)i / number_of_points);
+            point3d.z() = Utility::RadToZeroTo2P(GetAngleAt((float)i / number_of_points));
+            // LOG(INFO) << "point3d is " << point3d.x() << " " << point3d.y() << " " << Utility::ConvertRadToDeg(point3d.z());
             out.emplace_back(point3d);
         }
         return out;

@@ -102,7 +102,7 @@ namespace HybridAStar
             return false;
         }
         Clear(plan);
-        LOG(INFO) << "Got a start: " << start.pose.position.x << " " << start.pose.position.y << " and a goal: " << goal.pose.position.x << " " << goal.pose.position.y;
+        LOG(INFO) << "Got a start: " << start.pose.position.x << " " << start.pose.position.y << " " << Utility::ConvertRadToDeg(start.pose.position.z) << " and a goal: " << goal.pose.position.x << " " << goal.pose.position.y << " " << Utility::ConvertRadToDeg(goal.pose.position.z);
 
         // 检查设定的目标点参数是否合规
         if (!(checkStartPose(start) && checkgoalPose(goal)))

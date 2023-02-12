@@ -78,6 +78,17 @@ namespace HybridAStar
     std::vector<std::pair<float, float>> FindStepSizeAndSteeringAngle(const Node3D &pred, const Node3D &start, const Node3D &goal, const int &number_of_successor, const float &step_size);
 
     float FindStepSize(const Node3D &pred, const float &steering_angle, const Node3D &goal, const float &fixed_step_size);
+    /**
+     * @brief Get the Node3D Index On Grid Map, index=y*map width+x;
+     *
+     * @param node3d
+     * @return uint index, this index is a 2d index
+     */
+    uint GetNode3DIndexOnGridMap(const Node3D &node3d);
+
+    std::unordered_map<uint, std::vector<std::pair<float, Utility::AngleRange>>> GetDistanceAngleRangeMap() { return distance_angle_range_map_; };
+
+    std::unordered_map<uint, float> GetMinDistanceMap() { return min_distance_map_; };
 
   private:
     bool IsOnGrid(const Node3D &node3d) const;
@@ -124,13 +135,7 @@ namespace HybridAStar
      * @param range
      */
     void SetInRangeObstacle();
-    /**
-     * @brief Get the Node3D Index On Grid Map, index=y*map width+x;
-     *
-     * @param node3d
-     * @return uint index, this index is a 2d index
-     */
-    uint GetNode3DIndexOnGridMap(const Node3D &node3d);
+
     /**
      * @brief Get the Node 3 D Fine Index on grid map, index is calculated by CalculateFineIndex
      *
@@ -174,6 +179,8 @@ namespace HybridAStar
      *
      */
     void SetDistanceAngleRangeMap();
+
+    void SetMinDistanceMap();
 
     void BuildCollisionLookupTable();
     /**
@@ -314,6 +321,11 @@ namespace HybridAStar
      *
      */
     std::unordered_map<uint, std::vector<Utility::Polygon>> in_range_obstacle_map_;
+    /**
+     * @brief key is location index, value is min distance to obstacle
+     *
+     */
+    std::unordered_map<uint, float> min_distance_map_;
     /**
      * @brief key int: is the location index ,value is a vector of pair<distance to obstacle, angle range(both free angle range and obstacle angle range)>
      *

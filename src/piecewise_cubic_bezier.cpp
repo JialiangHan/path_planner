@@ -53,7 +53,7 @@ namespace HybridAStar
         Eigen::Vector3f first_control_point, last_control_point;
         uint anchor_points_vec_size = anchor_points3d_vec_.size();
 
-        // DLOG(INFO) << "free anchor points size is " << anchor_points_vec_size << "; " << anchor_points_vec_size + 1 << " bezier!";
+        LOG(INFO) << "free anchor points size is " << anchor_points_vec_size << "; " << anchor_points_vec_size + 1 << " bezier!";
         float t_start, t_goal;
         if (anchor_points_vec_size == 0)
         {
@@ -213,7 +213,7 @@ namespace HybridAStar
         // DLOG(INFO) << "CalculatePointsVec out.";
         // for (const auto &point : points_vec_)
         // {
-        //     DLOG(INFO) << "points are " << point.x() << " " << point.y();
+        //     LOG(INFO) << "points are " << point.x() << " " << point.y();
         // }
         // DLOG(INFO) << "point vec size is " << points_vec_.size();
     }
@@ -222,29 +222,15 @@ namespace HybridAStar
     {
         // DLOG(INFO) << "CalculateCubicBezier in:";
         cubic_bezier_vec_.clear();
-        Eigen::Matrix<float, 3, 4> points_lists;
-        uint j = 0;
-        for (uint i = 0; i < points_vec_.size(); ++i)
+        // Eigen::Matrix<float, 3, 4> points_lists;
+        // uint j = 0;
+        for (uint i = 0; i < anchor_points3d_vec_.size() - 1; ++i)
         {
-            // DLOG(INFO) << "j equal to " << j;
-            points_lists.block<3, 1>(0, j) = points_vec_[i];
-            // points_lists.emplace_back(points_vec_[i]);
-            // DLOG(INFO) << i << "th points are " << points_vec_[i].x() << " " << points_vec_[i].y();
-            j++;
-            if (j == 4)
-            {
-                cubic_bezier_vec_.emplace_back(CubicBezier::CubicBezier(points_lists));
-                // for (int index = 0; index < 4; index++)
-                // {
-                //     DLOG(INFO) << "point x " << points_lists(0, index) << " y " << points_lists(1, index);
-                // }
-                i = i - 1;
-
-                j = 0;
-            }
+            LOG(INFO) << "index is " << i << " start for bezier is " << anchor_points3d_vec_[i].x() << " " << anchor_points3d_vec_[i].y() << " " << Utility::ConvertRadToDeg(anchor_points3d_vec_[i].z()) << " end is " << anchor_points3d_vec_[i + 1].x() << " " << anchor_points3d_vec_[i + 1].y() << " " << Utility::ConvertRadToDeg(anchor_points3d_vec_[i + 1].z());
+            cubic_bezier_vec_.emplace_back(CubicBezier::CubicBezier(anchor_points3d_vec_[i], anchor_points3d_vec_[i + 1]));
         }
         // DLOG(INFO) << "CalculateCubicBezier out.";
-        // DLOG(INFO) << "size cubic bezier vec is " << cubic_bezier_vec_.size();
+        // LOG(INFO) << "size cubic bezier vec is " << cubic_bezier_vec_.size();
     }
 
     float PiecewiseCubicBezier::GetAngleAt(const float &u)
@@ -253,7 +239,7 @@ namespace HybridAStar
         int total_number_of_bezier = cubic_bezier_vec_.size();
         if (total_number_of_bezier == 0)
         {
-            DLOG(INFO) << "No bezier, Please calculate first";
+            // LOG(INFO) << "No bezier, Please calculate first";
             angle = -100000;
         }
         else
@@ -273,7 +259,7 @@ namespace HybridAStar
         int total_number_of_bezier = cubic_bezier_vec_.size();
         if (total_number_of_bezier == 0)
         {
-            DLOG(INFO) << "No bezier, Please calculate first";
+            // LOG(INFO) << "No bezier, Please calculate first";
             out.x() = -10000;
             out.y() = -10000;
         }
@@ -293,7 +279,7 @@ namespace HybridAStar
         if (cubic_bezier_vec_.size() == 0)
         {
             length_ = 0;
-            // DLOG(INFO) << "length is 0 due to no cubic bezier;";
+            // LOG(INFO) << "length is 0 due to no cubic bezier;";
         }
         else
         {
@@ -313,7 +299,7 @@ namespace HybridAStar
         int total_number_of_bezier = cubic_bezier_vec_.size();
         if (total_number_of_bezier == 0)
         {
-            DLOG(INFO) << "No bezier, Please calculate first";
+            // LOG(INFO) << "No bezier, Please calculate first";
             out = -10000;
         }
         else
@@ -333,7 +319,7 @@ namespace HybridAStar
         if (cubic_bezier_vec_.size() == 0)
         {
             length_ = 0;
-            // DLOG(INFO) << "length is 0 due to no cubic bezier;";
+            // LOG(INFO) << "length is 0 due to no cubic bezier;";
         }
         else
         {
@@ -350,7 +336,7 @@ namespace HybridAStar
     std::vector<Eigen::Vector3f> PiecewiseCubicBezier::ConvertPiecewiseCubicBezierToVector3f(const int &number_of_points)
     {
         // DLOG(INFO) << "ConvertPiecewiseCubicBezierToVector3f in:";
-        CalculateCubicBezier();
+        // CalculateCubicBezier();
         // DLOG(INFO) << "size cubic bezier vec is " << cubic_bezier_vec_.size();
         std::vector<Eigen::Vector3f> out;
         int index = 0;
@@ -358,10 +344,10 @@ namespace HybridAStar
         {
             std::vector<Eigen::Vector3f> path;
             path = bezier.ConvertCubicBezierToVector3f(number_of_points);
-            // DLOG(INFO) << index << "th cubic bezier";
+            // LOG(INFO) << index << "th cubic bezier, path size is " << path.size();
             // for (const auto &point : path)
             // {
-            //     DLOG(INFO) << "point x " << point.x() << " y " << point.y() << " z " << Utility::ConvertRadToDeg(point.z());
+            //     // LOG(INFO) << "point x " << point.x() << " y " << point.y() << " z " << Utility::ConvertRadToDeg(point.z());
             // }
             out.insert(out.end(), path.begin(), path.end());
             index++;

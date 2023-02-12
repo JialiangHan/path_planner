@@ -73,11 +73,11 @@ namespace Utility
         }
     }
     Eigen::Vector2f ConvertIndexToEigenVector2f(const int &index,
-                                                const int &map_width, const float &resolution, const float &origin_x, const float &origin_y)
+                                                const int &map_width, const float &resolution)
     {
         Eigen::Vector2f out;
-        out.x() = (index % map_width) * resolution + origin_x;
-        out.y() = (index / map_width) * resolution + origin_y;
+        out.x() = (index % map_width) * resolution;
+        out.y() = (index / map_width) * resolution;
         return out;
     }
 
@@ -932,7 +932,7 @@ namespace Utility
 
         if (pre == current || current == succ)
         {
-            LOG(WARNING) << "WARNING: In CalculateCurvature: some points are equal, skip these points for curvature calculation!!";
+            LOG(WARNING) << "WARNING: In CalculateCurvature: some points are equal, skip these points for curvature calculation!! pre is " << pre.x() << " " << pre.y() << " current is " << current.x() << " " << current.y() << " succ is " << succ.x() << " " << succ.y();
             return curvature;
         }
 
@@ -2092,9 +2092,12 @@ namespace Utility
     {
         for (uint index = 0; index < path.size() - 1; index++)
         {
-            if (GetDistance(path[index], path[index + 1]) < 1e-4)
+            // LOG(INFO) << "current point is " << path[index].getX() << " " << path[index].getY() << " next point is " << path[index + 1].getX() << " " << path[index + 1].getY() << " distance is " << GetDistance(path[index], path[index + 1]);
+            if (GetDistance(path[index], path[index + 1]) < 1e-3)
             {
-                path.erase(path.begin() + index + 1);
+                // LOG(INFO) << "remove point " << path[index + 1].getX() << " " << path[index + 1].getY();
+                path.erase(path.begin() + index);
+                index = index - 1;
             }
         }
     }
