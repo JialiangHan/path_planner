@@ -232,7 +232,10 @@ namespace HybridAStar
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.curve_step_size);
     ros_param_name = "min_turning_radius";
     GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.min_turning_radius);
-
+    ros_param_name = "short_cut";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.short_cut);
+    ros_param_name = "evaluate_path";
+    GetSingleParam(node_prefix + ros_param_name, param_container_ptr_->hybrid_a_star_params.evaluate_path);
     LoadCollisionDetectionParams();
 
     ros_param_name = "possible_direction";

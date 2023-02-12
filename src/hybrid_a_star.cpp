@@ -119,7 +119,11 @@ namespace HybridAStar
         {
           TracePath(nPred);
           Utility::RemoveDuplicates(path_);
-          path_ = ShortCut(path_, true);
+          if (params_.short_cut)
+          {
+            path_ = ShortCut(path_, true);
+          }
+
           ros::Time t1 = ros::Time::now();
           ros::Duration d(t1 - t0);
           LOG(INFO) << "max iterations reached!!!, current iterations is : " << iterations << " number of nodes explored is " << number_nodes_explored << " TIME in second: " << d;
@@ -132,7 +136,10 @@ namespace HybridAStar
           // DLOG(INFO) << "Goal reached!!!";
           TracePath(nPred);
           Utility::RemoveDuplicates(path_);
-          path_ = ShortCut(path_, true);
+          if (params_.short_cut)
+          {
+            path_ = ShortCut(path_, true);
+          }
           ros::Time t1 = ros::Time::now();
           ros::Duration d(t1 - t0);
           LOG(INFO) << "number of nodes explored is " << number_nodes_explored << " TIME in second: " << d;
@@ -153,9 +160,12 @@ namespace HybridAStar
               Utility::Path3D analytical_path = AnalyticExpansions(*nPred, goal);
               if (analytical_path.size() != 0)
               {
-                LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored;
+
                 TracePath(nPred);
-                path_ = ShortCut(path_, true);
+                if (params_.short_cut)
+                {
+                  path_ = ShortCut(path_, true);
+                }
                 analytical_expansion_index_ = path_.size();
 
                 path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
@@ -174,15 +184,13 @@ namespace HybridAStar
                   Utility::RemoveDuplicates(piecewise_cubic_bezier_path_);
                   ros::Time t1 = ros::Time::now();
                   ros::Duration d(t1 - t0);
-                  // LOG(INFO) << "TIME in ms: " << d * 1000;
-                  LOG(INFO) << "TIME in second: " << d;
+                  LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
                   return piecewise_cubic_bezier_path_;
                 }
 
                 ros::Time t1 = ros::Time::now();
                 ros::Duration d(t1 - t0);
-                // LOG(INFO) << "TIME in ms: " << d * 1000;
-                LOG(INFO) << "TIME in second: " << d;
+                LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
                 return path_;
               }
             }
@@ -196,9 +204,11 @@ namespace HybridAStar
                 Utility::Path3D analytical_path = AnalyticExpansions(*nPred, goal);
                 if (analytical_path.size() != 0)
                 {
-                  LOG(INFO) << "Found path through analytical expansion, number of nodes explored is " << number_nodes_explored;
                   TracePath(nPred);
-                  path_ = ShortCut(path_, true);
+                  if (params_.short_cut)
+                  {
+                    path_ = ShortCut(path_, true);
+                  }
                   analytical_expansion_index_ = path_.size();
                   path_.insert(path_.end(), analytical_path.begin(), analytical_path.end());
                   // for (const auto &element : path_)
@@ -214,13 +224,13 @@ namespace HybridAStar
                     Utility::RemoveDuplicates(piecewise_cubic_bezier_path_);
                     ros::Time t1 = ros::Time::now();
                     ros::Duration d(t1 - t0);
-                    LOG(INFO) << "TIME in second: " << d;
+                    LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
                     return piecewise_cubic_bezier_path_;
                   }
                   Utility::RemoveDuplicates(path_);
                   ros::Time t1 = ros::Time::now();
                   ros::Duration d(t1 - t0);
-                  LOG(INFO) << "TIME in second: " << d;
+                  LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
                   return path_;
                 }
               }
@@ -402,7 +412,7 @@ namespace HybridAStar
         {
 
           path_vec.emplace_back(node3d);
-          x += params_.curve_step_size * resolution_;
+          x += 0.2 * resolution_;
           i++;
           pred_shared_ptr = std::make_shared<Node3D>(node3d);
         }
@@ -426,7 +436,7 @@ namespace HybridAStar
       double q1[] = {goal.getX(), goal.getY(), goal.getT()};
       i = 0;
       std::vector<std::vector<double>> rs_path;
-      rs_planner.sample(q0, q1, params_.curve_step_size * resolution_, length, rs_path);
+      rs_planner.sample(q0, q1, 0.1 * resolution_, length, rs_path);
       for (auto &point_itr : rs_path)
       {
         node3d.setX(point_itr[0]);
@@ -486,7 +496,7 @@ namespace HybridAStar
           if (curvature <= 1 / params_.min_turning_radius)
           {
             path_vec.emplace_back(node3d);
-            x += params_.curve_step_size * resolution_;
+            x += 0.1 * resolution_;
             i++;
             pred_shared_ptr = std::make_shared<Node3D>(node3d);
             // DLOG(INFO) << "current node is " << node3d.getX() << " " << node3d.getY();
@@ -824,18 +834,21 @@ namespace HybridAStar
     piecewise_cubic_bezier_path_.clear();
     Node3D end_point;
     Eigen::Vector3f start_vector, end_point_vec;
+    Eigen::Vector3f vector_3d;
     Utility::TypeConversion(start_, start_vector);
-    for (uint index = 1; index < path_.size() - 1; ++index)
+    for (uint index = 0; index < path_.size() - 1; ++index)
     {
       // DLOG(INFO) << "path point is " << path_[index].getX() << " " << path_[index].getY() << " " << Utility::ConvertRadToDeg(path_[index].getT());
       // not necessary to do this check, greater than 1
       if (index == analytical_expansion_index_)
       {
         // DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
-        // DLOG(INFO) << "current path index is " << index;
-        end_point.setX(path_[index - 1].getX());
-        end_point.setY(path_[index - 1].getY());
-        end_point.setT(Utility::RadToZeroTo2P(path_[index - 1].getT()));
+        LOG(INFO) << "current path index is " << index << " point is " << path_[index].getX() << " " << path_[index].getY() << " " << Utility::ConvertRadToDeg(path_[index].getT());
+        end_point.setX(path_[index].getX());
+        end_point.setY(path_[index].getY());
+        end_point.setT(Utility::RadToZeroTo2P(path_[index].getT()));
+        Utility::TypeConversion(path_[index], vector_3d);
+        anchor_points_vec.emplace_back(vector_3d);
         break;
       }
       if (Utility::GetDistance(path_[index], path_[index + 1]) < resolution_)
@@ -843,7 +856,6 @@ namespace HybridAStar
         continue;
         // DLOG(INFO) << "points are too close to each other!!!!";
       }
-        Eigen::Vector3f vector_3d;
         Utility::TypeConversion(path_[index], vector_3d);
         anchor_points_vec.emplace_back(vector_3d);
         // DLOG(INFO) << "current path index is " << index;
@@ -851,20 +863,17 @@ namespace HybridAStar
     Utility::TypeConversion(end_point, end_point_vec);
     // DLOG(INFO) << "end point is " << end_point.getX() << " " << end_point.getY() << " " << Utility::ConvertRadToDeg(end_point.getT());
     PiecewiseCubicBezier pwcb(start_vector, end_point_vec);
+    // LOG(INFO) << "anchor points vec size is " << anchor_points_vec.size();
+    // for (const auto &element : anchor_points_vec)
+    // {
+    //     LOG(INFO) << "element in anchor_points_vec is " << element.x() << " " << element.y() << " " << Utility::ConvertRadToDeg(element.z());
+    // }
+
     pwcb.SetAnchorPoints(anchor_points_vec);
-    // for (const auto &point : anchor_points_vec)
-    // {
-    //   DLOG(INFO) << "anchor point is " << point.x() << " " << point.y() << " " << Utility::ConvertRadToDeg(point.z());
-    // }
-    std::vector<Eigen::Vector3f> points_vec = pwcb.GetPointsVec();
-    // for (const auto &point : points_vec)
-    // {
-    //   DLOG(INFO) << "all point is " << point.x() << " " << point.y() << " " << Utility::ConvertRadToDeg(point.z());
-    // }
-    std::vector<Eigen::Vector3f> path_vec = pwcb.ConvertPiecewiseCubicBezierToVector3f(10);
+    std::vector<Eigen::Vector3f> path_vec = pwcb.ConvertPiecewiseCubicBezierToVector3f(round(Utility::GetDistance(start_, end_point) / resolution_));
     for (const auto &vector : path_vec)
     {
-        // DLOG(INFO) << "vector is " << vector.x() << " " << vector.y() << " " << Utility::ConvertRadToDeg(vector.z());
+        // LOG(INFO) << "vector is " << vector.x() << " " << vector.y() << " " << Utility::ConvertRadToDeg(vector.z());
         Node3D node3d;
         Utility::TypeConversion(vector, node3d);
         piecewise_cubic_bezier_path_.emplace_back(node3d);
@@ -981,8 +990,19 @@ namespace HybridAStar
     Utility::TypeConversion(goal, goal_);
     Node2D *nodes2D = new Node2D[cellsX * cellsY]();
     Node3D *nodes3D = new Node3D[cellsX * cellsY * params_.collision_detection_params.headings + cellsY * cellsX + cellsX]();
-    Utility::Path3D path3d = GetPath(start_, goal_, nodes3D, nodes2D);
-    Utility::TypeConversion(path3d, plan);
+    Utility::Path3D path = GetPath(start_, goal_, nodes3D, nodes2D);
+    Utility::RemoveDuplicates(path);
+    Utility::TypeConversion(path, plan);
+    if (params_.evaluate_path)
+    {
+      // for (const auto element : path_)
+      // {
+      //   LOG(INFO) << "path node is " << element.getX() << " " << element.getY() << " " << Utility::ConvertRadToDeg(element.getT());
+      // }
+
+      EvaluatePath(path);
+    }
+
     if (plan.size() != 0)
     {
       delete[] nodes2D;
@@ -1156,5 +1176,154 @@ namespace HybridAStar
     // LOG(INFO) << "index2 is zero, break;";
     std::reverse(out.begin(), out.end());
     return out;
+  }
+
+  void HybridAStar::EvaluatePath(const Utility::Path3D &path)
+  {
+    std::vector<float> curvature_vec, smoothness_vec, clearance_vec, steering_angle_vec;
+    curvature_vec = CalculateCurvature(path);
+    smoothness_vec = CalculateSmoothness(path);
+    clearance_vec = CalculateClearance(path);
+    steering_angle_vec = CalculateSteeringAngle(path);
+    std::unordered_map<std::string, std::vector<float>> content;
+    content["curvature"] = curvature_vec;
+    content["smoothness"] = smoothness_vec;
+    content["clearance"] = clearance_vec;
+    content["steering_angle"] = steering_angle_vec;
+    Plot(content);
+  }
+
+  std::vector<float> HybridAStar::CalculateCurvature(const Utility::Path3D &path)
+  {
+    std::vector<float> curvature_vec;
+    if (path.size() < 3)
+    {
+      // DLOG(WARNING) << "In CalculateCurvature: path does not have enough points!!!";
+      return curvature_vec;
+    }
+
+    float curvature;
+    // DLOG(INFO) << "In CalculateCurvature: " << topic_name << " path size is :" << path.size();
+
+    // use three points to calculate curvature;
+    for (uint i = 0; i < path.size() - 2; ++i)
+    {
+      // get three points from path
+      Eigen::Vector2f xp(path[i].getX(), path[i].getY());
+      // DLOG(INFO) << "xp x is :" << xp(0,0) << "y is: " << xp.y();
+      Eigen::Vector2f xi(path[i + 1].getX(), path[i + 1].getY());
+      // DLOG(INFO) << "xi x is :" << xi(0,0) << "y is: " << xi.y();
+      Eigen::Vector2f xs(path[i + 2].getX(), path[i + 2].getY());
+
+      curvature = Utility::CalculateCurvature(xp, xi, xs);
+      curvature_vec.emplace_back(curvature);
+      // DLOG(INFO) << "In CalculateCurvature:" << i << "th curvature is:" << curvature;
+    }
+
+    return curvature_vec;
+  }
+
+  std::vector<float> HybridAStar::CalculateSmoothness(const Utility::Path3D &path)
+  {
+    std::vector<float> smoothness_vec;
+    if (path.size() < 3)
+    {
+      // DLOG(WARNING) << "In CalculateSmoothness: path does not have enough points!!!";
+      return smoothness_vec;
+    }
+
+    float smoothness;
+    for (uint i = 0; i < path.size() - 2; ++i)
+    {
+      // get three points from path
+      Eigen::Vector2f xp(path[i].getX(), path[i].getY());
+      Eigen::Vector2f xi(path[i + 1].getX(), path[i + 1].getY());
+      Eigen::Vector2f xs(path[i + 2].getX(), path[i + 2].getY());
+      if (xp == xi || xi == xs)
+      {
+        DLOG(WARNING) << "In CalculateSmoothness: some points are equal, skip these points for curvature calculation!!";
+        continue;
+      }
+      // get two vector between these three nodes
+      Eigen::Vector2f pre_vector = xi - xp;
+      Eigen::Vector2f succ_vector = xs - xi;
+
+      smoothness = (succ_vector - pre_vector).norm() * (succ_vector - pre_vector).norm();
+      smoothness_vec.emplace_back(smoothness);
+    }
+
+    return smoothness_vec;
+  }
+  // checked,good
+  std::vector<float> HybridAStar::CalculateClearance(const Utility::Path3D &path)
+  {
+    std::unordered_map<uint, float> min_distance_map = configuration_space_ptr_->GetMinDistanceMap();
+    std::vector<float> clearance_vec;
+    int point_index;
+    if (path.size() < 1)
+    {
+      // DLOG(WARNING) << "In CalculateSmoothness: path does not have enough points!!!";
+      return clearance_vec;
+    }
+    float clearance = 10000000;
+    for (const auto &point : path)
+    {
+      point_index = configuration_space_ptr_->GetNode3DIndexOnGridMap(point);
+      if (min_distance_map.find(point_index) != min_distance_map.end())
+      {
+        clearance = min_distance_map[point_index];
+      }
+      else
+      {
+        LOG(WARNING) << "current point " << point.getX() << " " << point.getY() << " " << point.getT() << " can`t be found in the map.";
+      }
+      clearance_vec.emplace_back(clearance);
+      // LOG(INFO) << "point is " << point.getX() << " " << point.getY() << " index is " << point_index << " clearance is " << clearance;
+    }
+    return clearance_vec;
+  }
+
+  std::vector<float> HybridAStar::CalculateSteeringAngle(const Utility::Path3D &path)
+  {
+    std::vector<float> steering_angle_vec;
+    if (path.size() < 3)
+    {
+      // DLOG(WARNING) << "In CalculateSteeringAngle: path does not have enough points!!!";
+      return steering_angle_vec;
+    }
+
+    float steering_angle;
+    for (uint i = 0; i < path.size() - 2; ++i)
+    {
+      steering_angle = Utility::ConvertRadToDeg(Utility::FindSteeringAngle(path[i], path[i + 1]));
+      // LOG(INFO) << i << " th steering angle is " << steering_angle << " current node is " << path[i].getX() << " " << path[i].getY() << " " << Utility::ConvertRadToDeg(path[i].getT()) << " next is " << path[i + 1].getX() << " " << path[i + 1].getY() << " " << Utility::ConvertRadToDeg(path[i + 1].getT());
+      steering_angle_vec.emplace_back(steering_angle);
+    }
+
+    return steering_angle_vec;
+  }
+
+  void HybridAStar::Plot(const std::unordered_map<std::string, std::vector<float>> &content)
+  {
+    matplotlibcpp::ion();
+    matplotlibcpp::clf();
+    std::vector<std::string> title_vec = {"curvature", "smoothness", "clearance", "steering_angle"};
+    std::vector<float> content_vec;
+    for (size_t i = 0; i < title_vec.size(); i++)
+    {
+      matplotlibcpp::subplot(2, 2, i + 1);
+      content_vec = content.at(title_vec[i]);
+
+      matplotlibcpp::plot(content_vec, {{"label", "raw path"}});
+
+      matplotlibcpp::legend({{"loc", "upper right"}});
+      // DLOG(INFO) << "Plot curvature for topic: " << curvature_vec.first;
+      matplotlibcpp::title(title_vec[i]);
+      matplotlibcpp::ylabel(title_vec[i]);
+      // matplotlibcpp::ylim(0, 1);
+      matplotlibcpp::grid(true);
+    }
+
+    matplotlibcpp::pause(0.1);
   }
 }

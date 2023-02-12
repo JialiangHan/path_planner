@@ -17,6 +17,7 @@
 #include "ReedsShepp.h"
 #include "glog/logging.h"
 #include "gflags/gflags.h"
+#include "matplotlibcpp.h"
 typedef ompl::base::SE2StateSpace::StateType State;
 
 namespace HybridAStar
@@ -210,6 +211,18 @@ namespace HybridAStar
        * @return Utility::Path3D
        */
       Utility::Path3D ShortCut(const Utility::Path3D &path, bool consider_steering_angle_limit);
+
+      void EvaluatePath(const Utility::Path3D &path);
+
+      std::vector<float> CalculateCurvature(const Utility::Path3D &path);
+
+      std::vector<float> CalculateSmoothness(const Utility::Path3D &path);
+
+      std::vector<float> CalculateClearance(const Utility::Path3D &path);
+
+      std::vector<float> CalculateSteeringAngle(const Utility::Path3D &path);
+
+      void Plot(const std::unordered_map<std::string, std::vector<float>> &content);
 
    private:
       ParameterHybridAStar params_;

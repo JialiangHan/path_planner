@@ -36,6 +36,7 @@ void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map, boo
   // std::thread th3(std::bind(&CollisionDetection::SetDistanceAngleRangeMap, this));
 
   SetInRangeObstacle();
+  SetMinDistanceMap();
   if (hybrid_astar)
   {
     // use only  hybrid a
@@ -397,12 +398,20 @@ void CollisionDetection::SetDistanceAngleRangeMap()
     {
       // LOG(INFO) << "current node is " << x << " " << y;
       distance_angle_range_vec.clear();
-
       uint current_point_index = GetNode3DIndexOnGridMap(x, y);
       Eigen::Vector2f current_point(x, y);
       Utility::TypeConversion(current_point, node_3d);
       std::vector<std::pair<float, float>> angle_distance_vec = SweepDistanceAndAngle(node_3d, obstacle_detection_range_, false);
       float range_start = -1, range_range = -1, min_distance;
+      if (min_distance_map_.find(current_point_index) != min_distance_map_.end())
+      {
+        min_distance = min_distance_map_[current_point_index];
+      }
+      else
+      {
+        LOG(WARNING) << "current point index can`t be found in the map.";
+      }
+
       // flag to indicate whether angle range start or not
       bool free_angle_range_flag = false, obstacle_angle_range_flag = false;
       std::vector<float> distance_vec;
@@ -416,10 +425,6 @@ void CollisionDetection::SetDistanceAngleRangeMap()
             obstacle_angle_range_flag = false;
             free_angle_range_flag = true;
             range_range = pair.first - range_start;
-            // find min distance
-            LOG_IF(WARNING, (distance_vec.size() - Utility::ConvertRadToDeg(range_range)) > 0.1) << "WARNING: distance vec size is not correct!!! current size is " << distance_vec.size() << " range range is " << Utility::ConvertRadToDeg(range_range);
-            min_distance = *std::min_element(distance_vec.begin(), distance_vec.end());
-            // LOG_IF(WARNING, min_distance == 0) << "WARNING: min_distance is zero!!! ";
             if (range_start != -1 && range_range != -1)
             {
               // push obstacle angle range into map
@@ -433,7 +438,6 @@ void CollisionDetection::SetDistanceAngleRangeMap()
               range_start = pair.first;
               // DLOG(INFO) << "set free angle range start to " << Utility::ConvertRadToDeg(range_start);
             }
-            distance_vec.clear();
           }
           if (!free_angle_range_flag)
           {
@@ -441,12 +445,10 @@ void CollisionDetection::SetDistanceAngleRangeMap()
             obstacle_angle_range_flag = false;
             range_start = pair.first;
             // DLOG(INFO) << "set free angle range start to " << Utility::ConvertRadToDeg(range_start);
-            distance_vec.clear();
           }
         }
         else
         {
-          distance_vec.emplace_back(pair.second);
           // DLOG_IF(INFO, pair.second == 0) << "insert current distance to distance vec: " << pair.second;
           if (free_angle_range_flag)
           {
@@ -478,23 +480,6 @@ void CollisionDetection::SetDistanceAngleRangeMap()
         if (pair.first == angle_distance_vec.back().first)
         {
           // DLOG(INFO) << "in last angle distance vec";
-
-          // check if size of distance vec is zero or not, if zero, just push back current distance
-          if (distance_vec.size() == 0)
-          {
-            distance_vec.emplace_back(pair.second);
-            // DLOG_IF(INFO, pair.second == 0) << "insert current distance to distance vec: " << pair.second;
-          }
-          if (free_angle_range_flag)
-          {
-            min_distance = obstacle_detection_range_;
-            // DLOG(INFO) << "current angle range is free angle range, set min distance to obstacle detection range.";
-          }
-          else
-          {
-            min_distance = *std::min_element(distance_vec.begin(), distance_vec.end());
-            // DLOG(INFO) << "current angle range is obstacle angle range, set min distance to min of distance vec.";
-          }
           range_range = pair.first - range_start;
           if (range_start != -1 && range_range != -1 && range_range != 0)
           {
@@ -1413,6 +1398,52 @@ std::vector<std::pair<float, float>> CollisionDetection::FindStepSizeAndSteering
   }
   // LOG(INFO) << "FindStepSizeAndSteeringAngle out.";
   return out;
+}
+
+void CollisionDetection::SetMinDistanceMap()
+{
+  // LOG(INFO) << "SetMinDistanceMap in:";
+  ros::Time t0 = ros::Time::now();
+  std::vector<Utility::Polygon> obstacle_vec;
+  float x_limit = origin_x_ + grid_ptr_->info.width * resolution_;
+  float y_limit = origin_y_ + grid_ptr_->info.height * resolution_;
+  float min_distance = 1000, distance = 0;
+  for (float x = origin_x_; x < x_limit;)
+  {
+    for (float y = origin_y_; y < y_limit;)
+    {
+      // LOG(INFO) << "current node is " << x << " " << y;
+      uint current_point_index = GetNode3DIndexOnGridMap(x, y);
+      Eigen::Vector2f current_point(x, y);
+      if (in_range_obstacle_map_.find(current_point_index) != in_range_obstacle_map_.end())
+      {
+        for (const auto &obstacle : in_range_obstacle_map_[current_point_index])
+        {
+          distance = Utility::GetDistanceFromPolygonToPoint(obstacle, current_point);
+          // LOG(INFO) << "current distance to obstacle is " << distance;
+          if (min_distance > distance)
+          {
+            min_distance = distance;
+            // LOG(INFO) << "set min distance to " << min_distance;
+          }
+        }
+      }
+      else
+      {
+        LOG(WARNING) << "current point " << x << " " << y << " can`t be found in the map.";
+      }
+
+      // LOG(INFO) << "current node is " << x << " " << y << " index is " << current_point_index;
+      min_distance_map_.emplace(current_point_index, min_distance);
+      y = y + resolution_;
+      min_distance = 1000;
+    }
+    x = x + resolution_;
+  }
+  ros::Time t1 = ros::Time::now();
+  ros::Duration d(t1 - t0);
+  LOG(INFO) << "SetMinDistanceMap in ms: " << d * 1000;
+  // LOG(INFO) << "SetInRangeObstacle out.";
 }
 
 float CollisionDetection::FindStepSize(const Node3D &pred, const float &steering_angle, const Node3D &goal, const float &fixed_step_size)

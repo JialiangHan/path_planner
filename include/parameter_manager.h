@@ -168,6 +168,10 @@ namespace HybridAStar
     ParameterAStar a_star_params;
 
     float constant_density = 0.5;
+
+    bool short_cut = true;
+
+    bool evaluate_path = true;
   };
 
   struct ParameterSmoother
