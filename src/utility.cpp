@@ -2090,6 +2090,12 @@ namespace Utility
 
     void RemoveDuplicates(Path3D &path)
     {
+        if (path.size() == 0)
+        {
+            DLOG(WARNING) << "path size is " << path.size();
+            return;
+        }
+
         for (uint index = 0; index < path.size() - 1; index++)
         {
             // LOG(INFO) << "current point is " << path[index].getX() << " " << path[index].getY() << " next point is " << path[index + 1].getX() << " " << path[index + 1].getY() << " distance is " << GetDistance(path[index], path[index + 1]);

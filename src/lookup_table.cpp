@@ -19,7 +19,7 @@ namespace HybridAStar
 
     void LookupTable::Initialize(const int &width, const int &height)
     {
-        LOG(INFO) << "lookup table initializing";
+        DLOG(INFO) << "lookup table initializing";
         if (map_width_ != width || map_height_ != height)
         {
             Clear();
@@ -41,7 +41,7 @@ namespace HybridAStar
             }
             ros::Time t1 = ros::Time::now();
             ros::Duration d(t1 - t0);
-            LOG(INFO) << "build lookup table in ms: " << d * 1000;
+            DLOG(INFO) << "build lookup table in ms: " << d * 1000;
         }
     }
 

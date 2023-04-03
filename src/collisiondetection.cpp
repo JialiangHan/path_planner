@@ -49,7 +49,7 @@ void CollisionDetection::UpdateGrid(const nav_msgs::OccupancyGrid::Ptr &map, boo
   // th3.join(); // 此时主线程被阻塞直至子线程执行结束。
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
-  LOG(INFO) << "UpdateGrid in ms: " << d * 1000;
+  DLOG(INFO) << "UpdateGrid in ms: " << d * 1000;
   // LOG(INFO) << "UpdateGrid done.";
 }
 
@@ -58,7 +58,7 @@ bool CollisionDetection::IsTraversable(const std::shared_ptr<Node2D> &node2d_ptr
   // DLOG(INFO) << "IsTraversable in:";
   if (!IsOnGrid(node2d_ptr))
   {
-    LOG(INFO) << "IsTraversable out.";
+    DLOG(INFO) << "IsTraversable out.";
     return false;
   }
   float x, y, t;
@@ -193,7 +193,7 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
   unsigned int startX, startY;
   if (!costmap_->worldToMap(x, y, startX, startY))
   {
-    LOG(INFO) << "current node " << x << " " << y << " " << t << " is not on grid.";
+    DLOG(INFO) << "current node " << x << " " << y << " " << t << " is not on grid.";
     return false;
   }
   // simple collision check
@@ -312,7 +312,7 @@ void CollisionDetection::SetObstacleVec()
   // }
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
-  LOG(INFO) << "SetObstacleVec in ms: " << d * 1000;
+  DLOG(INFO) << "SetObstacleVec in ms: " << d * 1000;
   // LOG(INFO) << "SetObstacleVec out.";
 }
 // checked
@@ -349,7 +349,7 @@ void CollisionDetection::SetInRangeObstacle()
   }
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
-  LOG(INFO) << "SetInRangeObstacle in ms: " << d * 1000;
+  DLOG(INFO) << "SetInRangeObstacle in ms: " << d * 1000;
   // LOG(INFO) << "SetInRangeObstacle out.";
 }
 // checked,it`s correct.
@@ -409,7 +409,7 @@ void CollisionDetection::SetDistanceAngleRangeMap()
       }
       else
       {
-        LOG(WARNING) << "current point index can`t be found in the map.";
+        DLOG(WARNING) << "current point index can`t be found in the map.";
       }
 
       // flag to indicate whether angle range start or not
@@ -495,7 +495,7 @@ void CollisionDetection::SetDistanceAngleRangeMap()
   }
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
-  LOG(INFO) << "SetDistanceAngleRangeMap in ms: " << d * 1000;
+  DLOG(INFO) << "SetDistanceAngleRangeMap in ms: " << d * 1000;
   // LOG(INFO) << "SetDistanceAngleRangeMap out.";
 }
 // Not used
@@ -599,7 +599,7 @@ bool CollisionDetection::CollisionCheck(const Utility::Polygon &polygon)
   }
   else
   {
-    LOG(INFO) << "current polygon can`t be found in in_range_obstacle_map.";
+    DLOG(INFO) << "current polygon can`t be found in in_range_obstacle_map.";
   }
   return true;
   // 2. find obstacle in a certain range, this range is determined be vehicle parameter
@@ -610,7 +610,7 @@ bool CollisionDetection::CollisionCheck(const Eigen::Vector2f &start, const Eige
   // DLOG(INFO) << "CollisionCheck in.";
   if (!IsOnGrid(start) || !IsOnGrid(end))
   {
-    LOG(INFO) << "start or end is not on grid";
+    DLOG(INFO) << "start or end is not on grid";
     return false;
   }
 
@@ -633,7 +633,7 @@ bool CollisionDetection::CollisionCheck(const Eigen::Vector2f &start, const Eige
   }
   else
   {
-    LOG(INFO) << "current start " << start.x() << " " << start.y() << " index is " << current_start_index << " can`t be found in in_range_obstacle_map.";
+    DLOG(INFO) << "current start " << start.x() << " " << start.y() << " index is " << current_start_index << " can`t be found in in_range_obstacle_map.";
   }
   // check with in range obstacle
   if (in_range_obstacle_map_.find(current_end_index) != in_range_obstacle_map_.end())
@@ -650,7 +650,7 @@ bool CollisionDetection::CollisionCheck(const Eigen::Vector2f &start, const Eige
   }
   else
   {
-    LOG(INFO) << "current end " << end.x() << " " << end.y() << " index is " << current_end_index << " can`t be found in in_range_obstacle_map.";
+    DLOG(INFO) << "current end " << end.x() << " " << end.y() << " index is " << current_end_index << " can`t be found in in_range_obstacle_map.";
   }
   return true;
 }
@@ -1042,7 +1042,7 @@ void CollisionDetection::BuildObstacleDensityMap()
         }
         else
         {
-          LOG(WARNING) << "current index can not be find in in_range_obstacle_density_map_!!";
+          DLOG(WARNING) << "current index can not be find in in_range_obstacle_density_map_!!";
         }
 
         // DLOG(INFO) << "current node is " << x << " " << y << " " << theta << " fine index is " << current_point_index << " number of obstacles is " << number_of_obstacles;
@@ -1098,7 +1098,7 @@ void CollisionDetection::BuildObstacleDensityMap()
   }
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
-  LOG(INFO) << "BuildObstacleDensityMap in ms: " << d * 1000;
+  DLOG(INFO) << "BuildObstacleDensityMap in ms: " << d * 1000;
   // LOG(INFO) << "BuildObstacleDensityMap out.";
 }
 
@@ -1146,7 +1146,7 @@ void CollisionDetection::BuildNormalizedObstacleDensityMap()
   }
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
-  LOG(INFO) << "BuildNormalizedObstacleDensityMap in ms: " << d * 1000;
+  DLOG(INFO) << "BuildNormalizedObstacleDensityMap in ms: " << d * 1000;
   // LOG(INFO) << "BuildNormalizedObstacleDensityMap out.";
 }
 
@@ -1430,7 +1430,7 @@ void CollisionDetection::SetMinDistanceMap()
       }
       else
       {
-        LOG(WARNING) << "current point " << x << " " << y << " can`t be found in the map.";
+        DLOG(WARNING) << "current point " << x << " " << y << " can`t be found in the map.";
       }
 
       // LOG(INFO) << "current node is " << x << " " << y << " index is " << current_point_index;
@@ -1442,7 +1442,7 @@ void CollisionDetection::SetMinDistanceMap()
   }
   ros::Time t1 = ros::Time::now();
   ros::Duration d(t1 - t0);
-  LOG(INFO) << "SetMinDistanceMap in ms: " << d * 1000;
+  DLOG(INFO) << "SetMinDistanceMap in ms: " << d * 1000;
   // LOG(INFO) << "SetInRangeObstacle out.";
 }
 

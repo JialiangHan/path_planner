@@ -6,6 +6,7 @@ Panels:
       Expanded:
         - /Global Options1
         - /Grid1
+        - /PoseArray2
       Splitter Ratio: 0.5
     Tree Height: 719
   - Class: rviz/Selection
@@ -202,13 +203,30 @@ Visualization Manager:
       Queue Size: 100
       Value: true
     - Class: rviz/MarkerArray
-      Enabled: false
+      Enabled: true
       Marker Topic: /visualizeNodes2DPoses
       Name: MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: false
+      Value: true
+    - Alpha: 1
+      Arrow Length: 0.30000001192092896
+      Axes Length: 0.30000001192092896
+      Axes Radius: 0.009999999776482582
+      Class: rviz/PoseArray
+      Color: 252; 233; 79
+      Enabled: true
+      Head Length: 0.07000000029802322
+      Head Radius: 0.029999999329447746
+      Name: PoseArray
+      Queue Size: 10
+      Shaft Length: 0.23000000417232513
+      Shaft Radius: 0.009999999776482582
+      Shape: Arrow (Flat)
+      Topic: /visualizeNodes3DPosesReverse
+      Unreliable: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -246,10 +264,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 90.3333969116211
+      Scale: 89.35990142822266
       Target Frame: <Fixed Frame>
-      X: 2.894395112991333
-      Y: 4.313266277313232
+      X: 4.742748260498047
+      Y: 3.7339367866516113
     Saved: ~
 Window Geometry:
   Displays:

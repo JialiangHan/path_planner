@@ -16,6 +16,7 @@ namespace HybridAStar
 
     HybridAStarPlanner::HybridAStarPlanner() : initialized_(false), costmap(NULL), resolution(1.0), hybrid_a_star_ptr_(NULL)
     {
+#ifdef DEBUG
 
         std::string log_dir = "/home/jialiang/Code/thesis_ws/src/hybrid_astar/log/hybrid_astar_";
         for (int severity = 0; severity < google::NUM_SEVERITIES; ++severity)
@@ -29,6 +30,7 @@ namespace HybridAStar
 
         google::EnableLogCleaner(5);
         FLAGS_alsologtostderr = 1;
+#endif
         LOG(INFO) << "creating the hybrid Astar planner";
     }
 
