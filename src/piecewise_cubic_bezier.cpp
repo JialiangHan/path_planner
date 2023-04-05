@@ -226,7 +226,7 @@ namespace HybridAStar
         // uint j = 0;
         for (uint i = 0; i < anchor_points3d_vec_.size() - 1; ++i)
         {
-            LOG(INFO) << "index is " << i << " start for bezier is " << anchor_points3d_vec_[i].x() << " " << anchor_points3d_vec_[i].y() << " " << Utility::ConvertRadToDeg(anchor_points3d_vec_[i].z()) << " end is " << anchor_points3d_vec_[i + 1].x() << " " << anchor_points3d_vec_[i + 1].y() << " " << Utility::ConvertRadToDeg(anchor_points3d_vec_[i + 1].z());
+            DLOG(INFO) << "index is " << i << " start for bezier is " << anchor_points3d_vec_[i].x() << " " << anchor_points3d_vec_[i].y() << " " << Utility::ConvertRadToDeg(anchor_points3d_vec_[i].z()) << " end is " << anchor_points3d_vec_[i + 1].x() << " " << anchor_points3d_vec_[i + 1].y() << " " << Utility::ConvertRadToDeg(anchor_points3d_vec_[i + 1].z());
             cubic_bezier_vec_.emplace_back(CubicBezier::CubicBezier(anchor_points3d_vec_[i], anchor_points3d_vec_[i + 1]));
         }
         // DLOG(INFO) << "CalculateCubicBezier out.";

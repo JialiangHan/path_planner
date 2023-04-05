@@ -126,7 +126,7 @@ namespace HybridAStar
 
           ros::Time t1 = ros::Time::now();
           ros::Duration d(t1 - t0);
-          LOG(INFO) << "max iterations reached!!!, current iterations is : " << iterations << " number of nodes explored is " << number_nodes_explored << " TIME in second: " << d;
+          DLOG(INFO) << "max iterations reached!!!, current iterations is : " << iterations << " number of nodes explored is " << number_nodes_explored << " TIME in second: " << d;
           return path_;
         }
         else if (Utility::IsCloseEnough(*nPred, goal, params_.goal_range * resolution_, 2 * M_PI / params_.collision_detection_params.headings, true))
@@ -142,7 +142,7 @@ namespace HybridAStar
           }
           ros::Time t1 = ros::Time::now();
           ros::Duration d(t1 - t0);
-          LOG(INFO) << "number of nodes explored is " << number_nodes_explored << " TIME in second: " << d;
+          DLOG(INFO) << "number of nodes explored is " << number_nodes_explored << " TIME in second: " << d;
           return path_;
         }
         // ____________________
@@ -184,13 +184,13 @@ namespace HybridAStar
                   Utility::RemoveDuplicates(piecewise_cubic_bezier_path_);
                   ros::Time t1 = ros::Time::now();
                   ros::Duration d(t1 - t0);
-                  LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
+                  DLOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
                   return piecewise_cubic_bezier_path_;
                 }
 
                 ros::Time t1 = ros::Time::now();
                 ros::Duration d(t1 - t0);
-                LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
+                DLOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
                 return path_;
               }
             }
@@ -224,13 +224,13 @@ namespace HybridAStar
                     Utility::RemoveDuplicates(piecewise_cubic_bezier_path_);
                     ros::Time t1 = ros::Time::now();
                     ros::Duration d(t1 - t0);
-                    LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
+                    DLOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
                     return piecewise_cubic_bezier_path_;
                   }
                   Utility::RemoveDuplicates(path_);
                   ros::Time t1 = ros::Time::now();
                   ros::Duration d(t1 - t0);
-                  LOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
+                  DLOG(INFO) << "Found path through analytical expansion. number of nodes explored is " << number_nodes_explored << " time used is " << d << " secondes.";
                   return path_;
                 }
               }
@@ -843,7 +843,7 @@ namespace HybridAStar
       if (index == analytical_expansion_index_)
       {
         // DLOG(INFO) << "distance between path node is smaller than 1, set it to end point.";
-        LOG(INFO) << "current path index is " << index << " point is " << path_[index].getX() << " " << path_[index].getY() << " " << Utility::ConvertRadToDeg(path_[index].getT());
+        DLOG(INFO) << "current path index is " << index << " point is " << path_[index].getX() << " " << path_[index].getY() << " " << Utility::ConvertRadToDeg(path_[index].getT());
         end_point.setX(path_[index].getX());
         end_point.setY(path_[index].getY());
         end_point.setT(Utility::RadToZeroTo2P(path_[index].getT()));
