@@ -129,7 +129,7 @@ namespace HybridAStar
         {
             return true;
         }
-        LOG(WARNING) << "The Start pose is out of the map!";
+        LOG(WARNING) << "The Start pose: " << start.pose.position.x << " " << start.pose.position.y << " " << start.pose.position.z << " is out of the map!";
         return false;
     } // end of checkStartPose
 
