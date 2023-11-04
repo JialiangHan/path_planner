@@ -193,7 +193,7 @@ bool CollisionDetection::configurationTest(const float &x, const float &y, const
   unsigned int startX, startY;
   if (!costmap_->worldToMap(x, y, startX, startY))
   {
-    DLOG(INFO) << "current node " << x << " " << y << " " << t << " is not on grid.";
+    // DLOG(INFO) << "current node " << x << " " << y << " " << t << " is not on grid.";
     return false;
   }
   // simple collision check
